@@ -96,6 +96,9 @@ protected:
     QString _altCtlFlightMode;
     QString _posCtlFlightMode;
     QString _offboardFlightMode;
+    //**********************************************************************************************************
+    QString _fourdflightFlightMode;
+    //**********************************************************************************************************
     QString _readyFlightMode;
     QString _takeoffFlightMode;
     QString _holdFlightMode;

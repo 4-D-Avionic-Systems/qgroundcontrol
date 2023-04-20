@@ -108,6 +108,7 @@ QString FirmwarePlugin::flightMode(uint8_t base_mode, uint32_t custom_mode) cons
         }
     }
 
+
     return flightMode;
 }
 

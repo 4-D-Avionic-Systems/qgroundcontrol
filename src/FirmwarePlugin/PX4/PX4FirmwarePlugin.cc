@@ -40,6 +40,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
     , _altCtlFlightMode     (tr("Altitude"))
     , _posCtlFlightMode     (tr("Position"))
     , _offboardFlightMode   (tr("Offboard"))
+    //**********************************************************************************************************
+    , _fourdflightFlightMode (tr("4D Flight"))
+    //**********************************************************************************************************
     , _readyFlightMode      (tr("Ready"))
     , _takeoffFlightMode    (tr("Takeoff"))
     , _holdFlightMode       (tr("Hold"))
@@ -51,6 +54,7 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
     , _followMeFlightMode   (tr("Follow Me"))
     , _simpleFlightMode     (tr("Simple"))
     , _orbitFlightMode      (tr("Orbit"))
+ 
 {
     qmlRegisterType<PX4SimpleFlightModesController>     ("QGroundControl.Controllers", 1, 0, "PX4SimpleFlightModesController");
     qmlRegisterType<AirframeComponentController>        ("QGroundControl.Controllers", 1, 0, "AirframeComponentController");
@@ -74,6 +78,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
         { PX4_CUSTOM_MAIN_MODE_ALTCTL,      0,                                      true,   true,   true },
         { PX4_CUSTOM_MAIN_MODE_OFFBOARD,    0,                                      true,   false,  true },
         { PX4_CUSTOM_MAIN_MODE_SIMPLE,      0,                                      false,  false,  true },
+        //**********************************************************************************************************
+        { PX4_CUSTOM_MAIN_MODE_FOURDFLIGHT, 0,                                       true,   true,  true },
+        //********************************************************************************************************** 
         { PX4_CUSTOM_MAIN_MODE_POSCTL,      PX4_CUSTOM_SUB_MODE_POSCTL_POSCTL,      true,   true,   true },
         { PX4_CUSTOM_MAIN_MODE_POSCTL,      PX4_CUSTOM_SUB_MODE_POSCTL_ORBIT,       false,  false,   false },
         { PX4_CUSTOM_MAIN_MODE_AUTO,        PX4_CUSTOM_SUB_MODE_AUTO_LOITER,        true,   true,   true },
@@ -96,6 +103,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
         &_altCtlFlightMode,
         &_offboardFlightMode,
         &_simpleFlightMode,
+        //**********************************************************************************************************
+        &_fourdflightFlightMode,
+        //********************************************************************************************************** 
         &_posCtlFlightMode,
         &_orbitFlightMode,
         &_holdFlightMode,
@@ -155,7 +165,12 @@ QStringList PX4FirmwarePlugin::flightModes(Vehicle* vehicle)
             bool other = !vehicle->fixedWing() && !vehicle->multiRotor();
 
             if (fw || mc || other) {
+
                 flightModes += *info.name;
+
+                // qWarning() << "flightModes first" << flightModes;
+
+
             }
         }
     }
@@ -163,7 +178,7 @@ QStringList PX4FirmwarePlugin::flightModes(Vehicle* vehicle)
     return flightModes;
 }
 
-QString PX4FirmwarePlugin::flightMode(uint8_t base_mode, uint32_t custom_mode) const
+QString PX4FirmwarePlugin::flightMode(uint8_t base_mode, uint32_t custom_mode) const // This mode is triggering not finding the custom mode
 {
     QString flightMode = "Unknown";
 
@@ -173,17 +188,31 @@ QString PX4FirmwarePlugin::flightMode(uint8_t base_mode, uint32_t custom_mode) c
 
         bool found = false;
         foreach (const FlightModeInfo_t& info, _flightModeInfoList) {
+
             if (info.main_mode == px4_mode.main_mode && info.sub_mode == px4_mode.sub_mode) {
                 flightMode = *info.name;
                 found = true;
                 break;
             }
+
+            //**********************************************************************************************************
+            // else {
+                
+            //     qWarning() << "info.main_mode" << info.main_mode;
+            //     qWarning() << "px4_mode.main_mode" << px4_mode.main_mode;
+            //     qWarning() << "info.sub_mode" << info.sub_mode;
+            //     qWarning() << "px4_mode.sub_mode" << px4_mode.sub_mode;
+            
+            // }
+            //**********************************************************************************************************
         }
 
         if (!found) {
-            qWarning() << "Unknown flight mode" << custom_mode;
+
+            qWarning() << "Unknown flight mode" << custom_mode; // is 0 because the logic isn't getting through
             return tr("Unknown %1:%2").arg(base_mode).arg(custom_mode);
         }
+
     }
 
     return flightMode;
@@ -206,9 +235,31 @@ bool PX4FirmwarePlugin::setFlightMode(const QString& flightMode, uint8_t* base_m
             *base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             *custom_mode = px4_mode.data;
 
+            qWarning() << "MAV_MODE_FLAG_CUSTOM_MODE_ENABLED, base mode" << MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
+            qWarning() << "px4_mode.data custom mode" << px4_mode.data;
+
             found = true;
             break;
         }
+
+
+        //  **********************************************************************************************************
+        // else {
+
+            // qWarning() << "info.main_mode setFlightMode" << info.main_mode;
+            // qWarning() << "px4_mode.main_mode setFlightMode" << px4_mode.main_mode;
+            // qWarning() << "info.sub_mode setFlightMode" << info.sub_mode;
+            // qWarning() << "px4_mode.sub_mode setFlightMode" << px4_mode.sub_mode;
+
+            // qWarning() << "flightMode.compare(info.name, Qt::CaseInsensitive)" << flightMode.compare(info.name, Qt::CaseInsensitive);
+
+            // qWarning() << "info.name" << *info.name;
+
+            // qWarning() << "flightMode" << flightMode;
+
+        // }
+        //  **********************************************************************************************************
+
     }
 
     if (!found) {
@@ -372,7 +423,7 @@ void PX4FirmwarePlugin::_mavCommandResult(int vehicleId, int component, int comm
     Q_UNUSED(vehicleId);
     Q_UNUSED(component);
     Q_UNUSED(noReponseFromVehicle);
-
+    
     auto* vehicle = qobject_cast<Vehicle*>(sender());
     if (!vehicle) {
         qWarning() << "Dynamic cast failed!";
@@ -615,8 +666,10 @@ void PX4FirmwarePlugin::setGuidedMode(Vehicle* vehicle, bool guidedMode)
 {
     if (guidedMode) {
         _setFlightModeAndValidate(vehicle, _holdFlightMode);
+        
     } else {
         pauseVehicle(vehicle);
+
     }
 }
 
