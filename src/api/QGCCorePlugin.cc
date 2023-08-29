@@ -55,10 +55,6 @@ public:
         if(pMicrohard)
             delete pMicrohard;
 #endif
-#if defined(QGC_AIRMAP_ENABLED)
-        if(pAirmap)
-            delete pAirmap;
-#endif
         if(pMAVLink)
             delete pMAVLink;
         if(pConsole)
@@ -85,9 +81,6 @@ public:
 #endif
 #if defined(QGC_GST_MICROHARD_ENABLED)
     QmlComponentInfo* pMicrohard                = nullptr;
-#endif
-#if defined(QGC_AIRMAP_ENABLED)
-    QmlComponentInfo* pAirmap                   = nullptr;
 #endif
     QmlComponentInfo* pMAVLink                  = nullptr;
     QmlComponentInfo* pConsole                  = nullptr;
@@ -157,12 +150,6 @@ QVariantList &QGCCorePlugin::settingsPages()
                                               QUrl::fromUserInput("qrc:/qml/MicrohardSettings.qml"),
                                               QUrl::fromUserInput(""));
         _p->settingsList.append(QVariant::fromValue(reinterpret_cast<QmlComponentInfo*>(_p->pMicrohard)));
-#endif
-#if defined(QGC_AIRMAP_ENABLED)
-        _p->pAirmap = new QmlComponentInfo(tr("AirMap"),
-                                           QUrl::fromUserInput("qrc:/qml/AirmapSettings.qml"),
-                                           QUrl::fromUserInput(""));
-        _p->settingsList.append(QVariant::fromValue(reinterpret_cast<QmlComponentInfo*>(_p->pAirmap)));
 #endif
         _p->pMAVLink = new QmlComponentInfo(tr("MAVLink"),
                                             QUrl::fromUserInput("qrc:/qml/MavlinkSettings.qml"),
@@ -259,6 +246,13 @@ bool QGCCorePlugin::adjustSettingMetaData(const QString& settingsGroup, FactMeta
             // Mobile devices have limited storage so don't turn on telemtry saving by default
             metaData.setRawDefaultValue(false);
             return true;
+        }
+#endif
+
+#ifndef __android__
+        if (metaData.name() == AppSettings::androidSaveToSDCardName) {
+            // This only shows on android builds
+            return false;
         }
 #endif
     }

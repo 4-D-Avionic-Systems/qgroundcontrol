@@ -174,9 +174,17 @@
 {
     "name":             "savePath",
     "shortDesc": "Application save directory",
-    "longDesc":  "Directory to which all data files  are saved/loaded from",
+    "longDesc":  "Directory to which all data files are saved/loaded from",
     "type":             "string",
     "default":     ""
+},
+{
+    "name":                 "androidSaveToSDCard",
+    "shortDesc":            "Save to SD card",
+    "longDesc":             "Application data is saved to the sd card",
+    "type":                 "bool",
+    "default":              false,
+    "qgcRebootRequired":    true
 },
 {
     "name":             "userBrandImageIndoor",
@@ -325,6 +333,13 @@
     "longDesc":  "Host name to forward mavlink to. i.e: localhost:14445",
     "type":             "string",
     "default":     "localhost:14445"
+},
+{
+    "name":      "forwardMavlinkAPMSupportHostName",
+    "shortDesc": "Ardupilot Support Host name",
+    "longDesc":  "Ardupilot Support server to forward mavlink to. i.e: support.ardupilot.org:xxxx",
+    "type":      "string",
+    "default":   "support.ardupilot.org:xxxx"
 }
 ]
 }

@@ -182,13 +182,12 @@ contains (CONFIG, QGC_DISABLE_PX4_PLUGIN_FACTORY) {
 
 # Bluetooth
 contains (DEFINES, QGC_DISABLE_BLUETOOTH) {
-    message("Skipping support for Bluetooth (manual override from command line)")
+    message("Bluetooth support disabled (manual override from command line)")
     DEFINES -= QGC_ENABLE_BLUETOOTH
 } else:exists(user_config.pri):infile(user_config.pri, DEFINES, QGC_DISABLE_BLUETOOTH) {
-    message("Skipping support for Bluetooth (manual override from user_config.pri)")
+    message("Bluetooth support disabled (manual override from user_config.pri)")
     DEFINES -= QGC_ENABLE_BLUETOOTH
 } else:exists(user_config.pri):infile(user_config.pri, DEFINES, QGC_ENABLE_BLUETOOTH) {
-    message("Including support for Bluetooth (manual override from user_config.pri)")
     DEFINES += QGC_ENABLE_BLUETOOTH
 }
 
@@ -797,11 +796,7 @@ contains (DEFINES, QGC_ENABLE_PAIRING) {
     }
 }
 
-contains(DEFINES, NO_SERIAL_LINK) {
-    CONFIG += NoSerialBuild
-}
-
-!NoSerialBuild {
+!contains(DEFINES, NO_SERIAL_LINK) {
 HEADERS += \
     src/comm/QGCSerialPortInfo.h \
     src/comm/SerialLink.h \
@@ -1032,7 +1027,7 @@ SOURCES += \
     src/comm/MockLinkMissionItemHandler.cc \
 }
 
-!NoSerialBuild {
+!contains(DEFINES, NO_SERIAL_LINK) {
 SOURCES += \
     src/comm/QGCSerialPortInfo.cc \
     src/comm/SerialLink.cc \
@@ -1087,7 +1082,7 @@ HEADERS+= \
     src/FirmwarePlugin/FirmwarePluginManager.h \
     src/VehicleSetup/VehicleComponent.h \
 
-!MobileBuild { !NoSerialBuild {
+!MobileBuild { !contains(DEFINES, NO_SERIAL_LINK) {
     HEADERS += \
         src/VehicleSetup/Bootloader.h \
         src/VehicleSetup/FirmwareImage.h \
@@ -1109,7 +1104,7 @@ SOURCES += \
     src/FirmwarePlugin/FirmwarePluginManager.cc \
     src/VehicleSetup/VehicleComponent.cc \
 
-!MobileBuild { !NoSerialBuild {
+!MobileBuild { !contains(DEFINES, NO_SERIAL_LINK) {
     SOURCES += \
         src/VehicleSetup/Bootloader.cc \
         src/VehicleSetup/FirmwareImage.cc \
@@ -1157,6 +1152,7 @@ APMFirmwarePlugin {
         src/AutoPilotPlugins/APM/APMSensorsComponentController.h \
         src/AutoPilotPlugins/APM/APMSubMotorComponentController.h \
         src/AutoPilotPlugins/APM/APMTuningComponent.h \
+        src/AutoPilotPlugins/APM/APMRemoteSupportComponent.h \
         src/FirmwarePlugin/APM/APMFirmwarePlugin.h \
         src/FirmwarePlugin/APM/APMParameterMetaData.h \
         src/FirmwarePlugin/APM/ArduCopterFirmwarePlugin.h \
@@ -1185,6 +1181,7 @@ APMFirmwarePlugin {
         src/AutoPilotPlugins/APM/APMSensorsComponentController.cc \
         src/AutoPilotPlugins/APM/APMSubMotorComponentController.cc \
         src/AutoPilotPlugins/APM/APMTuningComponent.cc \
+        src/AutoPilotPlugins/APM/APMRemoteSupportComponent.cc \
         src/FirmwarePlugin/APM/APMFirmwarePlugin.cc \
         src/FirmwarePlugin/APM/APMParameterMetaData.cc \
         src/FirmwarePlugin/APM/ArduCopterFirmwarePlugin.cc \
@@ -1348,123 +1345,6 @@ contains (DEFINES, QGC_GST_MICROHARD_DISABLED) {
             src/Microhard/MicrohardHandler.cc \
             src/Microhard/MicrohardSettings.cc \
     }
-}
-#-------------------------------------------------------------------------------------
-# AirMap
-
-contains (DEFINES, QGC_AIRMAP_ENABLED) {
-
-    #-- These should be always enabled but not yet
-    INCLUDEPATH += \
-        src/AirspaceManagement
-
-    HEADERS += \
-        src/AirspaceManagement/AirspaceAdvisoryProvider.h \
-        src/AirspaceManagement/AirspaceFlightPlanProvider.h \
-        src/AirspaceManagement/AirspaceManager.h \
-        src/AirspaceManagement/AirspaceRestriction.h \
-        src/AirspaceManagement/AirspaceRestrictionProvider.h \
-        src/AirspaceManagement/AirspaceRulesetsProvider.h \
-        src/AirspaceManagement/AirspaceVehicleManager.h \
-        src/AirspaceManagement/AirspaceWeatherInfoProvider.h \
-
-    SOURCES += \
-        src/AirspaceManagement/AirspaceAdvisoryProvider.cc \
-        src/AirspaceManagement/AirspaceFlightPlanProvider.cc \
-        src/AirspaceManagement/AirspaceManager.cc \
-        src/AirspaceManagement/AirspaceRestriction.cc \
-        src/AirspaceManagement/AirspaceRestrictionProvider.cc \
-        src/AirspaceManagement/AirspaceRulesetsProvider.cc \
-        src/AirspaceManagement/AirspaceVehicleManager.cc \
-        src/AirspaceManagement/AirspaceWeatherInfoProvider.cc \
-
-    #-- This is the AirMap implementation of the above
-    RESOURCES += \
-        src/Airmap/airmap.qrc
-
-    INCLUDEPATH += \
-        src/Airmap \
-        src/Airmap/services
-
-    HEADERS += \
-        src/Airmap/AirMapAdvisoryManager.h \
-        src/Airmap/AirMapFlightManager.h \
-        src/Airmap/AirMapFlightPlanManager.h \
-        src/Airmap/AirMapManager.h \
-        src/Airmap/AirMapRestrictionManager.h \
-        src/Airmap/AirMapRulesetsManager.h \
-        src/Airmap/AirMapSettings.h \
-        src/Airmap/AirMapSharedState.h \
-        src/Airmap/AirMapTelemetry.h \
-        src/Airmap/AirMapTrafficMonitor.h \
-        src/Airmap/AirMapVehicleManager.h \
-        src/Airmap/AirMapWeatherInfoManager.h \
-        src/Airmap/LifetimeChecker.h \
-        src/Airmap/services/advisory.h \
-        src/Airmap/services/aircrafts.h \
-        src/Airmap/services/airspaces.h \
-        src/Airmap/services/authenticator.h \
-        src/Airmap/services/client.h \
-        src/Airmap/services/dispatcher.h \
-        src/Airmap/services/flight_plans.h \
-        src/Airmap/services/flights.h \
-        src/Airmap/services/logger.h \
-        src/Airmap/services/pilots.h \
-        src/Airmap/services/rulesets.h \
-        src/Airmap/services/status.h \
-        src/Airmap/services/telemetry.h \
-        src/Airmap/services/traffic.h \
-        src/Airmap/services/types.h \
-
-    SOURCES += \
-        src/Airmap/AirMapAdvisoryManager.cc \
-        src/Airmap/AirMapFlightManager.cc \
-        src/Airmap/AirMapFlightPlanManager.cc \
-        src/Airmap/AirMapManager.cc \
-        src/Airmap/AirMapRestrictionManager.cc \
-        src/Airmap/AirMapRulesetsManager.cc \
-        src/Airmap/AirMapSettings.cc \
-        src/Airmap/AirMapSharedState.cc \
-        src/Airmap/AirMapTelemetry.cc \
-        src/Airmap/AirMapTrafficMonitor.cc \
-        src/Airmap/AirMapVehicleManager.cc \
-        src/Airmap/AirMapWeatherInfoManager.cc \
-        src/Airmap/services/advisory.cpp \
-        src/Airmap/services/aircrafts.cpp \
-        src/Airmap/services/airspaces.cpp \
-        src/Airmap/services/authenticator.cpp \
-        src/Airmap/services/client.cpp \
-        src/Airmap/services/dispatcher.cpp \
-        src/Airmap/services/flight_plans.cpp \
-        src/Airmap/services/flights.cpp \
-        src/Airmap/services/logger.cpp \
-        src/Airmap/services/pilots.cpp \
-        src/Airmap/services/rulesets.cpp \
-        src/Airmap/services/status.cpp \
-        src/Airmap/services/telemetry.cpp \
-        src/Airmap/services/traffic.cpp \
-        src/Airmap/services/types.cpp \
-
-    #-- Do we have an API key?
-    exists(src/Airmap/Airmap_api_key.h) {
-        message("Using compile time Airmap API key")
-        HEADERS += \
-            src/Airmap/Airmap_api_key.h
-        DEFINES += QGC_AIRMAP_KEY_AVAILABLE
-    }
-
-    include(src/Airmap/QJsonWebToken/src/qjsonwebtoken.pri)
-
-} else {
-    #-- Dummies
-    INCLUDEPATH += \
-        src/Airmap/dummy
-    RESOURCES += \
-        src/Airmap/dummy/airmap_dummy.qrc
-    HEADERS += \
-        src/Airmap/dummy/AirspaceManager.h
-    SOURCES += \
-        src/Airmap/dummy/AirspaceManager.cc
 }
 
 #-------------------------------------------------------------------------------------

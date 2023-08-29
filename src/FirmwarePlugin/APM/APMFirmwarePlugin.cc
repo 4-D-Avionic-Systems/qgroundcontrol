@@ -476,7 +476,7 @@ void APMFirmwarePlugin::initializeVehicle(Vehicle* vehicle)
         case MAV_TYPE_VTOL_TILTROTOR:
         case MAV_TYPE_VTOL_FIXEDROTOR:
         case MAV_TYPE_VTOL_TAILSITTER:
-        case MAV_TYPE_VTOL_RESERVED4:
+        case MAV_TYPE_VTOL_TILTWING:
         case MAV_TYPE_VTOL_RESERVED5:
         case MAV_TYPE_FIXED_WING:
             vehicle->setFirmwareVersion(3, 9, 0);
@@ -630,6 +630,26 @@ QString APMFirmwarePlugin::getHobbsMeter(Vehicle* vehicle)
     return timeStr;
 } 
 
+bool APMFirmwarePlugin::hasGripper(const Vehicle* vehicle) const
+{
+    if(vehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, "GRIP_ENABLE")) {
+        bool _hasGripper = (vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, QStringLiteral("GRIP_ENABLE"))->rawValue().toInt()) == 1 ? true : false;
+        return _hasGripper;
+    }
+    return false;
+}
+
+const QVariantList& APMFirmwarePlugin::toolIndicators(const Vehicle* vehicle)
+{
+    if (_toolIndicatorList.size() == 0) {
+        // First call the base class to get the standard QGC list
+        _toolIndicatorList = FirmwarePlugin::toolIndicators(vehicle);
+        // Then add the forwarding support indicator
+        _toolIndicatorList.append(QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/APMSupportForwardingIndicator.qml")));
+    }
+    return _toolIndicatorList;
+}
+
 bool APMFirmwarePlugin::isGuidedMode(const Vehicle* vehicle) const
 {
     return vehicle->flightMode() == "Guided";
@@ -679,7 +699,7 @@ QString APMFirmwarePlugin::_internalParameterMetaDataFile(Vehicle* vehicle)
     case MAV_TYPE_VTOL_TILTROTOR:
     case MAV_TYPE_VTOL_FIXEDROTOR:
     case MAV_TYPE_VTOL_TAILSITTER:
-    case MAV_TYPE_VTOL_RESERVED4:
+    case MAV_TYPE_VTOL_TILTWING:
     case MAV_TYPE_VTOL_RESERVED5:
     case MAV_TYPE_FIXED_WING:
         if (vehicle->versionCompare(4, 2, 0) >= 0) {
@@ -945,9 +965,10 @@ void APMFirmwarePlugin::_handleRCChannels(Vehicle* vehicle, mavlink_message_t* m
         mavlink_rc_channels_t   channels;
 
         mavlink_msg_rc_channels_decode(message, &channels);
-        //-- Ardupilot uses 0-255 to indicate 0-100% where QGC expects 0-100
-        if(channels.rssi) {
-            channels.rssi = static_cast<uint8_t>(static_cast<double>(channels.rssi) / 255.0 * 100.0);
+        //-- Ardupilot uses 0-254 to indicate 0-100% where QGC expects 0-100
+        // As per mavlink specs, 255 means invalid, we must leave it like that for indicators to hide if no rssi data
+        if(channels.rssi && channels.rssi != 255) {
+            channels.rssi = static_cast<uint8_t>(static_cast<double>(channels.rssi) / 254.0 * 100.0);
         }
         MAVLinkProtocol* mavlink = qgcApp()->toolbox()->mavlinkProtocol();
         mavlink_msg_rc_channels_encode_chan(
