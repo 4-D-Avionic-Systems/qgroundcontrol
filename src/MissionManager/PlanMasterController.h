@@ -18,6 +18,7 @@
 #include "MultiVehicleManager.h"
 #include "QGCLoggingCategory.h"
 #include "QmlObjectListModel.h"
+#include "FourDUtilities.h"
 
 Q_DECLARE_LOGGING_CATEGORY(PlanMasterControllerLog)
 
@@ -110,6 +111,11 @@ public:
     static const char*  kJsonGeoFenceObjectKey;
     static const char*  kJsonRallyPointsObjectKey;
 
+    //4DAVSYS Changes -------------------------------------------
+    Q_INVOKABLE void fourDConvert(void);
+    //-----------------------------------------------------------
+
+
 signals:
     void containsItemsChanged               (bool containsItems);
     void syncInProgressChanged              (void);
@@ -149,4 +155,8 @@ private:
     QString                 _currentPlanFile;
     bool                    _deleteWhenSendCompleted =  false;
     QmlObjectListModel*     _planCreators =             nullptr;
+
+    //4DAVSYS Changes -------------------------------------------
+    FourDUtilities*          _fourDUtilities =          nullptr;
+    //-----------------------------------------------------------
 };

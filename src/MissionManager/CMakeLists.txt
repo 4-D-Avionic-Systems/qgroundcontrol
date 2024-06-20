@@ -66,6 +66,12 @@ add_library(MissionManager
 	CorridorScanComplexItem.h
 	CorridorScanPlanCreator.cc
 	CorridorScanPlanCreator.h
+	
+	#4DAVSYS Changes ------
+	FourDUtilities.cc
+	FourDUtilities.h
+	#----------------------
+	
 	FixedWingLandingComplexItem.cc
 	FixedWingLandingComplexItem.h
 	GeoFenceController.cc

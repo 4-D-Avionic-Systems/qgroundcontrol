@@ -241,6 +241,14 @@ Item {
             fileDialog.nameFilters =    ShapeFileHelper.fileDialogKMLFilters
             fileDialog.openForSave()
         }
+
+        //4DAVSYS Changes ---------------------------------------------
+        function convertTo4D()
+        {
+            fourDConvert();
+            mainWindow.showMessageDialog(qsTr('check'), qsTr('check'))
+        }
+        //-------------------------------------------------------------
     }
 
     Connections {

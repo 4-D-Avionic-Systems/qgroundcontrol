@@ -125,8 +125,8 @@ Item {
         anchors.bottom:         parent.bottom
         anchors.leftMargin:     _margins
         anchors.left:           parent.left
-        columnSpacing:          0
-        columns:                4
+        columnSpacing:          5
+        columns:                5
 
         GridLayout {
             columns:                8
@@ -259,6 +259,28 @@ Item {
                 duration:       2000
             }
         }
+
+        //4DAVSYS Changes ---------------------------------------------------------------------------------
+        QGCButton {
+            id:          fourDConvertButton
+            text:        _controllerDirty ? qsTr("Convert to 4D") : qsTr("Converted")
+            enabled:     !_controllerSyncInProgress
+            visible:     !_controllerOffline && !_controllerSyncInProgress && !uploadCompleteText.visible
+            primary:     _controllerDirty
+            onClicked:   _planMasterController.convertTo4D()
+
+            PropertyAnimation on opacity {
+                easing.type:    Easing.OutQuart
+                from:           0.5
+                to:             1
+                loops:          Animation.Infinite
+                running:        _controllerDirty && !_controllerSyncInProgress
+                alwaysRunToEnd: true
+                duration:       2000
+            }
+        }
+        //-------------------------------------------------------------------------------------------------
+
     }
 
     // Small mission download progress bar

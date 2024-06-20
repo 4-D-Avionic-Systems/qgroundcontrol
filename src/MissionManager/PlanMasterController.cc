@@ -566,7 +566,6 @@ QStringList PlanMasterController::loadNameFilters(void) const
     return filters;
 }
 
-
 QStringList PlanMasterController::saveNameFilters(void) const
 {
     QStringList filters;
@@ -648,3 +647,15 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
         _showPlanFromManagerVehicle();
     }
 }
+
+//4DAVSYS Changes ------------------------------
+void PlanMasterController::fourDConvert(void)
+{
+    _fourDUtilities = new FourDUtilities();
+    _fourDUtilities->setUrl("http://127.0.0.1:5000");
+
+    QJsonDocument planJson = saveToJson();
+
+    _fourDUtilities->postNewPath(planJson);
+}
+//----------------------------------------------
