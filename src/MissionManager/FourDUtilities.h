@@ -14,6 +14,7 @@ public:
 
     void setUrl(QString);
     void postNewPath(QJsonDocument);
+    void postParams(QJsonDocument);
     void putNewMItems(void);
     void get4DWayPoints(void);
     void getChangeStatus(void);

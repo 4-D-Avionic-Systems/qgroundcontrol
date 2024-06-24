@@ -1622,3 +1622,25 @@ Error:
     file.close();
     return false;
 }
+
+//4DAVSYS Changes ------------------------------
+QJsonDocument ParameterManager::writeParametersToJson(void)
+{
+    QJsonObject   paramJson;
+
+    for (int componentId: _mapCompId2FactMap.keys()) {
+        for (const QString &paramName: _mapCompId2FactMap[componentId].keys()) {
+            Fact* fact = _mapCompId2FactMap[componentId][paramName];
+            if (fact) {
+                paramJson[paramName] = fact->rawValueStringFullPrecision();
+                // stream << _vehicle->id() << "\t" << componentId << "\t" << paramName << "\t" << fact->rawValueStringFullPrecision() << "\t" << QString("%1").arg(factTypeToMavType(fact->type())) << "\n";
+            } else {
+                qWarning() << "Internal error: missing fact";
+            }
+        }
+    }
+
+    return QJsonDocument(paramJson);
+}
+
+//----------------------------------------------

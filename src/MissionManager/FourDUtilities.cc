@@ -37,6 +37,17 @@ void FourDUtilities::postNewPath(QJsonDocument planJson)
     return;
 }
 
+void FourDUtilities::postParams(QJsonDocument planParams)
+{
+    QUrl post_url = api_url.resolved(QUrl("/params"));
+    QNetworkRequest request(post_url);
+
+    request.setRawHeader("Content-Type", "application/json");
+    api_manager.post(request, planParams.toJson());
+
+    return;
+}
+
 void FourDUtilities::putNewMItems(void)
 {
     return;

@@ -21,6 +21,11 @@
 #include "CorridorScanPlanCreator.h"
 #include "BlankPlanCreator.h"
 
+//4DAVSYS Changes ------------------------------
+#include "ParameterManager.h"
+//----------------------------------------------
+
+
 #include <QDomDocument>
 #include <QJsonDocument>
 #include <QFileInfo>
@@ -655,7 +660,9 @@ void PlanMasterController::fourDConvert(void)
     _fourDUtilities->setUrl("http://127.0.0.1:5000");
 
     QJsonDocument planJson = saveToJson();
-
     _fourDUtilities->postNewPath(planJson);
+
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    _fourDUtilities->postParams(paramsJson);
 }
 //----------------------------------------------

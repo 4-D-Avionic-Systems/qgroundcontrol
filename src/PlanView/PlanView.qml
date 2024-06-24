@@ -246,7 +246,7 @@ Item {
         function convertTo4D()
         {
             fourDConvert();
-            mainWindow.showMessageDialog(qsTr('check'), qsTr('check'))
+            // mainWindow.showMessageDialog(qsTr('check'), qsTr('check'))
         }
         //-------------------------------------------------------------
     }
