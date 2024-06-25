@@ -659,10 +659,13 @@ void PlanMasterController::fourDConvert(void)
     _fourDUtilities = new FourDUtilities();
     _fourDUtilities->setUrl("http://127.0.0.1:5000");
 
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    _fourDUtilities->postParams(paramsJson);
+
     QJsonDocument planJson = saveToJson();
     _fourDUtilities->postNewPath(planJson);
 
-    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
-    _fourDUtilities->postParams(paramsJson);
+    _fourDUtilities->get4DWayPoints();
+    
 }
 //----------------------------------------------

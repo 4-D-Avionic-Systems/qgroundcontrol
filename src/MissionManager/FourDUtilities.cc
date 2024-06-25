@@ -10,7 +10,6 @@ QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
 FourDUtilities::FourDUtilities(void)
 {
-
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 }
 
@@ -55,6 +54,15 @@ void FourDUtilities::putNewMItems(void)
 
 void FourDUtilities::get4DWayPoints(void)
 {
+    QUrl post_url = api_url.resolved(QUrl("/convert"));
+    QNetworkRequest request(post_url);
+    QNetworkReply* reply;
+
+    request.setRawHeader("Content-Type", "application/json");
+    reply = api_manager.get(request);
+
+    connect(reply, &QNetworkReply::finished, this, &FourDUtilities::putNewMItems);
+
     return;
 }
 
