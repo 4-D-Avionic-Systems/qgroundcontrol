@@ -8,7 +8,8 @@
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
-FourDUtilities::FourDUtilities(void)
+FourDUtilities::FourDUtilities(QObject* parent)
+    : QObject(parent)
 {
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 }
@@ -47,21 +48,22 @@ void FourDUtilities::postParams(QJsonDocument planParams)
     return;
 }
 
-void FourDUtilities::putNewMItems(void)
-{
-    return;
-}
-
 void FourDUtilities::get4DWayPoints(void)
 {
     QUrl post_url = api_url.resolved(QUrl("/convert"));
     QNetworkRequest request(post_url);
-    QNetworkReply* reply;
 
     request.setRawHeader("Content-Type", "application/json");
     reply = api_manager.get(request);
 
-    connect(reply, &QNetworkReply::finished, this, &FourDUtilities::putNewMItems);
+    QObject::connect(reply, &QNetworkReply::finished, this, &FourDUtilities::callback4DWayPoints);
+
+    return;
+}
+
+void FourDUtilities::callback4DWayPoints(void)
+{
+    qCInfo(FourDUtilitiesLog) << reply->readAll();
 
     return;
 }
