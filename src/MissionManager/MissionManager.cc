@@ -28,6 +28,7 @@ MissionManager::~MissionManager()
 {
 
 }
+
 void MissionManager::writeArduPilotGuidedMissionItem(const QGeoCoordinate& gotoCoord, bool altChangeOnly)
 {
     if (inProgress()) {

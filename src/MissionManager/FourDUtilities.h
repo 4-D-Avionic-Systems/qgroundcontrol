@@ -1,9 +1,12 @@
 #pragma once
 
 #include "QGCLoggingCategory.h"
+#include "Vehicle.h"
 
 #include <QNetworkAccessManager>
 #include <QObject>
+#include <QNetworkReply>
+#include <vector>
 
 Q_DECLARE_LOGGING_CATEGORY(FourDUtilitiesLog)
 
@@ -12,7 +15,7 @@ class FourDUtilities : public QObject
     Q_OBJECT
 
 public:
-    FourDUtilities(QObject* parent = nullptr);
+    FourDUtilities(QObject* parent = nullptr, Vehicle* _vehicle = nullptr);
     ~FourDUtilities();
 
     void setUrl(QString);
@@ -22,12 +25,15 @@ public:
     void getChangeStatus(void);
 
 private:
-    void callback4DWayPoints(void);
+    void _callback4DWayPoints(void);
+    void _write4DWayPoints(void);
 
-    QUrl api_url;
-    QNetworkReply* reply;
-    QNetworkAccessManager api_manager;
+    QUrl _apiUrl;
+    QNetworkReply* _reply;
+    QNetworkAccessManager _apiManager;
 
-    bool api_request_complete = false;
+    Vehicle* _vehicle;
+
+    std::vector<std::vector<float>> _formatModel;
 
 };
