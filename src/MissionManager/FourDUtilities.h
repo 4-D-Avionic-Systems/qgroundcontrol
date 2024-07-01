@@ -31,9 +31,14 @@ private:
     QUrl _apiUrl;
     QNetworkReply* _reply;
     QNetworkAccessManager _apiManager;
+    QTimer* _timer;
 
     Vehicle* _vehicle;
 
     std::vector<std::vector<float>> _formatModel;
+
+    int _messageNumber;
+    int _numberOfMessages;
+    int _numberOfWayPoints;
 
 };

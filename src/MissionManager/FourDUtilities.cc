@@ -12,6 +12,7 @@ FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
     : QObject(parent)
 {
     _vehicle = managerVehicleRef;
+    _timer = new QTimer(this);
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 }
 
@@ -123,7 +124,18 @@ void FourDUtilities::_callback4DWayPoints(void)
         valHold.clear();
     }
 
-    _write4DWayPoints();
+    _numberOfWayPoints = _formatModel.size();
+    _messageNumber = 0;
+    _numberOfMessages = std::ceil(_numberOfWayPoints / 5);
+
+    qCInfo(FourDUtilitiesLog) << "#wpts, #messages = " << _numberOfWayPoints << " " << _numberOfMessages;
+    qCInfo(FourDUtilitiesLog) << "Send 4D WayPoints over MavLink";
+
+    if (_numberOfMessages > 0)
+    {
+        QObject::connect(_timer, &QTimer::timeout, this, &FourDUtilities::_write4DWayPoints);
+        _timer->start(100);
+    }
 
     return;
 }
@@ -135,48 +147,47 @@ void FourDUtilities::getChangeStatus(void)
 
 void FourDUtilities::_write4DWayPoints(void)
 {
-    qCInfo(FourDUtilitiesLog) << "Send 4D WayPoints over MavLink";
-
-    int num_waypoints = _formatModel.size();
-    int message_number = 0;
-    int number_of_messages = std::ceil(num_waypoints / 5);
     float flight_segment[50];
 
     WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (!weakLink.expired()) {
+    if (!weakLink.expired()) 
+    {
         mavlink_message_t       message;
         SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
-        for (message_number; message_number < number_of_messages; message_number++)
-        {
-            qCInfo(FourDUtilitiesLog) << "\tsending message number " << message_number;
+        qCInfo(FourDUtilitiesLog) << "\tsending message number " << _messageNumber << " of " << _numberOfMessages;
 
-            for (int i = 0; i < 5; i++)
+        for (int i = 0; i < 5; i++)
+        {
+            for (int j = 0; j < 10; j++)
             {
-                for (int j = 0; j < 10; j++)
+                if ( (_messageNumber * 5 + i) < _formatModel.size() )
                 {
-                    if ( (message_number * 5 + i) < _formatModel.size() )
-                    {
-                        flight_segment[i*10 + j] = _formatModel[message_number * 5 + i][j];
-                    }
-                    else
-                    {
-                        flight_segment[i*10 + j] = 0.0;
-                    }
+                    flight_segment[i*10 + j] = _formatModel[_messageNumber * 5 + i][j];
+                }
+                else
+                {
+                    flight_segment[i*10 + j] = 0.0;
                 }
             }
+        }
 
-            mavlink_msg_four_d_model_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
-                                                qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
-                                                sharedLink->mavlinkChannel(),
-                                                &message,
-                                                _vehicle->id(),
-                                                num_waypoints,
-                                                message_number,
-                                                flight_segment);
+        mavlink_msg_four_d_model_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
+                                            qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
+                                            sharedLink->mavlinkChannel(),
+                                            &message,
+                                            _vehicle->id(),
+                                            _numberOfWayPoints,
+                                            _messageNumber,
+                                            flight_segment);
 
-            _vehicle->sendMessageOnLinkThreadSafe(sharedLink.get(), message);
+        _vehicle->sendMessageOnLinkThreadSafe(sharedLink.get(), message);
+
+        _messageNumber++;
+
+        if (_messageNumber >= _numberOfMessages)
+        {
+            _timer->stop();
         }
     }
-
 }
