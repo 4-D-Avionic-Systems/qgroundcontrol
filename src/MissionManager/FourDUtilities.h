@@ -19,8 +19,11 @@ public:
     ~FourDUtilities();
 
     void setUrl(QString);
-    void postNewPath(QJsonDocument);
-    void postParams(QJsonDocument);
+    void setParams(QJsonDocument planParams);
+    void setPlan(QJsonDocument planJson);
+
+    void postNewPath(void);
+    void postParams(void);
     void get4DWayPoints(void);
     void getChangeStatus(void);
 
@@ -32,6 +35,9 @@ private:
     QNetworkReply* _reply;
     QNetworkAccessManager _apiManager;
     QTimer* _timer;
+
+    QJsonDocument _vehicleParams;
+    QJsonDocument _vehiclePlan;
 
     Vehicle* _vehicle;
 

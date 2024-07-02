@@ -28,24 +28,38 @@ void FourDUtilities::setUrl(QString set_url)
     return;
 }
 
-void FourDUtilities::postNewPath(QJsonDocument planJson)
+void FourDUtilities::setParams(QJsonDocument planParams)
 {
-    QUrl post_url = _apiUrl.resolved(QUrl("/flight"));
-    QNetworkRequest request(post_url);
-
-    request.setRawHeader("Content-Type", "application/json");
-    _apiManager.post(request, planJson.toJson());
-
-    return;
+    _vehicleParams = planParams;
 }
 
-void FourDUtilities::postParams(QJsonDocument planParams)
+void FourDUtilities::setPlan(QJsonDocument planJson)
+{
+    _vehiclePlan = planJson;
+}
+
+void FourDUtilities::postParams(void)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/params"));
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");
-    _apiManager.post(request, planParams.toJson());
+    _reply = _apiManager.post(request, _vehicleParams.toJson());
+
+    QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::postNewPath);
+
+    return;
+}
+
+void FourDUtilities::postNewPath(void)
+{
+    QUrl post_url = _apiUrl.resolved(QUrl("/flight"));
+    QNetworkRequest request(post_url);
+
+    request.setRawHeader("Content-Type", "application/json");
+    _reply = _apiManager.post(request, _vehiclePlan.toJson());
+
+    QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::get4DWayPoints);
 
     return;
 }
@@ -126,7 +140,7 @@ void FourDUtilities::_callback4DWayPoints(void)
 
     _numberOfWayPoints = _formatModel.size();
     _messageNumber = 0;
-    _numberOfMessages = std::ceil(_numberOfWayPoints / 5);
+    _numberOfMessages = std::ceil( ((float)_numberOfWayPoints) / 5.0);
 
     qCInfo(FourDUtilitiesLog) << "#wpts, #messages = " << _numberOfWayPoints << " " << _numberOfMessages;
     qCInfo(FourDUtilitiesLog) << "Send 4D WayPoints over MavLink";
