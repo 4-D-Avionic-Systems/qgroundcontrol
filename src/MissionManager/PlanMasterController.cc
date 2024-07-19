@@ -656,7 +656,7 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 //4DAVSYS Changes ------------------------------
 void PlanMasterController::fourDConvert(void)
 {
-    _fourDUtilities = new FourDUtilities(this, _managerVehicle);
+    _fourDUtilities = new FourDUtilities(this, _managerVehicle, qgcApp()->toolbox());
     _fourDUtilities->setUrl("http://127.0.0.1:5000");
 
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
@@ -666,8 +666,5 @@ void PlanMasterController::fourDConvert(void)
     _fourDUtilities->setPlan(planJson);
 
     _fourDUtilities->postParams();
-
-    // _fourDUtilities->postNewPath(planJson);
-    // _fourDUtilities->get4DWayPoints();
 }
 //----------------------------------------------

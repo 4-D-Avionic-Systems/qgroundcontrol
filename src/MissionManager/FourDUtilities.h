@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 #include <vector>
 
+
 Q_DECLARE_LOGGING_CATEGORY(FourDUtilitiesLog)
 
 class FourDUtilities : public QObject
@@ -15,7 +16,7 @@ class FourDUtilities : public QObject
     Q_OBJECT
 
 public:
-    FourDUtilities(QObject* parent = nullptr, Vehicle* _vehicle = nullptr);
+    FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr, QGCToolbox* toolboxRef = nullptr);
     ~FourDUtilities();
 
     void setUrl(QString);
@@ -24,10 +25,12 @@ public:
 
     void postNewPath(void);
     void postParams(void);
+    void postTelemData(void);
     void get4DWayPoints(void);
     void getChangeStatus(void);
 
 private:
+    void _commonInit(void);
     void _callback4DWayPoints(void);
     void _write4DWayPoints(void);
 
@@ -40,6 +43,8 @@ private:
     QJsonDocument _vehiclePlan;
 
     Vehicle* _vehicle;
+    FactGroup*   _localPositionFactGroup;
+    QGCToolbox* _toolbox;
 
     std::vector<std::vector<float>> _formatModel;
 

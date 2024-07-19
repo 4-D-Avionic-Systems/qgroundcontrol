@@ -8,17 +8,26 @@
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
-FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
+FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef, QGCToolbox* toolboxRef)
     : QObject(parent)
 {
     _vehicle = managerVehicleRef;
+    _localPositionFactGroup = _vehicle->localPositionFactGroup();
     _timer = new QTimer(this);
+    _toolbox = toolboxRef;
+
+    _commonInit();
+
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 }
 
 FourDUtilities::~FourDUtilities()
 {
+}
 
+void FourDUtilities::_commonInit(void)
+{
+    connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
 void FourDUtilities::setUrl(QString set_url)
@@ -64,6 +73,32 @@ void FourDUtilities::postNewPath(void)
     return;
 }
 
+void FourDUtilities::postTelemData(void)
+{
+    if (_vehicle->armed())
+    {
+        QUrl post_url = _apiUrl.resolved(QUrl("/telem"));
+        QNetworkRequest request(post_url);
+
+        QJsonDocument telemDoc;
+        QJsonArray    telemArray;
+
+        telemArray.prepend(_localPositionFactGroup->getFact("vz")->rawValue().toDouble());
+        telemArray.prepend(_localPositionFactGroup->getFact("vy")->rawValue().toDouble());
+        telemArray.prepend(_localPositionFactGroup->getFact("vx")->rawValue().toDouble());
+        telemArray.prepend(_localPositionFactGroup->getFact("z")->rawValue().toDouble());
+        telemArray.prepend(_localPositionFactGroup->getFact("y")->rawValue().toDouble());
+        telemArray.prepend(_localPositionFactGroup->getFact("x")->rawValue().toDouble());
+
+        telemDoc.setArray(telemArray);
+
+        request.setRawHeader("Content-Type", "application/json");
+        _reply = _apiManager.post(request, telemDoc.toJson());
+    }
+
+    return;
+}
+
 void FourDUtilities::get4DWayPoints(void)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/convert"));
@@ -72,7 +107,7 @@ void FourDUtilities::get4DWayPoints(void)
     request.setRawHeader("Content-Type", "application/json");
     _reply = _apiManager.get(request);
 
-    QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::_callback4DWayPoints);
+    // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::_callback4DWayPoints);
 
     return;
 }
@@ -154,11 +189,6 @@ void FourDUtilities::_callback4DWayPoints(void)
     return;
 }
 
-void FourDUtilities::getChangeStatus(void)
-{
-    return;
-}
-
 void FourDUtilities::_write4DWayPoints(void)
 {
     float flight_segment[50];
@@ -204,4 +234,9 @@ void FourDUtilities::_write4DWayPoints(void)
             _timer->stop();
         }
     }
+}
+
+void FourDUtilities::getChangeStatus(void)
+{
+    return;
 }
