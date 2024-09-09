@@ -656,6 +656,8 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 //4DAVSYS Changes ------------------------------
 void PlanMasterController::fourDConvert(void)
 {
+    QNetworkReply* reply;
+
     _fourDUtilities = new FourDUtilities(this, _managerVehicle, qgcApp()->toolbox());
     _fourDUtilities->setUrl("http://127.0.0.1:5000");
 
@@ -665,6 +667,41 @@ void PlanMasterController::fourDConvert(void)
     _fourDUtilities->setParams(paramsJson);
     _fourDUtilities->setPlan(planJson);
 
-    _fourDUtilities->postParams();
+    reply = _fourDUtilities->postParams();
+
+    QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::postNewPath);
+}
+
+void PlanMasterController::postNewPath(void)
+{
+    QNetworkReply* reply;
+
+    reply = _fourDUtilities->postNewPath();
+
+    QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::get4DWayPoints);
+}
+
+void PlanMasterController::get4DWayPoints(void)
+{
+    QNetworkReply* reply;
+
+    reply = _fourDUtilities->get4DWayPoints();
+
+    QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::fourDNewMI);
+}
+
+void PlanMasterController::fourDNewMI(void)
+{
+    QJsonObject wptJsonObj;
+    QString errorString;
+
+    wptJsonObj = _fourDUtilities->getWptJsonObj();
+
+    qCInfo(PlanMasterControllerLog) << "keys = " << wptJsonObj.keys();
+
+    if ( !_missionController.load(wptJsonObj, errorString) )
+    {
+        qCInfo(PlanMasterControllerLog) << "error " << errorString; 
+    }
 }
 //----------------------------------------------

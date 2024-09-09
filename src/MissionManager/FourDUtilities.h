@@ -23,16 +23,16 @@ public:
     void setParams(QJsonDocument planParams);
     void setPlan(QJsonDocument planJson);
 
-    void postNewPath(void);
-    void postParams(void);
+    QNetworkReply* postParams(void);
+    QNetworkReply* postNewPath(void);
+    QNetworkReply* get4DWayPoints(void);
+    QNetworkReply* getChangeStatus(void);
+    QJsonObject getWptJsonObj(void);
+
     void postTelemData(void);
-    void get4DWayPoints(void);
-    void getChangeStatus(void);
 
 private:
     void _commonInit(void);
-    void _callback4DWayPoints(void);
-    void _write4DWayPoints(void);
 
     QUrl _apiUrl;
     QNetworkReply* _reply;
@@ -41,6 +41,7 @@ private:
 
     QJsonDocument _vehicleParams;
     QJsonDocument _vehiclePlan;
+    QJsonObject _wptJsonObj;
 
     Vehicle* _vehicle;
     FactGroup*   _localPositionFactGroup;

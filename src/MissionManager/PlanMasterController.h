@@ -113,6 +113,9 @@ public:
 
     //4DAVSYS Changes -------------------------------------------
     Q_INVOKABLE void fourDConvert(void);
+    Q_INVOKABLE void postNewPath(void);
+    Q_INVOKABLE void get4DWayPoints(void);
+    Q_INVOKABLE void fourDNewMI(void);
     //-----------------------------------------------------------
 
 
