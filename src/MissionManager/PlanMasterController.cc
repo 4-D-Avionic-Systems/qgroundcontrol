@@ -699,9 +699,20 @@ void PlanMasterController::fourDNewMI(void)
 
     qCInfo(PlanMasterControllerLog) << "keys = " << wptJsonObj.keys();
 
-    if ( !_missionController.load(wptJsonObj, errorString) )
+    if (!wptJsonObj.isEmpty())
     {
-        qCInfo(PlanMasterControllerLog) << "error " << errorString; 
+        if ( !_missionController.load(wptJsonObj, errorString) )
+        {
+            qCInfo(PlanMasterControllerLog) << "error " << errorString; 
+        }
+        else
+        {
+            qCInfo(PlanMasterControllerLog) << "loaded new MI";
+        }
+    }
+    else
+    {
+        qCInfo(PlanMasterControllerLog) << "empty MI list";
     }
 }
 //----------------------------------------------
