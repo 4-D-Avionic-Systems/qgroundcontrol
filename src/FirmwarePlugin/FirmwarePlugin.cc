@@ -601,6 +601,7 @@ void FirmwarePlugin::_updateModeMappings(FlightModeList &modeList){
 void FirmwarePlugin::_addNewFlightMode(FirmwareFlightMode &mode)
 {
     for(auto &m:_availableFlightModeList){
+
         if(m.custom_mode == mode.custom_mode){
             // Already Exist
             return;

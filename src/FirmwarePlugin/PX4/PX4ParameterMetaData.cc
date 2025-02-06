@@ -492,6 +492,8 @@ FactMetaData* PX4ParameterMetaData::getMetaDataForFact(const QString& name, MAV_
     Q_UNUSED(vehicleType)
 
     if (!_mapParameterName2FactMetaData.contains(name)) {
+
+        
         qCDebug(PX4ParameterMetaDataLog) << "No metaData for " << name << "using generic metadata";
         FactMetaData* metaData = new FactMetaData(type, this);
         _mapParameterName2FactMetaData[name] = metaData;

@@ -60,7 +60,10 @@ enum PX4_CUSTOM_MAIN_MODE {
 	PX4_CUSTOM_MAIN_MODE_OFFBOARD,
 	PX4_CUSTOM_MAIN_MODE_STABILIZED,
 	PX4_CUSTOM_MAIN_MODE_RATTITUDE,
-	PX4_CUSTOM_MAIN_MODE_SIMPLE /* unused, but reserved for future use */
+	PX4_CUSTOM_MAIN_MODE_SIMPLE, /* unused, but reserved for future use */
+    //***************************************************
+	PX4_CUSTOM_MAIN_MODE_FOURDFLIGHT
+	//***************************************************
 };
 
 enum PX4_CUSTOM_SUB_MODE_AUTO {
@@ -103,6 +106,9 @@ struct PX4CustomMode{
         ALTCTL              = PX4_CUSTOM_MAIN_MODE_ALTCTL       <<16,
         OFFBOARD            = PX4_CUSTOM_MAIN_MODE_OFFBOARD     <<16,
         SIMPLE              = PX4_CUSTOM_MAIN_MODE_SIMPLE       <<16,
+        //************************************ 
+        FOUR_D_FLIGHT       = PX4_CUSTOM_MAIN_MODE_FOURDFLIGHT  <<16,
+        //************************************
         POSCTL_POSCTL       = PX4_CUSTOM_MAIN_MODE_POSCTL       <<16 | (PX4_CUSTOM_SUB_MODE_POSCTL_POSCTL      << 24 ),
         POSCTL_ORBIT        = PX4_CUSTOM_MAIN_MODE_POSCTL       <<16 | (PX4_CUSTOM_SUB_MODE_POSCTL_ORBIT       << 24 ),
         AUTO_LOITER         = PX4_CUSTOM_MAIN_MODE_AUTO         <<16 | (PX4_CUSTOM_SUB_MODE_AUTO_LOITER        << 24 ),

@@ -50,6 +50,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
     , _followMeFlightMode   (tr("Follow Me"))
     , _simpleFlightMode     (tr("Simple"))
     , _orbitFlightMode      (tr("Orbit"))
+    //*******************
+    , _fourDflightFlightMode (tr("4D Flight"))
+    //*******************
 {
     qmlRegisterType<PX4SimpleFlightModesController>     ("QGroundControl.Controllers", 1, 0, "PX4SimpleFlightModesController");
     qmlRegisterType<AirframeComponentController>        ("QGroundControl.Controllers", 1, 0, "AirframeComponentController");
@@ -64,6 +67,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
         { PX4CustomMode::ALTCTL             ,    _altCtlFlightMode      },
         { PX4CustomMode::OFFBOARD           ,    _offboardFlightMode    },
         { PX4CustomMode::SIMPLE             ,    _simpleFlightMode      },
+        //*******************
+        { PX4CustomMode::FOUR_D_FLIGHT      ,    _fourDflightFlightMode },
+        //*******************
         { PX4CustomMode::POSCTL_POSCTL      ,    _posCtlFlightMode      },
         { PX4CustomMode::POSCTL_ORBIT       ,    _orbitFlightMode       },
         { PX4CustomMode::AUTO_LOITER        ,    _holdFlightMode        },
@@ -86,6 +92,9 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
         { _altCtlFlightMode     , PX4CustomMode::ALTCTL            , true ,  false},
         { _offboardFlightMode   , PX4CustomMode::OFFBOARD          , true ,  true },
         { _simpleFlightMode     , PX4CustomMode::SIMPLE            , false,  false},
+        //*******************
+        { _fourDflightFlightMode , PX4CustomMode::FOUR_D_FLIGHT    , true ,  true },
+        //*******************
         { _posCtlFlightMode     , PX4CustomMode::POSCTL_POSCTL     , true ,  false},
         { _orbitFlightMode      , PX4CustomMode::POSCTL_ORBIT      , false,  true },
         { _holdFlightMode       , PX4CustomMode::AUTO_LOITER       , true ,  true },
@@ -118,15 +127,17 @@ QList<VehicleComponent*> PX4FirmwarePlugin::componentsForVehicle(AutoPilotPlugin
 
 QStringList PX4FirmwarePlugin::flightModes(Vehicle* vehicle)
 {
-    QStringList flightModesList;
+    QStringList flightModesList; 
 
     for (auto &mode : _availableFlightModeList) {
+
         if (mode.canBeSet){
             bool fw = (vehicle->fixedWing() && mode.fixedWing);
             bool mc = (vehicle->multiRotor() && mode.multiRotor);
 
             // show all modes for generic, vtol, etc
             bool other = !vehicle->fixedWing() && !vehicle->multiRotor();
+
             if (fw || mc || other) {
                 flightModesList += mode.mode_name;
             }
@@ -154,7 +165,20 @@ bool PX4FirmwarePlugin::setFlightMode(const QString& flightMode, uint8_t* base_m
 
     bool found = false;
 
+
+    qInfo() << "//----------------------------";
+    qInfo() << "flightMode: " << flightMode;
+    qInfo() << "base_mode: " << *base_mode;
+    qInfo() << "custom_mode: " << *custom_mode;
+    qInfo() << "//----------------------------";
+
+
+
     for (auto &mode: _availableFlightModeList){
+
+        qInfo() << "//----------------------------";
+        qInfo() << "mode.mode_name: " << mode.mode_name;
+        qInfo() << "//----------------------------";
         if(flightMode.compare(mode.mode_name, Qt::CaseInsensitive) == 0){
             *base_mode = MAV_MODE_FLAG_CUSTOM_MODE_ENABLED;
             *custom_mode = mode.custom_mode;
@@ -639,6 +663,8 @@ QString PX4FirmwarePlugin::stabilizedFlightMode() const
     return _modeEnumToString.value(PX4CustomMode::STABILIZED, _stabilizedFlightMode);
 }
 
+
+
 bool PX4FirmwarePlugin::isGuidedMode(const Vehicle* vehicle) const
 {
     // Not supported by generic vehicle
@@ -802,6 +828,11 @@ void PX4FirmwarePlugin::updateAvailableFlightModes(FlightModeList modeList)
         case PX4CustomMode::ALTCTL            :
         case PX4CustomMode::OFFBOARD          :
         case PX4CustomMode::SIMPLE            :
+        // *******************************
+        case PX4CustomMode::FOUR_D_FLIGHT     :
+            mode.multiRotor = true;
+            break;
+        // *******************************
         case PX4CustomMode::POSCTL_POSCTL     :
         case PX4CustomMode::AUTO_LOITER       :
         case PX4CustomMode::AUTO_MISSION      :
@@ -823,6 +854,11 @@ void PX4FirmwarePlugin::updateAvailableFlightModes(FlightModeList modeList)
         switch (cMode){
         case PX4CustomMode::OFFBOARD          :
         case PX4CustomMode::SIMPLE            :
+        // *******************************
+        case PX4CustomMode::FOUR_D_FLIGHT     :
+            mode.fixedWing = true;
+            break;
+        // *******************************
         case PX4CustomMode::POSCTL_ORBIT      :
         case PX4CustomMode::AUTO_FOLLOW_TARGET:
         case PX4CustomMode::AUTO_PRECLAND     :

@@ -86,6 +86,9 @@ protected:
     QString _manualFlightMode;
     QString _acroFlightMode;
     QString _stabilizedFlightMode;
+    //**********************
+    QString _fourDflightFlightMode;
+    //**********************
     QString _rattitudeFlightMode;
     QString _altCtlFlightMode;
     QString _posCtlFlightMode;

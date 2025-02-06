@@ -3302,6 +3302,13 @@ QString Vehicle::stabilizedFlightMode() const
     return _firmwarePlugin->stabilizedFlightMode();
 }
 
+//***************************************************** 
+QString Vehicle::fourDflightFlightMode() const
+{
+    return _firmwarePlugin->fourDflightFlightMode();
+}
+//*****************************************************
+
 QString Vehicle::vehicleImageOpaque() const
 {
     if(_firmwarePlugin)

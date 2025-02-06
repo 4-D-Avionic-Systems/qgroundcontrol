@@ -555,6 +555,9 @@ public:
     QString         followFlightMode            () const;
     QString         motorDetectionFlightMode    () const;
     QString         stabilizedFlightMode        () const;
+    //*****************************
+    QString         fourDflightFlightMode       () const; 
+    //*****************************
     double          defaultCruiseSpeed          () const { return _defaultCruiseSpeed; }
     double          defaultHoverSpeed           () const { return _defaultHoverSpeed; }
     QString         firmwareTypeString          () const;
