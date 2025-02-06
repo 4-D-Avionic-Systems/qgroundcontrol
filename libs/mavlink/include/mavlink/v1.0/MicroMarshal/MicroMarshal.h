@@ -10,7 +10,7 @@
     #error Wrong include order: MAVLINK_MICROMARSHAL.H MUST NOT BE DIRECTLY USED. Include mavlink.h from the same directory instead or set ALL AND EVERY defines from MAVLINK.H manually accordingly, including the #define MAVLINK_H call.
 #endif
 
-#define MAVLINK_MICROMARSHAL_XML_HASH -4820241619167186387
+#define MAVLINK_MICROMARSHAL_XML_HASH -3012472910352229494
 
 #ifdef __cplusplus
 extern "C" {
