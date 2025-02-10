@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,15 +11,11 @@
 /// @file
 ///     @author Don Gagne <don@thegagnes.com>
 
-#ifndef AIRFRAMECOMPONENTCONTROLLER_H
-#define AIRFRAMECOMPONENTCONTROLLER_H
+#pragma once
 
-#include <QObject>
-#include <QQuickItem>
-#include <QList>
+#include <QtCore/QObject>
+#include <QtCore/QVariant>
 
-#include "UASInterface.h"
-#include "AutoPilotPlugin.h"
 #include "FactPanelController.h"
 
 /// MVC Controller for AirframeComponent.qml.
@@ -101,5 +97,3 @@ private:
     QString         _imageResource;
     QVariantList    _airframes;
 };
-
-#endif

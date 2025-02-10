@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,12 +9,11 @@
 
 #include "InstrumentValueData.h"
 #include "FactValueGrid.h"
-#include "QGCApplication.h"
-#include "QGCCorePlugin.h"
-
-#include <QSettings>
-
-const char*  InstrumentValueData::vehicleFactGroupName =   "Vehicle";
+#include "QGC.h"
+#include "QmlObjectListModel.h"
+#include "MultiVehicleManager.h"
+#include "Vehicle.h"
+#include "FactGroup.h"
 
 // Important: The indices of these strings must match the InstrumentValueData::RangeType enum
 const QStringList InstrumentValueData::_rangeTypeNames = {
@@ -28,9 +27,8 @@ InstrumentValueData::InstrumentValueData(FactValueGrid* factValueGrid, QObject* 
     : QObject       (parent)
     , _factValueGrid(factValueGrid)
 {
-    MultiVehicleManager* multiVehicleManager = qgcApp()->toolbox()->multiVehicleManager();
-    connect(multiVehicleManager, &MultiVehicleManager::activeVehicleChanged, this, &InstrumentValueData::_activeVehicleChanged);
-    _activeVehicleChanged(multiVehicleManager->activeVehicle());
+    connect(MultiVehicleManager::instance(), &MultiVehicleManager::activeVehicleChanged, this, &InstrumentValueData::_activeVehicleChanged);
+    _activeVehicleChanged(MultiVehicleManager::instance()->activeVehicle());
 
     connect(this, &InstrumentValueData::rangeTypeChanged,       this, &InstrumentValueData::_resetRangeInfo);
     connect(this, &InstrumentValueData::rangeTypeChanged,       this, &InstrumentValueData::_updateRanges);
@@ -47,7 +45,7 @@ void InstrumentValueData::_activeVehicleChanged(Vehicle* activeVehicle)
     }
 
     if (!activeVehicle) {
-        activeVehicle = qgcApp()->toolbox()->multiVehicleManager()->offlineEditingVehicle();
+        activeVehicle = MultiVehicleManager::instance()->offlineEditingVehicle();
     }
 
     _activeVehicle = activeVehicle;

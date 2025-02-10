@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,19 +9,17 @@
 
 #pragma once
 
-#include <QObject>
-#include <QTimer>
-#include <QDebug>
-#include <QLoggingCategory>
-#include <QElapsedTimer>
-
 #include "QGCMAVLink.h"
 #include "LinkInterface.h"
+
+#include <QtCore/QObject>
+#include <QtCore/QTimer>
+#include <QtCore/QElapsedTimer>
+#include <QtCore/QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(VehicleLinkManagerLog)
 
 class Vehicle;
-class LinkManager;
 class VehicleLinkManagerTest;
 
 class VehicleLinkManager : public QObject
@@ -34,7 +32,6 @@ class VehicleLinkManager : public QObject
 public:
     VehicleLinkManager(Vehicle* vehicle);
 
-    Q_PROPERTY(bool             primaryLinkIsPX4Flow        READ primaryLinkIsPX4Flow                                           NOTIFY primaryLinkChanged)
     Q_PROPERTY(QString          primaryLinkName             READ primaryLinkName            WRITE setPrimaryLinkByName          NOTIFY primaryLinkChanged)
     Q_PROPERTY(QStringList      linkNames                   READ linkNames                                                      NOTIFY linkNamesChanged)
     Q_PROPERTY(QStringList      linkStatuses                READ linkStatuses                                                   NOTIFY linkStatusesChanged)
@@ -42,7 +39,6 @@ public:
     Q_PROPERTY(bool             communicationLostEnabled    READ communicationLostEnabled   WRITE setCommunicationLostEnabled   NOTIFY communicationLostEnabledChanged)
     Q_PROPERTY(bool             autoDisconnect              MEMBER _autoDisconnect                                              NOTIFY autoDisconnectChanged)
 
-    bool                    primaryLinkIsPX4Flow        (void) const;
     void                    mavlinkMessageReceived      (LinkInterface* link, mavlink_message_t message);
     bool                    containsLink                (LinkInterface* link);
     WeakLinkInterfacePtr    primaryLink                 (void) { return _primaryLink; }
@@ -83,7 +79,6 @@ private:
     } LinkInfo_t;
 
     Vehicle*                _vehicle                    = nullptr;
-    LinkManager*            _linkMgr                    = nullptr;
     QTimer                  _commLostCheckTimer;
     QList<LinkInfo_t>       _rgLinkInfo;
     WeakLinkInterfacePtr    _primaryLink;

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,9 +8,9 @@
  ****************************************************************************/
 
 #include "MotorAssignment.h"
-#include "ActuatorOutputs.h"
-
 #include "QGCApplication.h"
+#include "ActuatorOutputs.h"
+#include "QmlObjectListModel.h"
 
 #include <vector>
 
@@ -197,11 +197,10 @@ void MotorAssignment::spinTimeout()
     spinCurrentMotor();
 }
 
-void MotorAssignment::ackHandlerEntry(void* resultHandlerData, int compId, MAV_RESULT commandResult, uint8_t progress,
-        Vehicle::MavCmdResultFailureCode_t failureCode)
+void MotorAssignment::ackHandlerEntry(void* resultHandlerData, int /*compId*/, const mavlink_command_ack_t& ack, Vehicle::MavCmdResultFailureCode_t failureCode)
 {
     MotorAssignment* motorAssignment = (MotorAssignment*)resultHandlerData;
-    motorAssignment->ackHandler(commandResult, failureCode);
+    motorAssignment->ackHandler(static_cast<MAV_RESULT>(ack.result), failureCode);
 }
 
 void MotorAssignment::ackHandler(MAV_RESULT commandResult, Vehicle::MavCmdResultFailureCode_t failureCode)
@@ -217,9 +216,12 @@ void MotorAssignment::sendMavlinkRequest(int function, float value)
 {
     qCDebug(ActuatorsConfigLog) << "Sending actuator test function:" << function << "value:" << value;
 
+    Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
+    handlerInfo.resultHandler       = ackHandlerEntry;
+    handlerInfo.resultHandlerData   = this;
+
     _vehicle->sendMavCommandWithHandler(
-            ackHandlerEntry,                  // Ack callback
-            this,                             // Ack callback data
+            &handlerInfo,
             MAV_COMP_ID_AUTOPILOT1,           // the ID of the autopilot
             MAV_CMD_ACTUATOR_TEST,            // the mavlink command
             value,                            // value

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -14,6 +14,9 @@
 #include "AutoPilotPlugin.h"
 #include "QGCApplication.h"
 #include "FirmwarePlugin.h"
+#include "Vehicle.h"
+#include "VehicleComponent.h"
+#include <QtCore/QCoreApplication>
 
 AutoPilotPlugin::AutoPilotPlugin(Vehicle* vehicle, QObject* parent)
     : QObject(parent)
@@ -47,7 +50,7 @@ void AutoPilotPlugin::_recalcSetupComplete(void)
 
     if (_setupComplete != newSetupComplete) {
         _setupComplete = newSetupComplete;
-        emit setupCompleteChanged(_setupComplete);
+        emit setupCompleteChanged();
     }
 }
 
@@ -75,6 +78,6 @@ void AutoPilotPlugin::parametersReadyPreChecks(void)
 
         // Take the user to Vehicle Summary
         qgcApp()->showSetupView();
-        qgcApp()->processEvents(QEventLoop::ExcludeUserInputEvents);
+        QCoreApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
 }

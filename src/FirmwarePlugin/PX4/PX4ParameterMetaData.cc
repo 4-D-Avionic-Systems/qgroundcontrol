@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,15 +12,12 @@
 ///     @author Don Gagne <don@thegagnes.com>
 
 #include "PX4ParameterMetaData.h"
-#include "QGCApplication.h"
 #include "QGCLoggingCategory.h"
 
-#include <QFile>
-#include <QFileInfo>
-#include <QDir>
-#include <QDebug>
-
-static const char* kInvalidConverstion = "Internal Error: No support for string parameters";
+#include <QtCore/QFile>
+#include <QtCore/QDir>
+#include <QtCore/QDebug>
+#include <QtCore/QXmlStreamReader>
 
 QGC_LOGGING_CATEGORY(PX4ParameterMetaDataLog, "PX4ParameterMetaDataLog")
 
@@ -38,42 +35,42 @@ QVariant PX4ParameterMetaData::_stringToTypedVariant(const QString& string, Fact
 {
     QVariant var(string);
 
-    int convertTo = QVariant::Int; // keep compiler warning happy
+    QMetaType::Type convertTo = QMetaType::Int; // keep compiler warning happy
     switch (type) {
     case FactMetaData::valueTypeUint8:
     case FactMetaData::valueTypeUint16:
     case FactMetaData::valueTypeUint32:
     case FactMetaData::valueTypeUint64:
-        convertTo = QVariant::UInt;
+        convertTo = QMetaType::UInt;
         break;
     case FactMetaData::valueTypeInt8:
     case FactMetaData::valueTypeInt16:
     case FactMetaData::valueTypeInt32:
     case FactMetaData::valueTypeInt64:
-        convertTo = QVariant::Int;
+        convertTo = QMetaType::Int;
         break;
     case FactMetaData::valueTypeFloat:
         convertTo = QMetaType::Float;
         break;
     case FactMetaData::valueTypeElapsedTimeInSeconds:
     case FactMetaData::valueTypeDouble:
-        convertTo = QVariant::Double;
+        convertTo = QMetaType::Double;
         break;
     case FactMetaData::valueTypeString:
         qWarning() << kInvalidConverstion;
-        convertTo = QVariant::String;
+        convertTo = QMetaType::QString;
         break;
     case FactMetaData::valueTypeBool:
         qWarning() << kInvalidConverstion;
-        convertTo = QVariant::Bool;
+        convertTo = QMetaType::Bool;
         break;
     case FactMetaData::valueTypeCustom:
         qWarning() << kInvalidConverstion;
-        convertTo = QVariant::ByteArray;
+        convertTo = QMetaType::QByteArray;
         break;
     }
     
-    *convertOk = var.convert(convertTo);
+    *convertOk = var.convert(QMetaType(convertTo));
     
     return var;
 }
@@ -495,6 +492,8 @@ FactMetaData* PX4ParameterMetaData::getMetaDataForFact(const QString& name, MAV_
     Q_UNUSED(vehicleType)
 
     if (!_mapParameterName2FactMetaData.contains(name)) {
+
+        
         qCDebug(PX4ParameterMetaDataLog) << "No metaData for " << name << "using generic metadata";
         FactMetaData* metaData = new FactMetaData(type, this);
         _mapParameterName2FactMetaData[name] = metaData;

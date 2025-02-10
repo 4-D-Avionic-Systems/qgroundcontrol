@@ -1,17 +1,16 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#ifndef QMLUNITSCONVERSION_H
-#define QMLUNITSCONVERSION_H
+#pragma once
 
-#include <QObject>
-#include <qmath.h>
+#include <QtCore/QObject>
+#include <QtCore/QtMath>
 #include "FactMetaData.h"
 
 class QmlUnitsConversion : public QObject
@@ -59,11 +58,15 @@ public:
 
     QString appSettingsAreaUnitsString(void) const { return FactMetaData::appSettingsAreaUnitsString(); }
 
+    /// Converts from meters/second to the user specified speed unit
+    Q_INVOKABLE QVariant metersSecondToAppSettingsSpeedUnits(const QVariant& metersSecond) const { return FactMetaData::metersSecondToAppSettingsSpeedUnits(metersSecond); }
+
+    /// Converts from user specified speed unit to meters/second
+    Q_INVOKABLE QVariant appSettingsSpeedUnitsToMetersSecond(const QVariant& speed) const { return FactMetaData::appSettingsSpeedUnitsToMetersSecond(speed); }
+
     /// Returns the string for speed units which has configued by user
     QString appSettingsSpeedUnitsString() { return FactMetaData::appSettingsSpeedUnitsString(); }
 
     Q_INVOKABLE double degreesToRadians(double degrees) { return qDegreesToRadians(degrees); }
     Q_INVOKABLE double radiansToDegrees(double radians) { return qRadiansToDegrees(radians); }
 };
-
-#endif // QMLUNITSCONVERSION_H

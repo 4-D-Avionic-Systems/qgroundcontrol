@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -16,12 +16,13 @@
 
 #pragma once
 
-#include "QGCLoggingCategory.h"
-#include "Fact.h"
-#include <QObject>
-#include <QTimer>
-#include <QDateTime>
-#include <QFile>
+#include <QtCore/QObject>
+#include <QtCore/QTime>
+#include <QtCore/QFile>
+#include <QtCore/QLoggingCategory>
+
+class Fact;
+class QTimer;
 
 Q_DECLARE_LOGGING_CATEGORY(SubtitleWriterLog)
 
@@ -31,10 +32,10 @@ class SubtitleWriter : public QObject
 
 public:
     explicit SubtitleWriter(QObject* parent = nullptr);
-    ~SubtitleWriter() = default;
+    ~SubtitleWriter();
 
     // starts capturing vehicle telemetry.
-    void startCapturingTelemetry(const QString& videoFile);
+    void startCapturingTelemetry(const QString &videoFile);
     void stopCapturingTelemetry();
 
 private slots:
@@ -42,10 +43,10 @@ private slots:
     void _captureTelemetry();
 
 private:
-    QTimer _timer;
+    QTimer* _timer = nullptr;
     QList<Fact*> _facts;
     QTime _lastEndTime;
     QFile _file;
 
-    static const int _sampleRate; // Sample rate in Hz for getting telemetry data, most players do weird stuff when > 1Hz
+    static constexpr int _sampleRate = 1; // Sample rate in Hz for getting telemetry data, most players do weird stuff when > 1Hz
 };

@@ -1,50 +1,37 @@
-
 add_subdirectory(FactControls)
 
-set(EXTRA_SRC)
-if(BUILD_TESTING)
-	list(APPEND EXTRA_SRC
-		FactSystemTestBase.cc
-		FactSystemTestBase.h
-		FactSystemTestGeneric.cc
-		FactSystemTestGeneric.h
-		FactSystemTestPX4.cc
-		FactSystemTestPX4.h
-		ParameterManagerTest.cc
-		ParameterManagerTest.h
-	)
-endif()
+find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
-add_library(FactSystem
-	Fact.cc
-	FactGroup.cc
-	FactGroup.h
-	Fact.h
-	FactMetaData.cc
-	FactMetaData.h
-	FactSystem.cc
-	FactSystem.h
-	FactValueSliderListModel.cc
-	FactValueSliderListModel.h
-	ParameterManager.cc
-	ParameterManager.h
-	SettingsFact.cc
-	SettingsFact.h
-
-	FactSystemTest.qml
-
-	${EXTRA_SRC}
+qt_add_library(FactSystem STATIC
+    Fact.cc
+    Fact.h
+    FactGroup.cc
+    FactGroup.h
+    FactMetaData.cc
+    FactMetaData.h
+    FactValueSliderListModel.cc
+    FactValueSliderListModel.h
+    ParameterManager.cc
+    ParameterManager.h
+    SettingsFact.cc
+    SettingsFact.h
 )
 
 target_link_libraries(FactSystem
-	PRIVATE
-		qgc
-		FactControls
+    PRIVATE
+        Qt6::Qml
+        API
+        AutoPilotPlugins
+        FactControls
+        FirmwarePlugin
+        QGC
+        Settings
+        Utilities
+        Vehicle
+        VehicleComponents
+    PUBLIC
+        Qt6::Core
+        MAVLink
 )
 
-target_include_directories(FactSystem
-	INTERFACE
-		${CMAKE_CURRENT_SOURCE_DIR}
-	PUBLIC
-		FactControls
-)
+target_include_directories(FactSystem PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

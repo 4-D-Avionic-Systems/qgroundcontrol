@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,59 +10,23 @@
 
 #include "SurveyComplexItem.h"
 #include "JsonHelper.h"
-#include "MissionController.h"
 #include "QGCGeo.h"
 #include "QGCQGeoCoordinate.h"
 #include "SettingsManager.h"
 #include "AppSettings.h"
 #include "PlanMasterController.h"
+#include "MissionItem.h"
 #include "QGCApplication.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-#include <QPolygonF>
+#include <QtGui/QPolygonF>
+#include <QtCore/QJsonArray>
+#include <QtCore/QLineF>
 
 QGC_LOGGING_CATEGORY(SurveyComplexItemLog, "SurveyComplexItemLog")
 
 const QString SurveyComplexItem::name(SurveyComplexItem::tr("Survey"));
-
-const char* SurveyComplexItem::jsonComplexItemTypeValue =   "survey";
-const char* SurveyComplexItem::jsonV3ComplexItemTypeValue = "survey";
-
-const char* SurveyComplexItem::settingsGroup =              "Survey";
-const char* SurveyComplexItem::gridAngleName =              "GridAngle";
-const char* SurveyComplexItem::gridEntryLocationName =      "GridEntryLocation";
-const char* SurveyComplexItem::flyAlternateTransectsName =  "FlyAlternateTransects";
-const char* SurveyComplexItem::splitConcavePolygonsName =   "SplitConcavePolygons";
-
-const char* SurveyComplexItem::_jsonGridAngleKey =          "angle";
-const char* SurveyComplexItem::_jsonEntryPointKey =         "entryLocation";
-
-const char* SurveyComplexItem::_jsonV3GridObjectKey =                   "grid";
-const char* SurveyComplexItem::_jsonV3GridAltitudeKey =                 "altitude";
-const char* SurveyComplexItem::_jsonV3GridAltitudeRelativeKey =         "relativeAltitude";
-const char* SurveyComplexItem::_jsonV3GridAngleKey =                    "angle";
-const char* SurveyComplexItem::_jsonV3GridSpacingKey =                  "spacing";
-const char* SurveyComplexItem::_jsonV3EntryPointKey =                   "entryLocation";
-const char* SurveyComplexItem::_jsonV3TurnaroundDistKey =               "turnAroundDistance";
-const char* SurveyComplexItem::_jsonV3CameraTriggerDistanceKey =        "cameraTriggerDistance";
-const char* SurveyComplexItem::_jsonV3CameraTriggerInTurnaroundKey =    "cameraTriggerInTurnaround";
-const char* SurveyComplexItem::_jsonV3HoverAndCaptureKey =              "hoverAndCapture";
-const char* SurveyComplexItem::_jsonV3GroundResolutionKey =             "groundResolution";
-const char* SurveyComplexItem::_jsonV3FrontalOverlapKey =               "imageFrontalOverlap";
-const char* SurveyComplexItem::_jsonV3SideOverlapKey =                  "imageSideOverlap";
-const char* SurveyComplexItem::_jsonV3CameraSensorWidthKey =            "sensorWidth";
-const char* SurveyComplexItem::_jsonV3CameraSensorHeightKey =           "sensorHeight";
-const char* SurveyComplexItem::_jsonV3CameraResolutionWidthKey =        "resolutionWidth";
-const char* SurveyComplexItem::_jsonV3CameraResolutionHeightKey =       "resolutionHeight";
-const char* SurveyComplexItem::_jsonV3CameraFocalLengthKey =            "focalLength";
-const char* SurveyComplexItem::_jsonV3CameraMinTriggerIntervalKey =     "minTriggerInterval";
-const char* SurveyComplexItem::_jsonV3CameraObjectKey =                 "camera";
-const char* SurveyComplexItem::_jsonV3CameraNameKey =                   "name";
-const char* SurveyComplexItem::_jsonV3ManualGridKey =                   "manualGrid";
-const char* SurveyComplexItem::_jsonV3CameraOrientationLandscapeKey =   "orientationLandscape";
-const char* SurveyComplexItem::_jsonV3FixedValueIsAltitudeKey =         "fixedValueIsAltitude";
-const char* SurveyComplexItem::_jsonV3Refly90DegreesKey =               "refly90Degrees";
-const char* SurveyComplexItem::_jsonFlyAlternateTransectsKey =          "flyAlternateTransects";
-const char* SurveyComplexItem::_jsonSplitConcavePolygonsKey =           "splitConcavePolygons";
 
 SurveyComplexItem::SurveyComplexItem(PlanMasterController* masterController, bool flyView, const QString& kmlOrShpFile)
     : TransectStyleComplexItem  (masterController, flyView, settingsGroup)
@@ -74,13 +38,6 @@ SurveyComplexItem::SurveyComplexItem(PlanMasterController* masterController, boo
 {
     _editorQml = "qrc:/qml/SurveyItemEditor.qml";
 
-    // If the user hasn't changed turnaround from the default (which is a fixed wing default) and we are multi-rotor set the multi-rotor default.
-    // NULL check since object creation during unit testing passes NULL for vehicle
-    if (_controllerVehicle && _controllerVehicle->multiRotor() && _turnAroundDistanceFact.rawValue().toDouble() == _turnAroundDistanceFact.rawDefaultValue().toDouble()) {
-        // Note this is set to 10 meters to work around a problem with PX4 Pro turnaround behavior. Don't change unless firmware gets better as well.
-        _turnAroundDistanceFact.setRawValue(10);
-    }
-
     if (_controllerVehicle && !(_controllerVehicle->fixedWing() || _controllerVehicle->vtol())) {
         // Only fixed wing flight paths support alternate transects
         _flyAlternateTransectsFact.setRawValue(false);
@@ -88,7 +45,7 @@ SurveyComplexItem::SurveyComplexItem(PlanMasterController* masterController, boo
 
     // We override the altitude to the mission default
     if (_cameraCalc.isManualCamera() || !_cameraCalc.valueSetIsDistance()->rawValue().toBool()) {
-        _cameraCalc.distanceToSurface()->setRawValue(qgcApp()->toolbox()->settingsManager()->appSettings()->defaultMissionItemAltitude()->rawValue());
+        _cameraCalc.distanceToSurface()->setRawValue(SettingsManager::instance()->appSettings()->defaultMissionItemAltitude()->rawValue());
     }
 
     connect(&_gridAngleFact,            &Fact::valueChanged,                        this, &SurveyComplexItem::_setDirty);
@@ -672,18 +629,9 @@ double SurveyComplexItem::_turnaroundDistance(void) const
 
 void SurveyComplexItem::_rebuildTransectsPhase1(void)
 {
-    bool split = splitConcavePolygons()->rawValue().toBool();
-	if (split) {
-		_rebuildTransectsPhase1WorkerSplitPolygons(false /* refly */);
-	} else {
-		_rebuildTransectsPhase1WorkerSinglePolygon(false /* refly */);
-	}
+    _rebuildTransectsPhase1WorkerSinglePolygon(false /* refly */);
     if (_refly90DegreesFact.rawValue().toBool()) {
-    	if (split) {
-    		_rebuildTransectsPhase1WorkerSplitPolygons(true /* refly */);
-    	} else {
-    		_rebuildTransectsPhase1WorkerSinglePolygon(true /* refly */);
-    	}
+        _rebuildTransectsPhase1WorkerSinglePolygon(true /* refly */);
     }
 }
 
@@ -716,7 +664,7 @@ void SurveyComplexItem::_rebuildTransectsPhase1WorkerSinglePolygon(bool refly)
             // This avoids a nan calculation that comes out of convertGeoToNed
             x = y = 0;
         } else {
-            convertGeoToNed(vertex, tangentOrigin, &y, &x, &down);
+            QGCGeo::convertGeoToNed(vertex, tangentOrigin, y, x, down);
         }
         polygonPoints += QPointF(x, y);
         qCDebug(SurveyComplexItemLog) << "_rebuildTransectsPhase1 vertex:x:y" << vertex << polygonPoints.last().x() << polygonPoints.last().y();
@@ -807,9 +755,9 @@ void SurveyComplexItem::_rebuildTransectsPhase1WorkerSinglePolygon(bool refly)
         QGeoCoordinate          coord;
         QList<QGeoCoordinate>   transect;
 
-        convertNedToGeo(line.p1().y(), line.p1().x(), 0, tangentOrigin, &coord);
+        QGCGeo::convertNedToGeo(line.p1().y(), line.p1().x(), 0, tangentOrigin, coord);
         transect.append(coord);
-        convertNedToGeo(line.p2().y(), line.p2().x(), 0, tangentOrigin, &coord);
+        QGCGeo::convertNedToGeo(line.p2().y(), line.p2().x(), 0, tangentOrigin, coord);
         transect.append(coord);
 
         transects.append(transect);
@@ -902,6 +850,9 @@ void SurveyComplexItem::_rebuildTransectsPhase1WorkerSinglePolygon(bool refly)
     }
 }
 
+#if 0
+    // Splitting polygons is not supported since this code would get stuck in a infinite loop
+    // Code is left here in case someone wants to try to resurrect it
 
 void SurveyComplexItem::_rebuildTransectsPhase1WorkerSplitPolygons(bool refly)
 {
@@ -932,7 +883,7 @@ void SurveyComplexItem::_rebuildTransectsPhase1WorkerSplitPolygons(bool refly)
             // This avoids a nan calculation that comes out of convertGeoToNed
             x = y = 0;
         } else {
-            convertGeoToNed(vertex, tangentOrigin, &y, &x, &down);
+            convertGeoToNed(vertex, tangentOrigin, y, x, down);
         }
         polygonPoints += QPointF(x, y);
         qCDebug(SurveyComplexItemLog) << "_rebuildTransectsPhase1 vertex:x:y" << vertex << polygonPoints.last().x() << polygonPoints.last().y();
@@ -1117,14 +1068,14 @@ bool SurveyComplexItem::_VertexCanSeeOther(const QPolygonF& polygon, const QPoin
     return visible;
 }
 
-bool SurveyComplexItem::_VertexIsReflex(const QPolygonF& polygon, const QPointF* vertex) {
+bool SurveyComplexItem::_VertexIsReflex(const QPolygonF& polygon, QList<QPointF>::const_iterator& vertexIter) {
     auto vertexBefore = vertex == polygon.begin() ? polygon.end() - 1 : vertex - 1;
     auto vertexAfter = vertex == polygon.end() - 1 ? polygon.begin() : vertex + 1;
     auto area = (((vertex->x() - vertexBefore->x())*(vertexAfter->y() - vertexBefore->y()))-((vertexAfter->x() - vertexBefore->x())*(vertex->y() - vertexBefore->y())));
     return area > 0;
 
 }
-
+#endif
 
 void SurveyComplexItem::_rebuildTransectsFromPolygon(bool refly, const QPolygonF& polygon, const QGeoCoordinate& tangentOrigin, const QPointF* const transitionPoint)
 {
@@ -1201,7 +1152,7 @@ void SurveyComplexItem::_rebuildTransectsFromPolygon(bool refly, const QPolygonF
     if (transitionPoint != nullptr) {
         QList<QGeoCoordinate>   transect;
         QGeoCoordinate          coord;
-        convertNedToGeo(transitionPoint->y(), transitionPoint->x(), 0, tangentOrigin, &coord);
+        QGCGeo::convertNedToGeo(transitionPoint->y(), transitionPoint->x(), 0, tangentOrigin, coord);
         transect.append(coord);
         transect.append(coord); //TODO
         transects.append(transect);
@@ -1211,9 +1162,9 @@ void SurveyComplexItem::_rebuildTransectsFromPolygon(bool refly, const QPolygonF
         QList<QGeoCoordinate>   transect;
         QGeoCoordinate          coord;
 
-        convertNedToGeo(line.p1().y(), line.p1().x(), 0, tangentOrigin, &coord);
+        QGCGeo::convertNedToGeo(line.p1().y(), line.p1().x(), 0, tangentOrigin, coord);
         transect.append(coord);
-        convertNedToGeo(line.p2().y(), line.p2().x(), 0, tangentOrigin, &coord);
+        QGCGeo::convertNedToGeo(line.p2().y(), line.p2().x(), 0, tangentOrigin, coord);
         transect.append(coord);
 
         transects.append(transect);

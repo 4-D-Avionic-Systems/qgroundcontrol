@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,12 +9,7 @@
 
 #include "ActuatorTesting.h"
 #include "Common.h"
-
 #include "QGCApplication.h"
-
-#include <QDebug>
-
-#include <cmath>
 
 using namespace ActuatorTesting;
 
@@ -36,7 +31,11 @@ ActuatorTest::~ActuatorTest()
 void ActuatorTest::updateFunctions(const QList<Actuator*> &actuators)
 {
     _actuators->clearAndDeleteContents();
-    _allMotorsActuator->deleteLater();
+
+    if (_allMotorsActuator) {
+      _allMotorsActuator->deleteLater();
+    }
+
     _allMotorsActuator = nullptr;
 
     Actuator* motorActuator{nullptr};
@@ -120,11 +119,10 @@ void ActuatorTest::setActive(bool active)
     _active = active;
 }
 
-void ActuatorTest::ackHandlerEntry(void* resultHandlerData, int compId, MAV_RESULT commandResult, uint8_t progress,
-        Vehicle::MavCmdResultFailureCode_t failureCode)
+void ActuatorTest::ackHandlerEntry(void* resultHandlerData, int /*compId*/, const mavlink_command_ack_t& ack, Vehicle::MavCmdResultFailureCode_t failureCode)
 {
     ActuatorTest* actuatorTest = (ActuatorTest*)resultHandlerData;
-    actuatorTest->ackHandler(commandResult, failureCode);
+    actuatorTest->ackHandler(static_cast<MAV_RESULT>(ack.result), failureCode);
 }
 
 void ActuatorTest::ackHandler(MAV_RESULT commandResult, Vehicle::MavCmdResultFailureCode_t failureCode)
@@ -190,9 +188,12 @@ void ActuatorTest::sendMavlinkRequest(int function, float value, float timeout)
 
     // TODO: consider using a lower command timeout
 
+    Vehicle::MavCmdAckHandlerInfo_t handlerInfo = {};
+    handlerInfo.resultHandler       = ackHandlerEntry;
+    handlerInfo.resultHandlerData   = this;
+
     _vehicle->sendMavCommandWithHandler(
-            ackHandlerEntry,                  // Ack callback
-            this,                             // Ack callback data
+            &handlerInfo,
             MAV_COMP_ID_AUTOPILOT1,           // the ID of the autopilot
             MAV_CMD_ACTUATOR_TEST,            // the mavlink command
             value,                            // value

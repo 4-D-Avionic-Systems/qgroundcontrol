@@ -2,7 +2,18 @@
 
 Note: This file only contains high level features or important fixes.
 
-## 4.1 - Daily build
+## 5.0 - Daily Build
+
+* Introduced a new combined compass and attitude instrument for enhanced navigation.
+* Select between multiple instruments by clicking the instrument control on desktop or pressing and holding on mobile.
+* Updated support for Fly View and Joystick custom MAVLink actions; command file names and formats have changed—refer to QGC docs for details.
+* Added functionality for setting individual MAVLink message rates in the MAVLink Inspector.
+* Enabled support for MAVLink 2 signing.
+* Dynamic battery display that reduces the number of bars based on battery percentage, with configurable states (100%, Config 1, Config 2, Low, Critical) for clearer status indication.
+* Custom Actions changed to Mavlink Actions. The location of the actions json files has changes to the "Mavlink Actions" directory. If you were using the previous "Custom Actions" directory, move you json files to the new location.
+
+
+## 4.1
 
 ### 4.1.2 - Not yet released
 * Bug: Radio setup - Fix double send of `MAV_CMD_PREFLIGHT_CALIBRATION` causing "Unable to send command" error.

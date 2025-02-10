@@ -7,26 +7,26 @@
  *
  ****************************************************************************/
 
-import QtQuick                  2.12
-import QtQuick.Controls         2.4
-import QtQuick.Dialogs          1.3
-import QtQuick.Layouts          1.12
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
+import QtQuick.Layouts
 
-import QtLocation               5.3
-import QtPositioning            5.3
-import QtQuick.Window           2.2
-import QtQml.Models             2.1
+import QtLocation
+import QtPositioning
+import QtQuick.Window
+import QtQml.Models
 
-import QGroundControl               1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.Controllers   1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.FactSystem    1.0
-import QGroundControl.FlightDisplay 1.0
-import QGroundControl.FlightMap     1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.ScreenTools   1.0
-import QGroundControl.Vehicle       1.0
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Controllers
+import QGroundControl.Controls
+import QGroundControl.FactSystem
+import QGroundControl.FlightDisplay
+import QGroundControl.FlightMap
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
+import QGroundControl.Vehicle
 
 // This is the ui overlay layer for the widgets/tools for Fly View
 Item {
@@ -35,6 +35,7 @@ Item {
     property var    parentToolInsets
     property var    totalToolInsets:        _totalToolInsets
     property var    mapControl
+    property bool   isViewer3DOpen:         false
 
     property var    _activeVehicle:         QGroundControl.multiVehicleManager.activeVehicle
     property var    _planMasterController:  globals.planMasterControllerFlyView
@@ -47,21 +48,65 @@ Item {
     property rect   _centerViewport:        Qt.rect(0, 0, width, height)
     property real   _rightPanelWidth:       ScreenTools.defaultFontPixelWidth * 30
     property alias  _gripperMenu:           gripperOptions
+    property real   _layoutMargin:          ScreenTools.defaultFontPixelWidth * 0.75
+    property bool   _layoutSpacing:         ScreenTools.defaultFontPixelWidth
+    property bool   _showSingleVehicleUI:   true
+
+    property bool utmspActTrigger
 
     QGCToolInsets {
         id:                     _totalToolInsets
-        leftEdgeTopInset:       toolStrip.leftInset
-        leftEdgeCenterInset:    toolStrip.leftInset
-        leftEdgeBottomInset:    parentToolInsets.leftEdgeBottomInset
-        rightEdgeTopInset:      parentToolInsets.rightEdgeTopInset
-        rightEdgeCenterInset:   parentToolInsets.rightEdgeCenterInset
-        rightEdgeBottomInset:   parentToolInsets.rightEdgeBottomInset
-        topEdgeLeftInset:       parentToolInsets.topEdgeLeftInset
-        topEdgeCenterInset:     parentToolInsets.topEdgeCenterInset
-        topEdgeRightInset:      parentToolInsets.topEdgeRightInset
-        bottomEdgeLeftInset:    parentToolInsets.bottomEdgeLeftInset
-        bottomEdgeCenterInset:  mapScale.centerInset
-        bottomEdgeRightInset:   0
+        leftEdgeTopInset:       toolStrip.leftEdgeTopInset
+        leftEdgeCenterInset:    toolStrip.leftEdgeCenterInset
+        leftEdgeBottomInset:    virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.leftEdgeBottomInset : parentToolInsets.leftEdgeBottomInset
+        rightEdgeTopInset:      topRightPanel.rightEdgeTopInset
+        rightEdgeCenterInset:   topRightPanel.rightEdgeCenterInset
+        rightEdgeBottomInset:   bottomRightRowLayout.rightEdgeBottomInset
+        topEdgeLeftInset:       toolStrip.topEdgeLeftInset
+        topEdgeCenterInset:     mapScale.topEdgeCenterInset
+        topEdgeRightInset:      topRightPanel.topEdgeRightInset
+        bottomEdgeLeftInset:    virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.bottomEdgeLeftInset : parentToolInsets.bottomEdgeLeftInset
+        bottomEdgeCenterInset:  bottomRightRowLayout.bottomEdgeCenterInset
+        bottomEdgeRightInset:   virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.bottomEdgeRightInset : bottomRightRowLayout.bottomEdgeRightInset
+    }
+
+    FlyViewTopRightPanel {
+        id:                     topRightPanel
+        anchors.top:            parent.top
+        anchors.right:          parent.right
+        anchors.topMargin:      _layoutMargin
+        anchors.rightMargin:    _layoutMargin
+        maximumHeight:          parent.height - (bottomRightRowLayout.height + _margins * 5)
+
+        property real topEdgeRightInset:    height + _layoutMargin
+        property real rightEdgeTopInset:    width + _layoutMargin
+        property real rightEdgeCenterInset: rightEdgeTopInset
+    }
+
+    FlyViewTopRightColumnLayout {
+        id:                 topRightColumnLayout
+        anchors.margins:    _layoutMargin
+        anchors.top:        parent.top
+        anchors.bottom:     bottomRightRowLayout.top
+        anchors.right:      parent.right
+        spacing:            _layoutSpacing
+        visible:           !topRightPanel.visible
+
+        property real topEdgeRightInset:    childrenRect.height + _layoutMargin
+        property real rightEdgeTopInset:    width + _layoutMargin
+        property real rightEdgeCenterInset: rightEdgeTopInset
+    }
+
+    FlyViewBottomRightRowLayout {
+        id:                 bottomRightRowLayout
+        anchors.margins:    _layoutMargin
+        anchors.bottom:     parent.bottom
+        anchors.right:      parent.right
+        spacing:            _layoutSpacing
+
+        property real bottomEdgeRightInset:     height + _layoutMargin
+        property real bottomEdgeCenterInset:    bottomEdgeRightInset
+        property real rightEdgeBottomInset:     width + _layoutMargin
     }
 
     FlyViewMissionCompleteDialog {
@@ -70,42 +115,6 @@ Item {
         rallyPointController:   _rallyPointController
     }
 
-    Row {
-        id:                 multiVehiclePanelSelector
-        anchors.margins:    _toolsMargin
-        anchors.top:        parent.top
-        anchors.right:      parent.right
-        width:              _rightPanelWidth
-        spacing:            ScreenTools.defaultFontPixelWidth
-        visible:            QGroundControl.multiVehicleManager.vehicles.count > 1 && QGroundControl.corePlugin.options.flyView.showMultiVehicleList
-
-        property bool showSingleVehiclePanel:  !visible || singleVehicleRadio.checked
-
-        QGCMapPalette { id: mapPal; lightColors: true }
-
-        QGCRadioButton {
-            id:             singleVehicleRadio
-            text:           qsTr("Single")
-            checked:        true
-            textColor:      mapPal.text
-        }
-
-        QGCRadioButton {
-            text:           qsTr("Multi-Vehicle")
-            textColor:      mapPal.text
-        }
-    }
-
-    MultiVehicleList {
-        anchors.margins:    _toolsMargin
-        anchors.top:        multiVehiclePanelSelector.bottom
-        anchors.right:      parent.right
-        width:              _rightPanelWidth
-        height:             parent.height - y - _toolsMargin
-        visible:            !multiVehiclePanelSelector.showSingleVehiclePanel
-    }
-
-
     GuidedActionConfirm {
         anchors.margins:            _toolsMargin
         anchors.top:                parent.top
@@ -113,133 +122,52 @@ Item {
         z:                          QGroundControl.zOrderTopMost
         guidedController:           _guidedController
         guidedValueSlider:          _guidedValueSlider
-    }
-
-    FlyViewInstrumentPanel {
-        id:                         instrumentPanel
-        anchors.margins:            _toolsMargin
-        anchors.top:                multiVehiclePanelSelector.visible ? multiVehiclePanelSelector.bottom : parent.top
-        anchors.right:              parent.right
-        width:                      _rightPanelWidth
-        spacing:                    _toolsMargin
-        visible:                    QGroundControl.corePlugin.options.flyView.showInstrumentPanel && multiVehiclePanelSelector.showSingleVehiclePanel
-        availableHeight:            parent.height - y - _toolsMargin
-
-        property real rightInset: visible ? parent.width - x : 0
-    }
-
-    PhotoVideoControl {
-        id:                     photoVideoControl
-        anchors.margins:        _toolsMargin
-        anchors.right:          parent.right
-        width:                  _rightPanelWidth
-        state:                  _verticalCenter ? "verticalCenter" : "topAnchor"
-        states: [
-            State {
-                name: "verticalCenter"
-                AnchorChanges {
-                    target:                 photoVideoControl
-                    anchors.top:            undefined
-                    anchors.verticalCenter: _root.verticalCenter
-                }
-            },
-            State {
-                name: "topAnchor"
-                AnchorChanges {
-                    target:                 photoVideoControl
-                    anchors.verticalCenter: undefined
-                    anchors.top:            instrumentPanel.bottom
-                }
-            }
-        ]
-
-        property bool _verticalCenter: !QGroundControl.settingsManager.flyViewSettings.alternateInstrumentPanel.rawValue
-    }
-
-    TelemetryValuesBar {
-        id:                 telemetryPanel
-        x:                  recalcXPosition()
-        anchors.margins:    _toolsMargin
-
-        // States for custom layout support
-        states: [
-            State {
-                name: "bottom"
-                when: telemetryPanel.bottomMode
-
-                AnchorChanges {
-                    target: telemetryPanel
-                    anchors.top: undefined
-                    anchors.bottom: parent.bottom
-                    anchors.right: undefined
-                    anchors.verticalCenter: undefined
-                }
-
-                PropertyChanges {
-                    target: telemetryPanel
-                    x: recalcXPosition()
-                }
-            },
-
-            State {
-                name: "right-video"
-                when: !telemetryPanel.bottomMode && photoVideoControl.visible
-
-                AnchorChanges {
-                    target: telemetryPanel
-                    anchors.top: photoVideoControl.bottom
-                    anchors.bottom: undefined
-                    anchors.right: parent.right
-                    anchors.verticalCenter: undefined
-                }
-            },
-
-            State {
-                name: "right-novideo"
-                when: !telemetryPanel.bottomMode && !photoVideoControl.visible
-
-                AnchorChanges {
-                    target: telemetryPanel
-                    anchors.top: undefined
-                    anchors.bottom: undefined
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-            }
-        ]
-
-        function recalcXPosition() {
-            // First try centered
-            var halfRootWidth   = _root.width / 2
-            var halfPanelWidth  = telemetryPanel.width / 2
-            var leftX           = (halfRootWidth - halfPanelWidth) - _toolsMargin
-            var rightX          = (halfRootWidth + halfPanelWidth) + _toolsMargin
-            if (leftX >= parentToolInsets.leftEdgeBottomInset || rightX <= parentToolInsets.rightEdgeBottomInset ) {
-                // It will fit in the horizontalCenter
-                return halfRootWidth - halfPanelWidth
-            } else {
-                // Anchor to left edge
-                return parentToolInsets.leftEdgeBottomInset + _toolsMargin
-            }
-        }
+        utmspSliderTrigger:         utmspActTrigger
     }
 
     //-- Virtual Joystick
     Loader {
         id:                         virtualJoystickMultiTouch
         z:                          QGroundControl.zOrderTopMost + 1
-        width:                      parent.width  - (_pipOverlay.width / 2)
+        anchors.right:              parent.right
+        anchors.rightMargin:        anchors.leftMargin
         height:                     Math.min(parent.height * 0.25, ScreenTools.defaultFontPixelWidth * 16)
         visible:                    _virtualJoystickEnabled && !QGroundControl.videoManager.fullScreen && !(_activeVehicle ? _activeVehicle.usingHighLatencyLink : false)
         anchors.bottom:             parent.bottom
-        anchors.bottomMargin:       parentToolInsets.leftEdgeBottomInset + ScreenTools.defaultFontPixelHeight * 2
-        anchors.horizontalCenter:   parent.horizontalCenter
+        anchors.bottomMargin:       bottomLoaderMargin
+        anchors.left:               parent.left   
+        anchors.leftMargin:         ( y > toolStrip.y + toolStrip.height ? toolStrip.width / 2 : toolStrip.width * 1.05 + toolStrip.x) 
         source:                     "qrc:/qml/VirtualJoystick.qml"
         active:                     _virtualJoystickEnabled && !(_activeVehicle ? _activeVehicle.usingHighLatencyLink : false)
 
-        property bool autoCenterThrottle: QGroundControl.settingsManager.appSettings.virtualJoystickAutoCenterThrottle.rawValue
-
+        property real bottomEdgeLeftInset:     parent.height-y
+        property bool autoCenterThrottle:      QGroundControl.settingsManager.appSettings.virtualJoystickAutoCenterThrottle.rawValue
         property bool _virtualJoystickEnabled: QGroundControl.settingsManager.appSettings.virtualJoystick.rawValue
+        property real bottomEdgeRightInset:    parent.height-y
+        property var  _pipViewMargin:          _pipView.visible ? parentToolInsets.bottomEdgeLeftInset + ScreenTools.defaultFontPixelHeight * 2 : 
+                                               bottomRightRowLayout.height + ScreenTools.defaultFontPixelHeight * 1.5
+
+        property var  bottomLoaderMargin:      _pipViewMargin >= parent.height / 2 ? parent.height / 2 : _pipViewMargin
+
+        // Width is difficult to access directly hence this hack which may not work in all circumstances
+        property real leftEdgeBottomInset:  visible ? bottomEdgeLeftInset + width/18 - ScreenTools.defaultFontPixelHeight*2 : 0
+        property real rightEdgeBottomInset: visible ? bottomEdgeRightInset + width/18 - ScreenTools.defaultFontPixelHeight*2 : 0
+        property real rootWidth:            _root.width
+        property var  itemX:                virtualJoystickMultiTouch.x   // real X on screen
+
+        onRootWidthChanged: virtualJoystickMultiTouch.status == Loader.Ready && visible ? virtualJoystickMultiTouch.item.uiTotalWidth = rootWidth : undefined
+        onItemXChanged:     virtualJoystickMultiTouch.status == Loader.Ready && visible ? virtualJoystickMultiTouch.item.uiRealX = itemX : undefined
+
+        //Loader status logic
+        onLoaded: {
+            if (virtualJoystickMultiTouch.visible) {
+                virtualJoystickMultiTouch.item.calibration = true 
+                virtualJoystickMultiTouch.item.uiTotalWidth = rootWidth
+                virtualJoystickMultiTouch.item.uiRealX = itemX
+            } else {
+                virtualJoystickMultiTouch.item.calibration = false
+            }
+        }
     }
 
     FlyViewToolStrip {
@@ -252,9 +180,16 @@ Item {
         maxHeight:              parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin
         visible:                !QGroundControl.videoManager.fullScreen
 
-        onDisplayPreFlightChecklist: preFlightChecklistPopup.createObject(mainWindow).open()
+        onDisplayPreFlightChecklist: {
+            if (!preFlightChecklistLoader.active) {
+                preFlightChecklistLoader.active = true
+            }
+            preFlightChecklistLoader.item.open()
+        }
 
-        property real leftInset: x + width
+        property real topEdgeLeftInset:     visible ? y + height : 0
+        property real leftEdgeTopInset:     visible ? x + width : 0
+        property real leftEdgeCenterInset:  leftEdgeTopInset
     }
 
     GripperMenu {
@@ -272,10 +207,16 @@ Item {
         anchors.left:       toolStrip.right
         anchors.top:        parent.top
         mapControl:         _mapControl
-        buttonsOnLeft:      false
-        visible:            !ScreenTools.isTinyScreen && QGroundControl.corePlugin.options.flyView.showMapScale && mapControl.pipState.state === mapControl.pipState.fullState
+        buttonsOnLeft:      true
+        visible:            !ScreenTools.isTinyScreen && QGroundControl.corePlugin.options.flyView.showMapScale && !isViewer3DOpen && mapControl.pipState.state === mapControl.pipState.fullState
 
-        property real centerInset: visible ? parent.height - y : 0
+        property real topEdgeCenterInset: visible ? y + height : 0
+    }
+
+    Loader {
+        id: preFlightChecklistLoader
+        sourceComponent: preFlightChecklistPopup
+        active: false
     }
 
     Component {

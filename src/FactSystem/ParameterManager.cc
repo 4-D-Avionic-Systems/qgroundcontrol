@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,21 +9,25 @@
 
 #include "ParameterManager.h"
 #include "QGCApplication.h"
-#include "QGCLoggingCategory.h"
-#include "QGCApplication.h"
-#include "UASMessageHandler.h"
 #include "FirmwarePlugin.h"
-#include "UAS.h"
-#include "JsonHelper.h"
-#include "ComponentInformationManager.h"
 #include "CompInfoParam.h"
+#include "ComponentInformationManager.h"
 #include "FTPManager.h"
+#include "Vehicle.h"
+#include "AutoPilotPlugin.h"
+#include "MAVLinkProtocol.h"
+#include "QGC.h"
+#include <QGCLoggingCategory.h>
 
-#include <QEasingCurve>
-#include <QFile>
-#include <QDebug>
-#include <QVariantAnimation>
-#include <QJsonArray>
+#include "FactPanelController.h"
+#include "FactValueSliderListModel.h"
+#include "FactGroup.h"
+
+#include <QtCore/QEasingCurve>
+#include <QtCore/QFile>
+#include <QtCore/QVariantAnimation>
+#include <QtCore/QStandardPaths>
+#include <QtQml/qqml.h>
 
 QGC_LOGGING_CATEGORY(ParameterManagerVerbose1Log,           "ParameterManagerVerbose1Log")
 QGC_LOGGING_CATEGORY(ParameterManagerVerbose2Log,           "ParameterManagerVerbose2Log")
@@ -69,7 +73,6 @@ const QHash<int, QString> _mavlinkCompIdHash {
 ParameterManager::ParameterManager(Vehicle* vehicle)
     : QObject                           (vehicle)
     , _vehicle                          (vehicle)
-    , _mavlink                          (nullptr)
     , _loadProgress                     (0.0)
     , _parametersReady                  (false)
     , _missingParameters                (false)
@@ -92,8 +95,6 @@ ParameterManager::ParameterManager(Vehicle* vehicle)
         return;
     }
 
-    _mavlink = qgcApp()->toolbox()->mavlinkProtocol();
-
     _initialRequestTimeoutTimer.setSingleShot(true);
     _initialRequestTimeoutTimer.setInterval(5000);
     connect(&_initialRequestTimeoutTimer, &QTimer::timeout, this, &ParameterManager::_initialRequestTimeout);
@@ -104,6 +105,17 @@ ParameterManager::ParameterManager(Vehicle* vehicle)
 
     // Ensure the cache directory exists
     QFileInfo(QSettings().fileName()).dir().mkdir("ParamCache");
+}
+
+void ParameterManager::registerQmlTypes()
+{
+    qmlRegisterType<Fact>               ("QGroundControl.FactSystem", 1, 0, "Fact");
+    qmlRegisterType<FactMetaData>       ("QGroundControl.FactSystem", 1, 0, "FactMetaData");
+    qmlRegisterType<FactPanelController>("QGroundControl.FactSystem", 1, 0, "FactPanelController");
+
+    qmlRegisterUncreatableType<FactGroup>               ("QGroundControl.FactSystem",   1, 0, "FactGroup",                  "Reference only");
+    qmlRegisterUncreatableType<FactValueSliderListModel>("QGroundControl.FactControls", 1, 0, "FactValueSliderListModel",   "Reference only");
+    qmlRegisterUncreatableType<ParameterManager>        ("QGroundControl.Vehicle",      1, 0, "ParameterManager",           "Reference only");
 }
 
 void ParameterManager::_updateProgressBar(void)
@@ -174,8 +186,9 @@ void ParameterManager::mavlinkMessageReceived(mavlink_message_t message)
         mavlink_msg_param_value_decode(&message, &param_value);
 
         // This will null terminate the name string
-        QByteArray bytes(param_value.param_id, MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN);
-        QString parameterName(bytes);
+        char parameterNameWithNull[MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN + 1] = {};
+        strncpy(parameterNameWithNull, param_value.param_id, MAVLINK_MSG_PARAM_VALUE_FIELD_PARAM_ID_LEN);
+        QString parameterName(parameterNameWithNull);
 
         mavlink_param_union_t paramUnion;
         paramUnion.param_float  = param_value.param_value;
@@ -502,13 +515,12 @@ void ParameterManager::_ftpDownloadProgress(float progress)
 
 void ParameterManager::refreshAllParameters(uint8_t componentId)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-
-    if (weakLink.expired()) {
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (!sharedLink) {
         return;
     }
 
-    if (weakLink.lock()->linkConfiguration()->isHighLatency() || _logReplay) {
+    if (sharedLink->linkConfiguration()->isHighLatency() || _logReplay) {
         // These links don't load params
         _parametersReady = true;
         _missingParameters = true;
@@ -545,12 +557,10 @@ void ParameterManager::refreshAllParameters(uint8_t componentId)
                 _waitingReadParamIndexMap[cid][waitingIndex] = 0;
             }
         }
-        MAVLinkProtocol*        mavlink = qgcApp()->toolbox()->mavlinkProtocol();
         mavlink_message_t       msg;
-        SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
-        mavlink_msg_param_request_list_pack_chan(mavlink->getSystemId(),
-                                                 mavlink->getComponentId(),
+        mavlink_msg_param_request_list_pack_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                                 MAVLinkProtocol::getComponentId(),
                                                  sharedLink->mavlinkChannel(),
                                                  &msg,
                                                  _vehicle->id(),
@@ -562,12 +572,12 @@ void ParameterManager::refreshAllParameters(uint8_t componentId)
     qCDebug(ParameterManagerLog) << _logVehiclePrefix(-1) << "Request to refresh all parameters for component ID:" << what;
 }
 
-/// Translates FactSystem::defaultComponentId to real component id if needed
+/// Translates ParameterManager::defaultComponentId to real component id if needed
 int ParameterManager::_actualComponentId(int componentId)
 {
-    if (componentId == FactSystem::defaultComponentId) {
+    if (componentId == defaultComponentId) {
         componentId = _vehicle->defaultComponentId();
-        if (componentId == FactSystem::defaultComponentId) {
+        if (componentId == defaultComponentId) {
             qWarning() << _logVehiclePrefix(-1) << "Default component id not set";
         }
     }
@@ -784,16 +794,15 @@ Out:
 
 void ParameterManager::_readParameterRaw(int componentId, const QString& paramName, int paramIndex)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (!weakLink.expired()) {
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         mavlink_message_t       msg;
         char                    fixedParamName[MAVLINK_MSG_PARAM_REQUEST_READ_FIELD_PARAM_ID_LEN];
-        SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
 
         strncpy(fixedParamName, paramName.toStdString().c_str(), sizeof(fixedParamName));
-        mavlink_msg_param_request_read_pack_chan(_mavlink->getSystemId(),   // QGC system id
-                                                 _mavlink->getComponentId(),     // QGC component id
+        mavlink_msg_param_request_read_pack_chan(MAVLinkProtocol::instance()->getSystemId(),   // QGC system id
+                                                 MAVLinkProtocol::getComponentId(),     // QGC component id
                                                  sharedLink->mavlinkChannel(),
                                                  &msg,                           // Pack into this mavlink_message_t
                                                  _vehicle->id(),                 // Target system id
@@ -806,12 +815,10 @@ void ParameterManager::_readParameterRaw(int componentId, const QString& paramNa
 
 void ParameterManager::_sendParamSetToVehicle(int componentId, const QString& paramName, FactMetaData::ValueType_t valueType, const QVariant& value)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-
-    if (!weakLink.expired()) {
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         mavlink_param_set_t     p;
         mavlink_param_union_t   union_value;
-        SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
         memset(&p, 0, sizeof(p));
 
@@ -858,8 +865,8 @@ void ParameterManager::_sendParamSetToVehicle(int componentId, const QString& pa
         strncpy(p.param_id, paramName.toStdString().c_str(), sizeof(p.param_id));
 
         mavlink_message_t msg;
-        mavlink_msg_param_set_encode_chan(_mavlink->getSystemId(),
-                                          _mavlink->getComponentId(),
+        mavlink_msg_param_set_encode_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                          MAVLinkProtocol::getComponentId(),
                                           sharedLink->mavlinkChannel(),
                                           &msg,
                                           &p);
@@ -942,12 +949,10 @@ void ParameterManager::_tryCacheHashLoad(int vehicleId, int componentId, QVarian
             _handleParamValue(componentId, name, count, index++, mavParamType, paramTypeVal.second);
         }
 
-        WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-
-        if (!weakLink.expired()) {
+        SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+        if (sharedLink) {
             mavlink_param_set_t     p;
             mavlink_param_union_t   union_value;
-            SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
             // Return the hash value to notify we don't want any more updates
             memset(&p, 0, sizeof(p));
@@ -958,8 +963,8 @@ void ParameterManager::_tryCacheHashLoad(int vehicleId, int componentId, QVarian
             p.target_system = (uint8_t)_vehicle->id();
             p.target_component = (uint8_t)componentId;
             mavlink_message_t msg;
-            mavlink_msg_param_set_encode_chan(_mavlink->getSystemId(),
-                                              _mavlink->getComponentId(),
+            mavlink_msg_param_set_encode_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                              MAVLinkProtocol::getComponentId(),
                                               sharedLink->mavlinkChannel(),
                                               &msg,
                                               &p);
@@ -1219,7 +1224,7 @@ void ParameterManager::_checkInitialLoadComplete(void)
         QString errorMsg = tr("%1 was unable to retrieve the full set of parameters from vehicle %2. "
                               "This will cause %1 to be unable to display its full user interface. "
                               "If you are using modified firmware, you may need to resolve any vehicle startup errors to resolve the issue. "
-                              "If you are using standard firmware, you may need to upgrade to a newer version to resolve the issue.").arg(qgcApp()->applicationName()).arg(_vehicle->id());
+                              "If you are using standard firmware, you may need to upgrade to a newer version to resolve the issue.").arg(QCoreApplication::applicationName()).arg(_vehicle->id());
         qCDebug(ParameterManagerLog) << errorMsg;
         qgcApp()->showAppMessage(errorMsg);
         if (!qgcApp()->runningUnitTests()) {
@@ -1243,7 +1248,7 @@ void ParameterManager::_initialRequestTimeout(void)
     } else {
         if (!_vehicle->genericFirmware()) {
             QString errorMsg = tr("Vehicle %1 did not respond to request for parameters. "
-                                  "This will cause %2 to be unable to display its full user interface.").arg(_vehicle->id()).arg(qgcApp()->applicationName());
+                                  "This will cause %2 to be unable to display its full user interface.").arg(_vehicle->id()).arg(QCoreApplication::applicationName());
             qCDebug(ParameterManagerLog) << errorMsg;
             qgcApp()->showAppMessage(errorMsg);
         }
@@ -1265,7 +1270,7 @@ QString ParameterManager::_remapParamNameToVersion(const QString& paramName)
 
     qCDebug(ParameterManagerLog) << "_remapParamNameToVersion" << paramName << majorVersion << minorVersion;
 
-    mappedParamName = paramName.right(paramName.count() - 2);
+    mappedParamName = paramName.right(paramName.length() - 2);
 
     if (majorVersion == Vehicle::versionNotSetValue) {
         // Vehicle version unknown
@@ -1422,6 +1427,8 @@ bool ParameterManager::pendingWrites(void)
 
     return false;
 }
+
+Vehicle* ParameterManager::vehicle(void) { return _vehicle; }
 
 
 /* Parse the binary parameter file and inject the parameters in the qgc

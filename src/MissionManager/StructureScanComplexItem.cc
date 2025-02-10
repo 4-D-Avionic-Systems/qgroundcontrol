@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,31 +10,19 @@
 #include "StructureScanComplexItem.h"
 #include "JsonHelper.h"
 #include "MissionController.h"
-#include "QGCGeo.h"
-#include "QGroundControlQmlGlobal.h"
-#include "QGCQGeoCoordinate.h"
+#include "QGCApplication.h"
 #include "SettingsManager.h"
 #include "AppSettings.h"
-#include "QGCQGeoCoordinate.h"
 #include "PlanMasterController.h"
 #include "FlightPathSegment.h"
+#include "QGC.h"
+#include "QGCLoggingCategory.h"
 
-#include <QPolygonF>
+#include <QtCore/QJsonArray>
 
 QGC_LOGGING_CATEGORY(StructureScanComplexItemLog, "StructureScanComplexItemLog")
 
 const QString StructureScanComplexItem::name(StructureScanComplexItem::tr("Structure Scan"));
-
-const char* StructureScanComplexItem::settingsGroup =               "StructureScan";
-const char* StructureScanComplexItem::_entranceAltName =            "EntranceAltitude";
-const char* StructureScanComplexItem::scanBottomAltName =           "ScanBottomAlt";
-const char* StructureScanComplexItem::structureHeightName =         "StructureHeight";
-const char* StructureScanComplexItem::layersName =                  "Layers";
-const char* StructureScanComplexItem::gimbalPitchName =             "GimbalPitch";
-const char* StructureScanComplexItem::startFromTopName =            "StartFromTop";
-
-const char* StructureScanComplexItem::jsonComplexItemTypeValue =    "StructureScan";
-const char* StructureScanComplexItem::_jsonCameraCalcKey =          "CameraCalc";
 
 StructureScanComplexItem::StructureScanComplexItem(PlanMasterController* masterController, bool flyView, const QString& kmlOrShpFile)
     : ComplexMissionItem        (masterController, flyView)
@@ -54,7 +42,7 @@ StructureScanComplexItem::StructureScanComplexItem(PlanMasterController* masterC
 {
     _editorQml = "qrc:/qml/StructureScanEditor.qml";
 
-    _entranceAltFact.setRawValue(qgcApp()->toolbox()->settingsManager()->appSettings()->defaultMissionItemAltitude()->rawValue());
+    _entranceAltFact.setRawValue(SettingsManager::instance()->appSettings()->defaultMissionItemAltitude()->rawValue());
 
     connect(&_entranceAltFact,      &Fact::valueChanged, this, &StructureScanComplexItem::_setDirty);
     connect(&_scanBottomAltFact,    &Fact::valueChanged, this, &StructureScanComplexItem::_setDirty);

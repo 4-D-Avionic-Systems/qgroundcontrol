@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,15 +9,11 @@
 
 #pragma once
 
-#include "QGCToolbox.h"
 #include "QGCMAVLink.h"
-#include "QGCLoggingCategory.h"
-#include "QmlObjectListModel.h"
 
-#include <QObject>
-#include <QString>
-#include <QJsonObject>
-#include <QJsonValue>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QMap>
 
 class MissionCommandUIInfo;
 
@@ -38,7 +34,7 @@ public:
 
     const QList<MAV_CMD>& commandIds(void) const { return _ids; }
     
-    static const char* qgcFileType;
+    static constexpr const char* qgcFileType = "MavCmdInfo";
 
 private:
     void _loadMavCmdInfoJson(const QString& jsonFilename, bool baseCommandList);
@@ -47,6 +43,6 @@ private:
     QList<MAV_CMD>                          _ids;
     QStringList                             _categories;
 
-    static const char* _versionJsonKey;
-    static const char* _mavCmdInfoJsonKey;
+    static constexpr const char* _versionJsonKey =       "version";
+    static constexpr const char* _mavCmdInfoJsonKey =    "mavCmdInfo";
 };

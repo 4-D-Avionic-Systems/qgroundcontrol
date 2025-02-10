@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -22,7 +22,6 @@ public:
     DEFINE_SETTINGFACT(guidedMinimumAltitude)
     DEFINE_SETTINGFACT(guidedMaximumAltitude)
     DEFINE_SETTINGFACT(showLogReplayStatusBar)
-    DEFINE_SETTINGFACT(alternateInstrumentPanel)
     DEFINE_SETTINGFACT(showAdditionalIndicatorsCompass)
     DEFINE_SETTINGFACT(lockNoseUpCompass)
     DEFINE_SETTINGFACT(maxGoToLocationDistance)
@@ -30,6 +29,5 @@ public:
     DEFINE_SETTINGFACT(showSimpleCameraControl)
     DEFINE_SETTINGFACT(showObstacleDistanceOverlay)
     DEFINE_SETTINGFACT(updateHomePosition)
-    DEFINE_SETTINGFACT(enableCustomActions)
-    DEFINE_SETTINGFACT(customActionDefinitions)
+    DEFINE_SETTINGFACT(instrumentQmlFile)
 };

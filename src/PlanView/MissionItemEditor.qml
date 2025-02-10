@@ -1,22 +1,21 @@
-import QtQuick                      2.11
-import QtQuick.Controls             2.4
-import QtQuick.Controls.Styles      1.4
-import QtQuick.Dialogs              1.2
-import QtQml                        2.2
-import QtQuick.Layouts              1.11
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
+import QtQml
+import QtQuick.Layouts
 
-import QGroundControl               1.0
-import QGroundControl.ScreenTools   1.0
-import QGroundControl.Vehicle       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
+import QGroundControl
+import QGroundControl.ScreenTools
+import QGroundControl.Vehicle
+import QGroundControl.Controls
+import QGroundControl.FactControls
+import QGroundControl.Palette
 
 
 /// Mission item edit control
 Rectangle {
     id:             _root
-    height:         editorLoader.visible ? (editorLoader.y + editorLoader.height + _innerMargin) : (topRowLayout.y + topRowLayout.height + _margin)
+    height:         _currentItem ? (editorLoader.y + editorLoader.height + _innerMargin) : (topRowLayout.y + topRowLayout.height + _margin)
     color:          _currentItem ? qgcPal.missionItemEditor : qgcPal.windowShade
     radius:         _radius
     opacity:        _currentItem ? 1.0 : 0.7
@@ -61,8 +60,10 @@ Rectangle {
         MouseArea {
             anchors.fill:   parent
             onClicked: {
-                currentItemScope.focus = true
-                _root.clicked()
+                if (mainWindow.allowViewSwitch()) {
+                    currentItemScope.focus = true
+                    _root.clicked()
+                }
             }
         }
     }
@@ -204,8 +205,7 @@ Rectangle {
 
                 QGCMenuItem {
                     text:           qsTr("Move to vehicle position")
-                    visible:        missionItem.specifiesCoordinate
-                    enabled:        _activeVehicle
+                    enabled:        _activeVehicle && missionItem.specifiesCoordinate
                     onTriggered:    missionItem.coordinate = _activeVehicle.coordinate
 
                     property var    _activeVehicle:             QGroundControl.multiVehicleManager.activeVehicle
@@ -213,25 +213,26 @@ Rectangle {
 
                 QGCMenuItem {
                     text:           qsTr("Move to previous item position")
-                    visible:        _missionController.previousCoordinate.isValid
+                    enabled:        _missionController.previousCoordinate.isValid
                     onTriggered:    missionItem.coordinate = _missionController.previousCoordinate
                 }
 
                 QGCMenuItem {
                     text:           qsTr("Edit position...")
-                    visible:        missionItem.specifiesCoordinate
+                    enabled:        missionItem.specifiesCoordinate
                     onTriggered:    editPositionDialog.createObject(mainWindow).open()
                 }
 
                 QGCMenuSeparator {
-                    visible: missionItem.isSimpleItem && !_waypointsOnlyMode
+                    //visible: missionItem.isSimpleItem && !_waypointsOnlyMode
                 }
 
                 QGCMenuItem {
                     text:       qsTr("Show all values")
+                    visible:    QGroundControl.corePlugin.showAdvancedUI
                     checkable:  true
                     checked:    missionItem.isSimpleItem ? missionItem.rawEdit : false
-                    visible:    missionItem.isSimpleItem && !_waypointsOnlyMode
+                    enabled:    missionItem.isSimpleItem && !_waypointsOnlyMode
 
                     onTriggered:    {
                         if (missionItem.rawEdit) {
@@ -278,8 +279,7 @@ Rectangle {
         anchors.margins:    _innerMargin
         anchors.left:       parent.left
         anchors.top:        topRowLayout.bottom
-        source:             missionItem.editorQml
-        visible:            _currentItem
+        source:             _currentItem ? missionItem.editorQml : ""
 
         property var    masterController:   _masterController
         property real   availableWidth:     _root.width - (anchors.margins * 2) ///< How wide the editor should be

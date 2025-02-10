@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,10 +9,11 @@
 
 
 #include "SettingsFact.h"
-#include "QGCCorePlugin.h"
 #include "QGCApplication.h"
+#include "QGCCorePlugin.h"
 
-#include <QSettings>
+#include <QtCore/QSettings>
+#include <QtQml/QQmlEngine>
 
 SettingsFact::SettingsFact(QObject* parent)
     : Fact(parent)
@@ -32,7 +33,7 @@ SettingsFact::SettingsFact(QString settingsGroup, FactMetaData* metaData, QObjec
     }
 
     // Allow core plugin a chance to override the default value
-    _visible = qgcApp()->toolbox()->corePlugin()->adjustSettingMetaData(settingsGroup, *metaData);
+    _visible = QGCCorePlugin::instance()->adjustSettingMetaData(settingsGroup, *metaData);
     setMetaData(metaData);
 
     if (metaData->defaultValueAvailable()) {

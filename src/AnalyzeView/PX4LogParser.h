@@ -1,20 +1,22 @@
-#ifndef PX4LOGPARSER_H
-#define PX4LOGPARSER_H
+/****************************************************************************
+ *
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
 
-#include <QGeoCoordinate>
-#include <QDebug>
+#pragma once
 
-#include "GeoTagController.h"
+#include <QtCore/QByteArray>
+#include <QtCore/QList>
+#include <QtCore/QLoggingCategory>
 
-class PX4LogParser
-{
-public:
-    PX4LogParser();
-    ~PX4LogParser();
-    bool getTagsFromLog(QByteArray& log, QList<GeoTagWorker::cameraFeedbackPacket>& cameraFeedback);
+#include "GeoTagWorker.h"
 
-private:
+Q_DECLARE_LOGGING_CATEGORY(PX4LogParserLog)
 
-};
-
-#endif // PX4LOGPARSER_H
+namespace PX4LogParser {
+    bool getTagsFromLog(const QByteArray &log, QList<GeoTagWorker::CameraFeedbackPacket> &cameraFeedback);
+}

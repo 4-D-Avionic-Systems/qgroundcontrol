@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *   (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,7 +9,7 @@
 
 
 #include "APMSubMotorComponentController.h"
-#include "ParameterManager.h"
+#include "Vehicle.h"
 
 
 APMSubMotorComponentController::APMSubMotorComponentController(void)
@@ -22,7 +22,7 @@ void APMSubMotorComponentController::handleNewMessages(int uasid, int componenti
     Q_UNUSED(uasid);
     Q_UNUSED(componentid);
     Q_UNUSED(severity);
-    if (_vehicle->flightMode() == "Motor Detection"
+    if (_vehicle->flightMode() == _vehicle->motorDetectionFlightMode()
         && (text.toLower().contains("thruster") || text.toLower().contains("motor"))) {
         _motorDetectionMessages += text + QStringLiteral("\n");
         emit motorDetectionMessagesChanged();

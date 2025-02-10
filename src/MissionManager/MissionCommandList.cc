@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,23 +8,11 @@
  ****************************************************************************/
 
 #include "MissionCommandList.h"
-#include "FactMetaData.h"
-#include "Vehicle.h"
-#include "FirmwarePluginManager.h"
-#include "QGCApplication.h"
 #include "JsonHelper.h"
 #include "MissionCommandUIInfo.h"
+#include "QGCLoggingCategory.h"
 
-#include <QStringList>
-#include <QJsonDocument>
-#include <QJsonParseError>
-#include <QJsonArray>
-#include <QDebug>
-#include <QFile>
-
-const char* MissionCommandList::qgcFileType =           "MavCmdInfo";
-const char* MissionCommandList::_versionJsonKey =       "version";
-const char* MissionCommandList::_mavCmdInfoJsonKey =    "mavCmdInfo";
+#include <QtCore/QJsonArray>
 
 MissionCommandList::MissionCommandList(const QString& jsonFilename, bool baseCommandList, QObject* parent)
     : QObject(parent)

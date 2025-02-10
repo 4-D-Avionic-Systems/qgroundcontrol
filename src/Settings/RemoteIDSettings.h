@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -18,8 +18,8 @@ public:
     RemoteIDSettings(QObject* parent = nullptr);
     DEFINE_SETTING_NAME_GROUP()
 
-    DEFINE_SETTINGFACT(enable)
     DEFINE_SETTINGFACT(operatorID)
+    DEFINE_SETTINGFACT(operatorIDValid)
     DEFINE_SETTINGFACT(operatorIDType)
     DEFINE_SETTINGFACT(sendOperatorID)
     DEFINE_SETTINGFACT(selfIDFree)

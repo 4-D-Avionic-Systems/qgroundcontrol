@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -14,12 +14,11 @@
 
 #include "PX4FirmwareUpgradeThread.h"
 #include "Bootloader.h"
+#include "FirmwareImage.h"
 #include "QGCLoggingCategory.h"
-#include "QGC.h"
 
-#include <QTimer>
-#include <QDebug>
-#include <QSerialPort>
+#include <QtCore/QThread>
+#include <QtCore/QTimer>
 
 PX4FirmwareUpgradeThreadWorker::PX4FirmwareUpgradeThreadWorker(PX4FirmwareUpgradeThreadController* controller)
     : _controller(controller)

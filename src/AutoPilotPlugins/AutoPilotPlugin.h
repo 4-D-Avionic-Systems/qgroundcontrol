@@ -1,26 +1,21 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#ifndef AUTOPILOTPLUGIN_H
-#define AUTOPILOTPLUGIN_H
+#pragma once
 
-#include <QObject>
-#include <QList>
-#include <QString>
-#include <QQmlContext>
-
-#include "VehicleComponent.h"
-#include "FactSystem.h"
-#include "Vehicle.h"
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QVariantList>
 
 class Vehicle;
 class FirmwarePlugin;
+class VehicleComponent;
 
 /// This is the base class for AutoPilot plugins
 ///
@@ -54,8 +49,8 @@ public:
     bool setupComplete(void) const;
 
 signals:
-    void setupCompleteChanged(bool setupComplete);
-    void vehicleComponentsChanged(void);
+    void setupCompleteChanged       (void);
+    void vehicleComponentsChanged   (void);
 
 protected:
     /// All access to AutoPilotPugin objects is through getInstanceForAutoPilotPlugin
@@ -68,5 +63,3 @@ protected:
 private slots:
     void _recalcSetupComplete(void);
 };
-
-#endif

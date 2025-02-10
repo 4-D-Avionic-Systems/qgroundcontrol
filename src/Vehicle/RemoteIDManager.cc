@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,27 +8,28 @@
  ****************************************************************************/
 
 #include "RemoteIDManager.h"
-#include "QGCApplication.h"
 #include "SettingsManager.h"
 #include "RemoteIDSettings.h"
-#include "QGCQGeoCoordinate.h"
 #include "PositionManager.h"
-
-#include <QDebug>
+#include "Vehicle.h"
+#include "MAVLinkProtocol.h"
+#include "QGCLoggingCategory.h"
 
 QGC_LOGGING_CATEGORY(RemoteIDManagerLog, "RemoteIDManagerLog")
 
 #define AREA_COUNT 1
 #define AREA_RADIUS 0
+#define MAVLINK_UNKNOWN_METERS -1000.0f
+#define MAVLINK_UNKNOWN_LAT 0
+#define MAVLINK_UNKNOWN_LON 0
 #define SENDING_RATE_MSEC 1000
 #define ALLOWED_GPS_DELAY 5000
 #define RID_TIMEOUT 2500 // Messages should be arriving at 1 Hz, so we set a 2 second timeout
 
-const uint8_t* RemoteIDManager::_id_or_mac_unknown = {NULL};
+const uint8_t* RemoteIDManager::_id_or_mac_unknown = new uint8_t[MAVLINK_MSG_OPEN_DRONE_ID_OPERATOR_ID_FIELD_ID_OR_MAC_LEN]();
 
 RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
     : QObject               (vehicle)
-    , _mavlink              (nullptr)
     , _vehicle              (vehicle)
     , _settings             (nullptr)
     , _armStatusGood        (false)
@@ -42,9 +43,7 @@ RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
     , _targetComponent      (0) // By default 0 means broadcast
     , _enforceSendingSelfID (false)
 {
-    _mavlink = qgcApp()->toolbox()->mavlinkProtocol();
-    _settings = qgcApp()->toolbox()->settingsManager()->remoteIDSettings();
-    _positionManager = qgcApp()->toolbox()->qgcPositionManager();
+    _settings = SettingsManager::instance()->remoteIDSettings();
 
     // Timer to track a healthy RID device. When expired we let the operator know
     _odidTimeoutTimer.setSingleShot(true);
@@ -56,7 +55,7 @@ RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
     connect(&_sendMessagesTimer, &QTimer::timeout, this, &RemoteIDManager::_sendMessages);
 
     // GCS GPS position updates to track the health of the GPS data
-    connect(_positionManager, &QGCPositionManager::positionInfoUpdated, this, &RemoteIDManager::_updateLastGCSPositionInfo);
+    connect(QGCPositionManager::instance(), &QGCPositionManager::positionInfoUpdated, this, &RemoteIDManager::_updateLastGCSPositionInfo);
 
     // Check changes in basic id settings as long as they are modified
     connect(_settings->basicID(), &Fact::rawValueChanged, this, &RemoteIDManager::_checkGCSBasicID);
@@ -66,13 +65,20 @@ RemoteIDManager::RemoteIDManager(Vehicle* vehicle)
     // Assign vehicle sysid and compid. GCS must target these messages to autopilot, and autopilot will redirect them to RID device
     _targetSystem = _vehicle->id();
     _targetComponent = _vehicle->compId();
+
+    if (_settings->operatorIDValid()->rawValue() == true) {
+        // If it was already checked, we can flag this as good to go.
+        // We don't do a fresh verification because we don't store the private part of the ID.
+        _operatorIDGood = true;
+        operatorIDGoodChanged();
+    }
 }
 
 void RemoteIDManager::mavlinkMessageReceived(mavlink_message_t& message )
 {
     switch (message.msgid) {
     // So far we are only listening to this one, as heartbeat won't be sent if connected by CAN
-    case MAVLINK_MSG_ID_OPEN_DRONE_ID_ARM_STATUS: 
+    case MAVLINK_MSG_ID_OPEN_DRONE_ID_ARM_STATUS:
         _handleArmStatus(message);
     default:
         break;
@@ -99,9 +105,15 @@ void RemoteIDManager::_handleArmStatus(mavlink_message_t& message)
         }
     }
 
-    // Sanity check, only get messages from same sysid 
+    // Sanity check, only get messages from same sysid
     if (_vehicle->id() != message.sysid) {
         return;
+    }
+
+    if (!_available) {
+        _available = true;
+        emit availableChanged();
+        qCDebug(RemoteIDManagerLog) << "Receiving ODID_ARM_STATUS for first time. Mavlink Open Drone ID support is available.";
     }
 
     // We set the targetsystem
@@ -113,8 +125,7 @@ void RemoteIDManager::_handleArmStatus(mavlink_message_t& message)
     if (!_commsGood) {
         _commsGood = true;
         _sendMessagesTimer.start();     // Start sending our messages
-        _checkGCSBasicID();             // Check if basicID is good to send 
-        checkOperatorID();              // Check if OperatorID is good in case we want to send it from start because of the settings
+        _checkGCSBasicID();             // Check if basicID is good to send
         emit commsGoodChanged();
         qCDebug(RemoteIDManagerLog) << "Receiving ODID_ARM_STATUS from RID device";
     }
@@ -155,26 +166,21 @@ void RemoteIDManager::_handleArmStatus(mavlink_message_t& message)
 // Function that sends messages periodically
 void RemoteIDManager::_sendMessages()
 {
-    // We only send RemoteID messages if we have it enabled in General settings
-    if (!_settings->enable()->rawValue().toBool()) {
-        return;
-    }
-    
     // We always try to send System
     _sendSystem();
-    
+
     // only send it if the information is correct and the tickbox in settings is set
     if (_GCSBasicIDValid && _settings->sendBasicID()->rawValue().toBool()) {
         _sendBasicID();
     }
-    
+
     // We only send selfID if the pilot wants it or in case of a declared emergency. If an emergency is cleared
     // we also keep sending the message, to be sure the non emergency state makes it up to the vehicle
     if (_settings->sendSelfID()->rawValue().toBool() || _emergencyDeclared || _enforceSendingSelfID) {
         _sendSelfIDMsg();
     }
 
-    // We only send the OperatorID if the pilot wants it or if the region we have set is europe. 
+    // We only send the OperatorID if the pilot wants it or if the region we have set is europe.
     // To be able to send it, it needs to be filled correclty
     if ((_settings->sendOperatorID()->rawValue().toBool() || (_settings->region()->rawValue().toInt() == Region::EU)) && _operatorIDGood) {
         _sendOperatorID();
@@ -190,8 +196,8 @@ void RemoteIDManager::_sendSelfIDMsg()
     if (sharedLink) {
         mavlink_message_t msg;
 
-        mavlink_msg_open_drone_id_self_id_pack_chan(_mavlink->getSystemId(),
-                                                    _mavlink->getComponentId(),
+        mavlink_msg_open_drone_id_self_id_pack_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                                    MAVLinkProtocol::getComponentId(),
                                                     sharedLink->mavlinkChannel(),
                                                     &msg,
                                                     _targetSystem,
@@ -206,32 +212,30 @@ void RemoteIDManager::_sendSelfIDMsg()
 // We need to return the correct description for the self ID type we have selected
 const char* RemoteIDManager::_getSelfIDDescription()
 {
-    QByteArray bytesFree = (_settings->selfIDFree()->rawValue().toString()).toLocal8Bit();
-    QByteArray bytesEmergency = (_settings->selfIDEmergency()->rawValue().toString()).toLocal8Bit();
-    QByteArray bytesExtended = (_settings->selfIDExtended()->rawValue().toString()).toLocal8Bit();
-
-    const char* descriptionToSend;
+    QString descriptionToSend;
 
     if (_emergencyDeclared) {
         // If emergency is declared we dont care about the settings and we send emergency directly
-        descriptionToSend = bytesEmergency.data();
+        descriptionToSend = _settings->selfIDEmergency()->rawValue().toString();
     } else {
         switch (_settings->selfIDType()->rawValue().toInt()) {
             case 0:
-                descriptionToSend = bytesFree.data();
+                descriptionToSend = _settings->selfIDFree()->rawValue().toString();
                 break;
             case 1:
-                descriptionToSend = bytesEmergency.data();
+                descriptionToSend = _settings->selfIDEmergency()->rawValue().toString();
                 break;
             case 2:
-                descriptionToSend = bytesExtended.data();
+                descriptionToSend = _settings->selfIDExtended()->rawValue().toString();
                 break;
             default:
-                descriptionToSend = bytesEmergency.data();
+                descriptionToSend = _settings->selfIDEmergency()->rawValue().toString();
         }
     }
-    
-    return descriptionToSend;
+
+    QByteArray descriptionBuffer = descriptionToSend.toLocal8Bit();
+    descriptionBuffer.resize(MAVLINK_MSG_OPEN_DRONE_ID_SELF_ID_FIELD_DESCRIPTION_LEN);
+    return descriptionBuffer.constData();
 }
 
 void RemoteIDManager::_sendOperatorID()
@@ -243,18 +247,18 @@ void RemoteIDManager::_sendOperatorID()
         mavlink_message_t msg;
 
         QByteArray bytesOperatorID = (_settings->operatorID()->rawValue().toString()).toLocal8Bit();
-        const char* descriptionToSend = bytesOperatorID.data();
+        bytesOperatorID.resize(MAVLINK_MSG_OPEN_DRONE_ID_OPERATOR_ID_FIELD_OPERATOR_ID_LEN);
 
         mavlink_msg_open_drone_id_operator_id_pack_chan(
-                                                    _mavlink->getSystemId(),
-                                                    _mavlink->getComponentId(),
+                                                    MAVLinkProtocol::instance()->getSystemId(),
+                                                    MAVLinkProtocol::getComponentId(),
                                                     sharedLink->mavlinkChannel(),
                                                     &msg,
                                                     _targetSystem,
                                                     _targetComponent,
                                                     _id_or_mac_unknown,
                                                     _settings->operatorIDType()->rawValue().toInt(),
-                                                    descriptionToSend);
+                                                    bytesOperatorID.constData());
 
         _vehicle->sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     }
@@ -266,7 +270,7 @@ void RemoteIDManager::_sendSystem()
     QGeoPositionInfo    geoPositionInfo;
     // Location types:
     // 0 -> TAKEOFF (not supported yet)
-    // 1 -> LIVE GNNS 
+    // 1 -> LIVE GNNS
     // 2 -> FIXED
     if (_settings->locationType()->rawValue().toUInt() == LocationTypes::FIXED) {
         // For FIXED location, we first check that the values are valid. Then we populate our position
@@ -288,8 +292,8 @@ void RemoteIDManager::_sendSystem()
         }
     } else {
         // For Live GNSS we take QGC GPS data
-        gcsPosition = _positionManager->gcsPosition();
-        geoPositionInfo = _positionManager->geoPositionInfo();
+        gcsPosition = QGCPositionManager::instance()->gcsPosition();
+        geoPositionInfo = QGCPositionManager::instance()->geoPositionInfo();
 
         // GPS position needs to be valid before checking other stuff
         if (geoPositionInfo.isValid()) {
@@ -301,7 +305,7 @@ void RemoteIDManager::_sendSystem()
                 return;
             }
 
-            // If the GPS data is older than ALLOWED_GPS_DELAY we cannot use this data 
+            // If the GPS data is older than ALLOWED_GPS_DELAY we cannot use this data
             if (_lastGeoPositionTimeStamp.msecsTo(QDateTime::currentDateTime().currentDateTimeUtc()) > ALLOWED_GPS_DELAY) {
                 if (_gcsGPSGood) {
                     _gcsGPSGood = false;
@@ -319,17 +323,17 @@ void RemoteIDManager::_sendSystem()
             emit gcsGPSGoodChanged();
             qCDebug(RemoteIDManagerLog) << "GCS GPS data is not valid.";
         }
-        
+
     }
 
     WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
     SharedLinkInterfacePtr sharedLink = weakLink.lock();
-    
+
     if (sharedLink) {
         mavlink_message_t msg;
 
-        mavlink_msg_open_drone_id_system_pack_chan(_mavlink->getSystemId(),
-                                                    _mavlink->getComponentId(),
+        mavlink_msg_open_drone_id_system_pack_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                                    MAVLinkProtocol::getComponentId(),
                                                     sharedLink->mavlinkChannel(),
                                                     &msg,
                                                     _targetSystem,
@@ -337,15 +341,15 @@ void RemoteIDManager::_sendSystem()
                                                     _id_or_mac_unknown,
                                                     _settings->locationType()->rawValue().toUInt(),
                                                     _settings->classificationType()->rawValue().toUInt(),
-                                                    _gcsGPSGood ? ( gcsPosition.latitude()  * 1.0e7 ) : 0, // If position not valid, send a 0
-                                                    _gcsGPSGood ? ( gcsPosition.longitude() * 1.0e7 ) : 0, // If position not valid, send a 0
+                                                    _gcsGPSGood ? ( gcsPosition.latitude()  * 1.0e7 ) : MAVLINK_UNKNOWN_LAT,
+                                                    _gcsGPSGood ? ( gcsPosition.longitude() * 1.0e7 ) : MAVLINK_UNKNOWN_LON,
                                                     AREA_COUNT,
                                                     AREA_RADIUS,
-                                                    -1000.0f,
-                                                    -1000.0f,
+                                                    MAVLINK_UNKNOWN_METERS,
+                                                    MAVLINK_UNKNOWN_METERS,
                                                     _settings->categoryEU()->rawValue().toUInt(),
                                                     _settings->classEU()->rawValue().toUInt(),
-                                                    _gcsGPSGood ? gcsPosition.altitude() : 0, // If position not valid, send a 0
+                                                    _gcsGPSGood ? gcsPosition.altitude() : MAVLINK_UNKNOWN_METERS,
                                                     _timestamp2019()), // Time stamp needs to be since 00:00:00 1/1/2019
         _vehicle->sendMessageOnLinkThreadSafe(sharedLink.get(), msg);
     }
@@ -366,14 +370,14 @@ void RemoteIDManager::_sendBasicID()
 
     if (sharedLink) {
         mavlink_message_t msg;
-        
+
         QString basicIDTemp = _settings->basicID()->rawValue().toString();
         QByteArray ba = basicIDTemp.toLocal8Bit();
-        // To make sure the buffer is large enough to fit the message. It will add padding bytes if smaller, or exclude the extra ones if bigger 
+        // To make sure the buffer is large enough to fit the message. It will add padding bytes if smaller, or exclude the extra ones if bigger
         ba.resize(MAVLINK_MSG_OPEN_DRONE_ID_BASIC_ID_FIELD_UAS_ID_LEN);
 
-        mavlink_msg_open_drone_id_basic_id_pack_chan(_mavlink->getSystemId(),
-                                                    _mavlink->getComponentId(),
+        mavlink_msg_open_drone_id_basic_id_pack_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                                    MAVLinkProtocol::getComponentId(),
                                                     sharedLink->mavlinkChannel(),
                                                     &msg,
                                                     _targetSystem,
@@ -398,16 +402,83 @@ void RemoteIDManager::_checkGCSBasicID()
     }
 }
 
-void RemoteIDManager::checkOperatorID()
+void RemoteIDManager::checkOperatorID(const QString& operatorID)
+{
+    // We overwrite the fact that is also set by the text input but we want to update
+    // after every letter rather than when editing is done.
+    // We check whether it actually changed to avoid triggering this on startup.
+    if (operatorID != _settings->operatorID()->rawValueString()) {
+        _settings->operatorIDValid()->setRawValue(_isEUOperatorIDValid(operatorID));
+    }
+}
+
+void RemoteIDManager::setOperatorID()
 {
     QString operatorID = _settings->operatorID()->rawValue().toString();
 
-    if (!operatorID.isEmpty() && (_settings->operatorIDType()->rawValue().toInt() >= 0)) {
-        _operatorIDGood = true;
+    if (_settings->region()->rawValue().toInt() == Region::EU) {
+        // Save for next time because we don't save the private part,
+        // so we can't re-verify next time and just trust the value
+        // in the settings.
+        _operatorIDGood = _settings->operatorIDValid()->rawValue() == true;
+        if (_operatorIDGood) {
+            // Strip private part
+            _settings->operatorID()->setRawValue(operatorID.sliced(0, 16));
+        }
+
     } else {
-        _operatorIDGood = false;
+        // Otherwise, we just check if there is anything entered
+        _operatorIDGood =
+            (!operatorID.isEmpty() && (_settings->operatorIDType()->rawValue().toInt() >= 0));
     }
+
     emit operatorIDGoodChanged();
+}
+
+bool RemoteIDManager::_isEUOperatorIDValid(const QString& operatorID) const
+{
+    const bool containsDash = operatorID.contains('-');
+    if (!(operatorID.length() == 20 && containsDash) && !(operatorID.length() == 19 && !containsDash)) {
+        qCDebug(RemoteIDManagerLog) << "OperatorID not long enough";
+        return false;
+    }
+
+    const QString countryCode = operatorID.sliced(0,3);
+    if (!countryCode.isUpper()) {
+        qCDebug(RemoteIDManagerLog) << "OperatorID country code not uppercase";
+        return false;
+    }
+
+    const QString number = operatorID.sliced(3, 12);
+    const QChar checksum = operatorID.at(15);
+    const QString secret = containsDash ? operatorID.sliced(17, 3) : operatorID.sliced(16, 3);
+    const QString combination = number + secret;
+
+    const QChar result = _calculateLuhnMod36(combination);
+
+    const bool valid = (result == checksum);
+    qCDebug(RemoteIDManagerLog) << "Operator ID checksum " << (valid ? "valid" : "invalid");
+    return valid;
+}
+
+QChar RemoteIDManager::_calculateLuhnMod36(const QString& input) const {
+    const int n = 36;
+    const QString alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+    int sum = 0;
+    int factor = 2;
+
+    for (int i = input.length() - 1; i >= 0; i--) {
+        int codePoint = alphabet.indexOf(input[i]);
+        int addend = factor * codePoint;
+        factor = (factor == 2) ? 1 : 2;
+        addend = (addend / n) + (addend % n);
+        sum += addend;
+    }
+
+    int remainder = sum % n;
+    int checkCodePoint = (n - remainder) % n;
+    return alphabet.at(checkCodePoint);
 }
 
 void RemoteIDManager::setEmergency(bool declare)

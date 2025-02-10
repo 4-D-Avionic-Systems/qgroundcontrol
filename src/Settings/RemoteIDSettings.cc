@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,16 +9,15 @@
 
 #include "RemoteIDSettings.h"
 
-#include <QQmlEngine>
-#include <QtQml>
+#include <QtQml/QQmlEngine>
 
 DECLARE_SETTINGGROUP(RemoteID, "RemoteID")
 {
     qmlRegisterUncreatableType<RemoteIDSettings>("QGroundControl.SettingsManager", 1, 0, "RemoteIDSettings", "Reference only"); \
 }
 
-DECLARE_SETTINGSFACT(RemoteIDSettings,  enable)
 DECLARE_SETTINGSFACT(RemoteIDSettings,  operatorID)
+DECLARE_SETTINGSFACT(RemoteIDSettings,  operatorIDValid)
 DECLARE_SETTINGSFACT(RemoteIDSettings,  operatorIDType)
 DECLARE_SETTINGSFACT(RemoteIDSettings,  sendOperatorID)
 DECLARE_SETTINGSFACT(RemoteIDSettings,  selfIDFree)

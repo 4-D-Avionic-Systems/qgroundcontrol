@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,10 +10,7 @@
 #include "GeoFenceManager.h"
 #include "Vehicle.h"
 #include "QmlObjectListModel.h"
-#include "ParameterManager.h"
-#include "QGCApplication.h"
-#include "QGCMapPolygon.h"
-#include "QGCMapCircle.h"
+#include "QGCLoggingCategory.h"
 
 QGC_LOGGING_CATEGORY(GeoFenceManagerLog, "GeoFenceManagerLog")
 

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,16 +9,16 @@
 
 #pragma once
 
-#include <QObject>
-#include <QString>
-#include <QJsonDocument>
-
 #include "ActuatorOutputs.h"
 #include "ActuatorTesting.h"
 #include "Mixer.h"
-#include "GeometryImage.h"
 #include "MotorAssignment.h"
 
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QJsonDocument>
+
+class Vehicle;
 
 class Actuators : public QObject
 {

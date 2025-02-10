@@ -7,26 +7,37 @@
  *
  ****************************************************************************/
 
-import QtQuick          2.3
-import QtQuick.Controls 1.2
-import QtQuick.Dialogs  1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
 
-import QGroundControl               1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.FactSystem    1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.FactSystem
+import QGroundControl.ScreenTools
 
 SetupPage {
     id:             motorPage
     pageComponent:  pageComponent
 
+    property bool userLetterMotorIndices: false
+
     readonly property int _barHeight:           10
     readonly property int _barWidth:            5
-    readonly property int _sliderHeight:        10
+    readonly property int _sliderWidth:         15
     readonly property int _motorTimeoutSecs:    3
 
+    function motorIndexToString(motorIndex) {
+        let asciiA = 65;
+        if (userLetterMotorIndices) {
+            return String.fromCharCode(asciiA + motorIndex);
+        } else {
+            return motorIndex + 1;
+        }
+    }
+
     FactPanelController {
-        id:             controller
+        id: controller
     }
 
     Component {
@@ -42,85 +53,68 @@ SetupPage {
             }
 
             Row {
-                id:         motorSliders
+                id:         motorSlider
                 enabled:    safetySwitch.checked
                 spacing:    ScreenTools.defaultFontPixelWidth * 4
-
-                Repeater {
-                    id:         sliderRepeater
-                    model:      controller.vehicle.motorCount == -1 ? 8 : controller.vehicle.motorCount
-
-                    Column {
-                        property alias motorSlider: slider
-
-                        QGCLabel {
-                            anchors.horizontalCenter:   parent.horizontalCenter
-                            text:                       index + 1
-                        }
-
-                        QGCSlider {
-                            id:                         slider
-                            height:                     ScreenTools.defaultFontPixelHeight * _sliderHeight
-                            orientation:                Qt.Vertical
-                            minimumValue:               0
-                            maximumValue:               100
-                            stepSize:                   1
-                            value:                      0
-                            updateValueWhileDragging:   false
-
-                            onValueChanged: {
-                                controller.vehicle.motorTest(index + 1, value, value == 0 ? 0 : _motorTimeoutSecs, true)
-                                if (value != 0) {
-                                    motorTimer.restart()
-                                }
-                            }
-
-                            Timer {
-                                id:             motorTimer
-                                interval:       _motorTimeoutSecs * 1000
-                                repeat:         false
-                                running:        false
-
-                                onTriggered: {
-                                    allSlider.value = 0
-                                    slider.value = 0
-                                }
-                            }
-                        }
-                    } // Column
-                } // Repeater
-
-                Column {
-                    QGCLabel {
-                        anchors.horizontalCenter:   parent.horizontalCenter
-                        text:                       qsTr("All")
-                    }
-
-                    QGCSlider {
-                        id:                         allSlider
-                        height:                     ScreenTools.defaultFontPixelHeight * _sliderHeight
-                        orientation:                Qt.Vertical
-                        minimumValue:               0
-                        maximumValue:               100
-                        stepSize:                   1
-                        value:                      0
-                        updateValueWhileDragging:   false
-
-                        onValueChanged: {
-                            for (var sliderIndex=0; sliderIndex<sliderRepeater.count; sliderIndex++) {
-                                sliderRepeater.itemAt(sliderIndex).motorSlider.value = allSlider.value
-                            }
-                        }
-                    }
-                } // Column
+                
+                ValueSlider {
+                    id:                 sliderThrottle
+                    width:              motorButtons.width
+                    label:              qsTr("Throttle")
+                    from:               0
+                    to:                 100
+                    majorTickStepSize:  5
+                    decimalPlaces: 0
+                    unitsString: qsTr("%")
+                }
             } // Row
 
             QGCLabel {
                 anchors.left:   parent.left
                 anchors.right:  parent.right
                 wrapMode:       Text.WordWrap
-                text:           qsTr("Moving the sliders will causes the motors to spin. Make sure you remove all props.")
+                text:           qsTr("Make sure you remove all props.")
             }
+
+            Row {
+                id:         motorButtons
+                enabled:    safetySwitch.checked
+                spacing:    ScreenTools.defaultFontPixelWidth * 4
+
+                Repeater {
+                    id:         buttonRepeater
+                    model:      controller.vehicle.motorCount === -1 ? 8 : controller.vehicle.motorCount
+
+                    QGCButton {
+                        id:         button
+                        anchors.verticalCenter:     parent.verticalCenter
+                        text:       motorIndexToString(index)
+                        onClicked:  {
+                            controller.vehicle.motorTest(index + 1, sliderThrottle.value, sliderThrottle.value === 0 ? 0 : _motorTimeoutSecs, true)
+                        }
+                    }
+                } // Repeater
+
+                QGCButton {
+                    id:         allButton
+                    text:       qsTr("All")
+                    onClicked:  {
+                        for (var motorIndex=0; motorIndex<buttonRepeater.count; motorIndex++) {
+                            controller.vehicle.motorTest(motorIndex + 1, sliderThrottle.value, sliderThrottle.value === 0 ? 0 : _motorTimeoutSecs, true)
+                        }
+                    }
+                }
+
+                QGCButton {
+                    id:         allStopButton
+                    text:       qsTr("Stop")
+                    onClicked:  {
+                        for (var motorIndex=0; motorIndex<buttonRepeater.count; motorIndex++) {
+                            controller.vehicle.motorTest(motorIndex + 1, 0, 0, true)
+                        }
+                    }
+                }
+            } // Row
 
             Row {
                 spacing: ScreenTools.defaultFontPixelWidth
@@ -129,19 +123,17 @@ SetupPage {
                     id: safetySwitch
                     onClicked: {
                         if (!checked) {
-                            for (var sliderIndex=0; sliderIndex<sliderRepeater.count; sliderIndex++) {
-                                sliderRepeater.itemAt(sliderIndex).motorSlider.value = 0
-                            }
-                            allSlider.value = 0
+                            sliderThrottle.setValue(0);
                         }
                     }
                 }
 
                 QGCLabel {
+                    anchors.verticalCenter:     parent.verticalCenter
                     color:  qgcPal.warningText
-                    text:   safetySwitch.checked ? qsTr("Careful: Motor sliders are enabled") : qsTr("Propellers are removed - Enable motor sliders")
+                    text:   safetySwitch.checked ? qsTr("Careful : Motors are enabled") : qsTr("Propellers are removed - Enable slider and motors")
                 }
             } // Row
         } // Column
     } // Component
-} // SetupPahe
+} // SetupPage

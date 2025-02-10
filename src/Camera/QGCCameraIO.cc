@@ -1,18 +1,26 @@
-/*!
- * @file
- *   @brief Camera Controller
- *   @author Gus Grubba <gus@auterion.com>
+/****************************************************************************
  *
- */
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
 
-#include "QGCCameraControl.h"
+#include "MavlinkCameraControl.h"
 #include "QGCCameraIO.h"
+#include "QGCLoggingCategory.h"
+#include "LinkInterface.h"
+#include "MAVLinkProtocol.h"
+#include "Vehicle.h"
+
+#include <QtQml/QQmlEngine>
 
 QGC_LOGGING_CATEGORY(CameraIOLog, "CameraIOLog")
 QGC_LOGGING_CATEGORY(CameraIOLogVerbose, "CameraIOLogVerbose")
 
 //-----------------------------------------------------------------------------
-QGCCameraParamIO::QGCCameraParamIO(QGCCameraControl *control, Fact* fact, Vehicle *vehicle)
+QGCCameraParamIO::QGCCameraParamIO(MavlinkCameraControl *control, Fact* fact, Vehicle *vehicle)
     : QObject(control)
     , _control(control)
     , _fact(fact)
@@ -37,7 +45,6 @@ QGCCameraParamIO::QGCCameraParamIO(QGCCameraControl *control, Fact* fact, Vehicl
     connect(&_paramWriteTimer,   &QTimer::timeout, this, &QGCCameraParamIO::_paramWriteTimeout);
     connect(_fact, &Fact::rawValueChanged, this, &QGCCameraParamIO::_factChanged);
     connect(_fact, &Fact::_containerRawValueChanged, this, &QGCCameraParamIO::_containerRawValueChanged);
-    _pMavlink = qgcApp()->toolbox()->mavlinkProtocol();
     //-- TODO: Even though we don't use anything larger than 32-bit, this should
     //   probably be updated.
     switch (_fact->type()) {
@@ -130,10 +137,8 @@ QGCCameraParamIO::sendParameter(bool updateUI)
 void
 QGCCameraParamIO::_sendParameter()
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (!weakLink.expired()) {
-        SharedLinkInterfacePtr sharedLink = weakLink.lock();
-
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         mavlink_param_ext_set_t p;
         memset(&p, 0, sizeof(mavlink_param_ext_set_t));
         param_ext_union_t   union_value;
@@ -174,7 +179,7 @@ QGCCameraParamIO::_sendParameter()
         case FactMetaData::valueTypeCustom:
         {
             QByteArray custom = _fact->rawValue().toByteArray();
-            memcpy(union_value.bytes, custom.data(), static_cast<size_t>(std::max(custom.size(), MAVLINK_MSG_PARAM_EXT_SET_FIELD_PARAM_VALUE_LEN)));
+            memcpy(union_value.bytes, custom.data(), static_cast<size_t>(std::max(custom.size(), static_cast<qsizetype>(MAVLINK_MSG_PARAM_EXT_SET_FIELD_PARAM_VALUE_LEN))));
         }
             break;
         default:
@@ -188,8 +193,8 @@ QGCCameraParamIO::_sendParameter()
         p.target_component  = static_cast<uint8_t>(_control->compID());
         strncpy(p.param_id, _fact->name().toStdString().c_str(), MAVLINK_MSG_PARAM_EXT_SET_FIELD_PARAM_ID_LEN);
         mavlink_msg_param_ext_set_encode_chan(
-                    static_cast<uint8_t>(_pMavlink->getSystemId()),
-                    static_cast<uint8_t>(_pMavlink->getComponentId()),
+                    static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId()),
+                    static_cast<uint8_t>(MAVLinkProtocol::getComponentId()),
                     sharedLink->mavlinkChannel(),
                     &msg,
                     &p);
@@ -354,17 +359,15 @@ QGCCameraParamIO::paramRequest(bool reset)
         _forceUIUpdate  = true;
     }
     qCDebug(CameraIOLog) << "Request parameter:" << _fact->name();
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (!weakLink.expired()) {
-        SharedLinkInterfacePtr sharedLink = weakLink.lock();
-
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         char param_id[MAVLINK_MSG_PARAM_EXT_REQUEST_READ_FIELD_PARAM_ID_LEN + 1];
         memset(param_id, 0, sizeof(param_id));
         strncpy(param_id, _fact->name().toStdString().c_str(), MAVLINK_MSG_PARAM_EXT_REQUEST_READ_FIELD_PARAM_ID_LEN);
         mavlink_message_t msg;
         mavlink_msg_param_ext_request_read_pack_chan(
-                    static_cast<uint8_t>(_pMavlink->getSystemId()),
-                    static_cast<uint8_t>(_pMavlink->getComponentId()),
+                    static_cast<uint8_t>(MAVLinkProtocol::instance()->getSystemId()),
+                    static_cast<uint8_t>(MAVLinkProtocol::getComponentId()),
                     sharedLink->mavlinkChannel(),
                     &msg,
                     static_cast<uint8_t>(_vehicle->id()),

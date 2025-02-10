@@ -8,16 +8,15 @@
  ****************************************************************************/
 
 
-import QtQuick              2.3
-import QtQuick.Controls     1.2
-import QtGraphicalEffects   1.0
-import QtQuick.Layouts      1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import QGroundControl.FactSystem    1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.Palette
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
 
 SetupPage {
     id:             safetyPage
@@ -83,7 +82,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery1 Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -153,7 +152,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery2 Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -222,7 +221,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("General Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -256,7 +255,7 @@ SetupPage {
                                 currentIndex:       _failsafeThrEnable.value
                                 Layout.fillWidth:   true
 
-                                onActivated: _failsafeThrEnable.value = index
+                                onActivated: (index) => { _failsafeThrEnable.value = index }
                             }
 
                             QGCLabel { text: qsTr("PWM threshold:") }
@@ -276,7 +275,7 @@ SetupPage {
                 QGCLabel {
                     id:             geoFenceLabel
                     text:           qsTr("GeoFence")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:      true
                 }
 
                 Rectangle {
@@ -400,7 +399,7 @@ SetupPage {
                 QGCLabel {
                     id:             rtlLabel
                     text:           qsTr("Return to Launch")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:      true
                 }
 
                 Rectangle {
@@ -532,7 +531,7 @@ SetupPage {
 
                 QGCLabel {
                     text:           qsTr("Arming Checks")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:      true
                 }
 
                 Rectangle {

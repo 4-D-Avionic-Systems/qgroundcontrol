@@ -1,29 +1,29 @@
+find_package(Qt6 REQUIRED COMPONENTS Core TextToSpeech)
 
-set(EXTRA_SRC)
-if(BUILD_TESTING)
-	list(APPEND EXTRA_SRC
-		AudioOutputTest.cc
-	)
-endif()
-
-add_library(Audio
-	AudioOutput.cc
-	${EXTRA_SRC}
+qt_add_library(Audio STATIC
+    AudioOutput.cc
+    AudioOutput.h
 )
 
 target_link_libraries(Audio
-	PRIVATE
-		qgc
-	PUBLIC
-		Qt5::Core
-		Qt5::Qml
-		Qt5::TextToSpeech
-		Qt5::Widgets
+    PRIVATE
+        Qt6::TextToSpeech
+        FactSystem
+        Utilities
+    PUBLIC
+        Qt6::Core
 )
 
 target_include_directories(Audio PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(BUILD_TESTING)
-	add_qgc_test(AudioOutputTest)
-endif()
+# if(LINUX)
+#     find_package(SpeechDispatcher)
+#     if(TARGET SpeechDispatcher::SpeechDispatcher)
+#         target_link_libraries(Audio PRIVATE SpeechDispatcher::SpeechDispatcher)
+#     endif()
 
+#     find_package(Flite)
+#     if(TARGET Flite::Flite)
+#         target_link_libraries(Audio PRIVATE Flite::Flite)
+#     endif()
+# endif()

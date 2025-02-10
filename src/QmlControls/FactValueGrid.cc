@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,26 +11,11 @@
 #include "InstrumentValueData.h"
 #include "QGCApplication.h"
 #include "QGCCorePlugin.h"
+#include "MultiVehicleManager.h"
+#include "Vehicle.h"
 
-#include <QSettings>
-
-const char* FactValueGrid::_columnsKey          = "columns";
-const char* FactValueGrid::_rowsKey             = "rows";
-const char* FactValueGrid::_rowCountKey         = "rowCount";
-const char* FactValueGrid::_fontSizeKey         = "fontSize";
-const char* FactValueGrid::_versionKey          = "version";
-const char* FactValueGrid::_factGroupNameKey    = "factGroupName";
-const char* FactValueGrid::_factNameKey         = "factName";
-const char* FactValueGrid::_textKey             = "text";
-const char* FactValueGrid::_showUnitsKey        = "showUnits";
-const char* FactValueGrid::_iconKey             = "icon";
-const char* FactValueGrid::_rangeTypeKey        = "rangeType";
-const char* FactValueGrid::_rangeValuesKey      = "rangeValues";
-const char* FactValueGrid::_rangeColorsKey      = "rangeColors";
-const char* FactValueGrid::_rangeIconsKey       = "rangeIcons";
-const char* FactValueGrid::_rangeOpacitiesKey   = "rangeOpacities";
-
-const char* FactValueGrid::_deprecatedGroupKey =  "ValuesWidget";
+#include <QtCore/QSettings>
+#include <QtCore/QDir>
 
 QStringList FactValueGrid::_iconNames;
 
@@ -64,7 +49,7 @@ FactValueGrid::FactValueGrid(const QString& defaultSettingsGroup)
 
 void FactValueGrid::_init(void)
 {
-    Vehicle* offlineVehicle  = qgcApp()->toolbox()->multiVehicleManager()->offlineEditingVehicle();
+    Vehicle* offlineVehicle  = MultiVehicleManager::instance()->offlineEditingVehicle();
 
     connect(offlineVehicle, &Vehicle::vehicleTypeChanged,       this, &FactValueGrid::_offlineVehicleTypeChanged);
     connect(this,           &FactValueGrid::fontSizeChanged,    this, &FactValueGrid::_saveSettings);
@@ -74,7 +59,7 @@ void FactValueGrid::_init(void)
 
 void FactValueGrid::_offlineVehicleTypeChanged(void)
 {
-    Vehicle*                    offlineVehicle  = qgcApp()->toolbox()->multiVehicleManager()->offlineEditingVehicle();
+    Vehicle*                    offlineVehicle  = MultiVehicleManager::instance()->offlineEditingVehicle();
     QGCMAVLink::VehicleClass_t  newVehicleClass = QGCMAVLink::vehicleClass(offlineVehicle->vehicleType());
 
     if (newVehicleClass != _vehicleClass) {
@@ -303,7 +288,7 @@ void FactValueGrid::_loadSettings(void)
     QString     groupNameFormat("%1-%2");
 
     if (!settings.childGroups().contains(groupNameFormat.arg(_userSettingsGroup).arg(_vehicleClass))) {
-        qgcApp()->toolbox()->corePlugin()->factValueGridCreateDefaultSettings(_defaultSettingsGroup);
+        QGCCorePlugin::instance()->factValueGridCreateDefaultSettings(_defaultSettingsGroup);
     }
 
 
@@ -317,7 +302,7 @@ void FactValueGrid::_loadSettings(void)
     if (version != 1) {
         qgcApp()->showAppMessage(tr("Settings version %1 for %2 is not supported. Setup will be reset to defaults.").arg(version).arg(_userSettingsGroup), tr("Load Settings"));
         settings.remove("");
-        qgcApp()->toolbox()->corePlugin()->factValueGridCreateDefaultSettings(_defaultSettingsGroup);
+        QGCCorePlugin::instance()->factValueGridCreateDefaultSettings(_defaultSettingsGroup);
     }
     _fontSize = settings.value(_fontSizeKey, DefaultFontSize).value<FontSize>();
 

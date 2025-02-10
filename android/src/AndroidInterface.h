@@ -9,13 +9,22 @@
 
 #pragma once
 
-#include <QObject>
-#include <jni.h>
-#include <QtCore/private/qjni_p.h>
-#include <QtCore/private/qjnihelpers_p.h>
+#include <QtCore/QString>
+#include <QtCore/QLoggingCategory>
 
-class AndroidInterface
+#include <jni.h>
+
+Q_DECLARE_LOGGING_CATEGORY(AndroidInterfaceLog)
+
+namespace AndroidInterface
 {
-public:
-    static QString getSDCardPath();
+    bool cleanJavaException();
+    void setNativeMethods();
+    void jniLogDebug(JNIEnv *envA, jobject thizA, jstring messageA);
+    void jniLogWarning(JNIEnv *envA, jobject thizA, jstring messageA);
+    bool checkStoragePermissions();
+    QString getSDCardPath();
+    jclass getActivityClass();
+
+    constexpr const char *kJniQGCActivityClassName = "org/mavlink/qgroundcontrol/QGCActivity";
 };

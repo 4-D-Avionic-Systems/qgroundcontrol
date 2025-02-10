@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,7 +12,6 @@
 ///     @author Don Gagne <don@thegagnes.com>
 
 #include "SafetyComponent.h"
-#include "PX4AutoPilotPlugin.h"
 
 SafetyComponent::SafetyComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent) :
     VehicleComponent(vehicle, autopilot, parent),

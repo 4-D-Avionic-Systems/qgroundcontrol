@@ -13,10 +13,11 @@
 
 #pragma once
 
-#include "FirmwarePlugin.h"
 #include "PX4FirmwarePlugin.h"
 
+class AutoPilotPlugin;
 class CustomCameraManager;
+class Vehicle;
 
 class CustomFirmwarePlugin : public PX4FirmwarePlugin
 {
@@ -28,6 +29,7 @@ public:
     AutoPilotPlugin*    autopilotPlugin (Vehicle* vehicle) final;
     const QVariantList& toolIndicators  (const Vehicle* vehicle) final;
     bool                hasGimbal       (Vehicle* vehicle, bool& rollSupported, bool& pitchSupported, bool& yawSupported) final;
+    void                updateAvailableFlightModes      (FlightModeList modeList) override;
 
 private:
     QVariantList _toolIndicatorList;

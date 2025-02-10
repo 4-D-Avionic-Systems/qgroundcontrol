@@ -7,15 +7,15 @@
  *
  ****************************************************************************/
 
-import QtQuick 2.12
-import QtQuick.Layouts 1.12
+import QtQuick
+import QtQuick.Layouts
 
-import QGroundControl 1.0
-import QGroundControl.FactSystem 1.0
-import QGroundControl.FactControls 1.0
-import QGroundControl.ScreenTools 1.0
-import QGroundControl.SettingsManager 1.0
-import QGroundControl.Controls 1.0
+import QGroundControl
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.ScreenTools
+import QGroundControl.SettingsManager
+import QGroundControl.Controls
 
 FirstRunPrompt {
     title:      qsTr("Measurement Units")
@@ -38,6 +38,10 @@ FirstRunPrompt {
     }
 
     function changeSystemOfUnits(metric) {
+        // Hack to force reload the ComboBoxes, otherwise they don't update
+        unitComboBoxRepeater.model = 0
+        unitComboBoxRepeater.model = _rgFacts.length
+
         if (_unitsSettings.horizontalDistanceUnits.visible) {
             _unitsSettings.horizontalDistanceUnits.value = metric ? UnitsSettings.HorizontalDistanceUnitsMeters : UnitsSettings.HorizontalDistanceUnitsFeet
         }
@@ -96,10 +100,11 @@ FirstRunPrompt {
                     sizeToContents:     true
                     model:              [ qsTr("Metric System"), qsTr("Imperial System") ]
                     currentIndex:       _unitsSettings.horizontalDistanceUnits.value === UnitsSettings.HorizontalDistanceUnitsMeters ? 0 : 1
-                    onActivated:        changeSystemOfUnits(currentIndex === 0 /* metric */)
+                    onActivated: (index) => { changeSystemOfUnits(currentIndex === 0 /* metric */) }
                 }
 
                 Repeater {
+                    id: unitComboBoxRepeater
                     model: _rgFacts.length
                     FactComboBox {
                         Layout.fillWidth:   true

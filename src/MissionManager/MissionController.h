@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,15 +9,17 @@
 
 #pragma once
 
+#include <QtCore/QHash>
+#include <QtCore/QFile>
+#include <QtCore/QLoggingCategory>
+
 #include "PlanElementController.h"
 #include "QmlObjectListModel.h"
-#include "Vehicle.h"
-#include "QGCLoggingCategory.h"
-#include "KMLPlanDomDocument.h"
 #include "QGCGeoBoundingCube.h"
 #include "QGroundControlQmlGlobal.h"
+#include "QGCMAVLink.h"
 
-#include <QHash>
+Q_DECLARE_LOGGING_CATEGORY(MissionControllerLog)
 
 class FlightPathSegment;
 class VisualMissionItem;
@@ -28,10 +30,9 @@ class SimpleMissionItem;
 class ComplexMissionItem;
 class MissionSettingsItem;
 class TakeoffMissionItem;
-class QDomDocument;
 class PlanViewSettings;
-
-Q_DECLARE_LOGGING_CATEGORY(MissionControllerLog)
+class KMLPlanDomDocument;
+class Vehicle;
 
 typedef QPair<VisualMissionItem*,VisualMissionItem*> VisualItemPair;
 typedef QHash<VisualItemPair, FlightPathSegment*> FlightPathSegmentHashTable;
@@ -39,6 +40,9 @@ typedef QHash<VisualItemPair, FlightPathSegment*> FlightPathSegmentHashTable;
 class MissionController : public PlanElementController
 {
     Q_OBJECT
+    Q_MOC_INCLUDE("FlightPathSegment.h")
+    Q_MOC_INCLUDE("VisualMissionItem.h")
+    Q_MOC_INCLUDE("TakeoffMissionItem.h")
 
 public:
     MissionController(PlanMasterController* masterController, QObject* parent = nullptr);
@@ -401,22 +405,20 @@ private:
 
     QGroundControlQmlGlobal::AltMode _globalAltMode = QGroundControlQmlGlobal::AltitudeModeRelative;
 
-    static const char*  _settingsGroup;
-
-    // Json file keys for persistence
-    static const char*  _jsonFileTypeValue;
-    static const char*  _jsonFirmwareTypeKey;
-    static const char*  _jsonVehicleTypeKey;
-    static const char*  _jsonCruiseSpeedKey;
-    static const char*  _jsonHoverSpeedKey;
-    static const char*  _jsonItemsKey;
-    static const char*  _jsonPlannedHomePositionKey;
-    static const char*  _jsonParamsKey;
-    static const char*  _jsonGlobalPlanAltitudeModeKey;
+    static constexpr const char* _settingsGroup =                 "MissionController";
+    static constexpr const char* _jsonFileTypeValue =             "Mission";
+    static constexpr const char* _jsonItemsKey =                  "items";
+    static constexpr const char* _jsonPlannedHomePositionKey =    "plannedHomePosition";
+    static constexpr const char* _jsonFirmwareTypeKey =           "firmwareType";
+    static constexpr const char* _jsonVehicleTypeKey =            "vehicleType";
+    static constexpr const char* _jsonCruiseSpeedKey =            "cruiseSpeed";
+    static constexpr const char* _jsonHoverSpeedKey =             "hoverSpeed";
+    static constexpr const char* _jsonParamsKey =                 "params";
+    static constexpr const char* _jsonGlobalPlanAltitudeModeKey = "globalPlanAltitudeMode";
 
     // Deprecated V1 format keys
-    static const char*  _jsonMavAutopilotKey;
-    static const char*  _jsonComplexItemsKey;
+    static constexpr const char* _jsonComplexItemsKey =           "complexItems";
+    static constexpr const char* _jsonMavAutopilotKey =           "MAV_AUTOPILOT";
 
-    static const int    _missionFileVersion;
+    static constexpr int   _missionFileVersion =            2;
 };

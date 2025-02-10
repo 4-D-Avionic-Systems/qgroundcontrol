@@ -1,6 +1,6 @@
 ﻿/****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,11 +9,13 @@
 
 #pragma once
 
-#include "FirmwareImage.h"
+#ifdef Q_OS_ANDROID
+#include "qserialport.h"
+#else
+#include <QtSerialPort/QSerialPort>
+#endif
 
-#include <QSerialPort>
-
-#include <stdint.h>
+class FirmwareImage;
 
 /// Bootloader Utility routines. Works with PX4 and 3DR Radio bootloaders.
 class Bootloader : public QObject
@@ -34,7 +36,6 @@ public:
     bool verify             (const FirmwareImage* image);
     bool reboot             (void);
 
-    static const int boardIDPX4Flow         = 6;        ///< PX4 Flow board, as from USB PID
     static const int boardIDSiKRadio1000    = 78;       ///< Original radio based on SI1000 chip
     static const int boardIDSiKRadio1060    = 80;       ///< Newer radio based on SI1060 chip
 

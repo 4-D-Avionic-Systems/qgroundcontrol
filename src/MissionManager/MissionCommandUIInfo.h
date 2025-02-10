@@ -1,24 +1,22 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#ifndef MissionCommandUIInfo_H
-#define MissionCommandUIInfo_H
+#pragma once
 
-#include "QGCToolbox.h"
 #include "QGCMAVLink.h"
 
-#include <QString>
-#include <QVariant>
+#include <QtCore/QString>
+#include <QtCore/QVariant>
 
 class MissionCommandTree;
 class MissionCommandUIInfo;
-#ifdef UNITTEST_BUILD
+#ifdef QGC_UNITTEST_BUILD
 class MissionCommandTreeTest;
 #endif
 
@@ -55,6 +53,8 @@ public:
     Q_PROPERTY(int          param           READ param          CONSTANT)
     Q_PROPERTY(QString      units           READ units          CONSTANT)
     Q_PROPERTY(bool         nanUnchanged    READ nanUnchanged   CONSTANT)
+    Q_PROPERTY(double       min             READ min            CONSTANT)
+    Q_PROPERTY(double       max             READ max            CONSTANT)
 
     int             decimalPlaces   (void) const { return _decimalPlaces; }
     double          defaultValue    (void) const { return _defaultValue; }
@@ -64,6 +64,8 @@ public:
     int             param           (void) const { return _param; }
     QString         units           (void) const { return _units; }
     bool            nanUnchanged    (void) const { return _nanUnchanged; }
+    double          min             (void) const { return _min; }
+    double          max             (void) const { return _max; }
 
 private:
     int             _decimalPlaces;
@@ -74,6 +76,8 @@ private:
     int             _param;
     QString         _units;
     bool            _nanUnchanged;
+    double          _min;
+    double          _max;
 
     friend class MissionCommandTree;
     friend class MissionCommandUIInfo;
@@ -173,42 +177,43 @@ private:
     QMap<int, MissionCmdParamInfo*> _paramInfoMap;
     QList<int>                      _paramRemoveList;
 
-    static const char* _categoryJsonKey;
-    static const char* _decimalPlacesJsonKey;
-    static const char* _defaultJsonKey;
-    static const char* _descriptionJsonKey;
-    static const char* _enumStringsJsonKey;
-    static const char* _enumValuesJsonKey;
-    static const char* _nanUnchangedJsonKey;
-    static const char* _friendlyNameJsonKey;
-    static const char* _friendlyEditJsonKey;
-    static const char* _idJsonKey;
-    static const char* _labelJsonKey;
-    static const char* _mavCmdInfoJsonKey;
-    static const char* _param1JsonKey;
-    static const char* _param2JsonKey;
-    static const char* _param3JsonKey;
-    static const char* _param4JsonKey;
-    static const char* _param5JsonKey;
-    static const char* _param6JsonKey;
-    static const char* _param7JsonKey;
-    static const char* _paramJsonKeyFormat;
-    static const char* _paramRemoveJsonKey;
-    static const char* _rawNameJsonKey;
-    static const char* _standaloneCoordinateJsonKey;
-    static const char* _specifiesCoordinateJsonKey;
-    static const char* _specifiesAltitudeOnlyJsonKey;
-    static const char* _isLandCommandJsonKey;
-    static const char* _isTakeoffCommandJsonKey;
-    static const char* _isLoiterCommandJsonKey;
-    static const char* _unitsJsonKey;
-    static const char* _commentJsonKey;    
-    static const char* _advancedCategory;
+    static constexpr const char* _categoryJsonKey              = "category";
+    static constexpr const char* _decimalPlacesJsonKey         = "decimalPlaces";
+    static constexpr const char* _defaultJsonKey               = "default";
+    static constexpr const char* _descriptionJsonKey           = "description";
+    static constexpr const char* _enumStringsJsonKey           = "enumStrings";
+    static constexpr const char* _enumValuesJsonKey            = "enumValues";
+    static constexpr const char* _nanUnchangedJsonKey          = "nanUnchanged";
+    static constexpr const char* _friendlyEditJsonKey          = "friendlyEdit";
+    static constexpr const char* _friendlyNameJsonKey          = "friendlyName";
+    static constexpr const char* _idJsonKey                    = "id";
+    static constexpr const char* _labelJsonKey                 = "label";
+    static constexpr const char* _mavCmdInfoJsonKey            = "mavCmdInfo";
+    static constexpr const char* _maxJsonKey                   = "max";
+    static constexpr const char* _minJsonKey                   = "min";
+    static constexpr const char* _param1JsonKey                = "param1";
+    static constexpr const char* _param2JsonKey                = "param2";
+    static constexpr const char* _param3JsonKey                = "param3";
+    static constexpr const char* _param4JsonKey                = "param4";
+    static constexpr const char* _param5JsonKey                = "param5";
+    static constexpr const char* _param6JsonKey                = "param6";
+    static constexpr const char* _param7JsonKey                = "param7";
+    static constexpr const char* _paramJsonKeyFormat           = "param%1";
+    static constexpr const char* _paramRemoveJsonKey           = "paramRemove";
+    static constexpr const char* _rawNameJsonKey               = "rawName";
+    static constexpr const char* _standaloneCoordinateJsonKey  = "standaloneCoordinate";
+    static constexpr const char* _specifiesCoordinateJsonKey   = "specifiesCoordinate";
+    static constexpr const char* _specifiesAltitudeOnlyJsonKey = "specifiesAltitudeOnly";
+    static constexpr const char* _isLandCommandJsonKey         = "isLandCommand";
+    static constexpr const char* _isTakeoffCommandJsonKey      = "isTakeoffCommand";
+    static constexpr const char* _isLoiterCommandJsonKey       = "isLoiterCommand";
+    static constexpr const char* _unitsJsonKey                 = "units";
+    static constexpr const char* _commentJsonKey               = "comment";
+    static constexpr const char* _advancedCategory             = "Advanced";
 
     friend class MissionCommandTree;    
-#ifdef UNITTEST_BUILD
+#ifdef QGC_UNITTEST_BUILD
     friend class MissionCommandTreeTest;
 #endif
 };
 
-#endif

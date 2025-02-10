@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,7 +13,7 @@
 
 #include "APMCameraComponent.h"
 #include "APMAutoPilotPlugin.h"
-#include "APMAirframeComponent.h"
+#include "Vehicle.h"
 
 APMCameraComponent::APMCameraComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent)
     : VehicleComponent(vehicle, autopilot, parent)
@@ -62,5 +62,5 @@ QUrl APMCameraComponent::setupSource(void) const
 
 QUrl APMCameraComponent::summaryQmlSource(void) const
 {
-    return QUrl::fromUserInput(QStringLiteral("qrc:/qml/APMCameraComponentSummary.qml"));
+    return QUrl();
 }

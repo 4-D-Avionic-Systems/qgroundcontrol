@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,20 +13,7 @@
 #include "CameraMetaData.h"
 #include "PlanMasterController.h"
 
-#include <QQmlEngine>
-
-const char* CameraCalc::cameraNameName                  = "CameraName";
-const char* CameraCalc::valueSetIsDistanceName          = "ValueSetIsDistance";
-const char* CameraCalc::distanceToSurfaceName           = "DistanceToSurface";
-const char* CameraCalc::distanceModeName                = "DistanceMode";
-const char* CameraCalc::imageDensityName                = "ImageDensity";
-const char* CameraCalc::frontalOverlapName              = "FrontalOverlap";
-const char* CameraCalc::sideOverlapName                 = "SideOverlap";
-const char* CameraCalc::adjustedFootprintFrontalName    = "AdjustedFootprintFrontal";
-const char* CameraCalc::adjustedFootprintSideName       = "AdjustedFootprintSide";
-
-const char* CameraCalc::_jsonCameraSpecTypeKeyDeprecated            = "CameraSpecType";
-const char* CameraCalc::_jsonDistanceToSurfaceRelativeKeyDeprecated = "DistanceToSurfaceRelative";
+#include <QtQml/QQmlEngine>
 
 CameraCalc::CameraCalc(PlanMasterController* masterController, const QString& settingsGroup, QObject* parent)
     : CameraSpec                    (settingsGroup, parent)

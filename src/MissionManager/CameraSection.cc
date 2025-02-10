@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,15 +11,11 @@
 #include "SimpleMissionItem.h"
 #include "FirmwarePlugin.h"
 #include "PlanMasterController.h"
+#include "MissionItem.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
 QGC_LOGGING_CATEGORY(CameraSectionLog, "CameraSectionLog")
-
-const char* CameraSection::_gimbalPitchName =                   "GimbalPitch";
-const char* CameraSection::_gimbalYawName =                     "GimbalYaw";
-const char* CameraSection::_cameraActionName =                  "CameraAction";
-const char* CameraSection::_cameraPhotoIntervalDistanceName =   "CameraPhotoIntervalDistance";
-const char* CameraSection::_cameraPhotoIntervalTimeName =       "CameraPhotoIntervalTime";
-const char* CameraSection::_cameraModeName =                    "CameraMode";
 
 QMap<QString, FactMetaData*> CameraSection::_metaDataMap;
 
@@ -261,7 +257,7 @@ bool CameraSection::_scanGimbal(QmlObjectListModel* visualItems, int scanIndex)
     if (item) {
         MissionItem& missionItem = item->missionItem();
         if ((MAV_CMD)item->command() == MAV_CMD_DO_MOUNT_CONTROL) {
-            if (missionItem.param2() == 0 && missionItem.param4() == 0 && missionItem.param5() == 0 && missionItem.param6() == 0 && missionItem.param7() == MAV_MOUNT_MODE_MAVLINK_TARGETING) {
+            if (missionItem.param2() == 0 && missionItem.param4() == 0 && missionItem.param5() == 0 && missionItem.param6() == 0 && missionItem.param7() == static_cast<double>(MAV_MOUNT_MODE_MAVLINK_TARGETING)) {
                 setSpecifyGimbal(true);
                 gimbalPitch()->setRawValue(missionItem.param1());
                 gimbalYaw()->setRawValue(missionItem.param3());
@@ -438,7 +434,7 @@ bool CameraSection::_scanSetCameraMode(QmlObjectListModel* visualItems, int scan
         MissionItem& missionItem = item->missionItem();
         if ((MAV_CMD)item->command() == MAV_CMD_SET_CAMERA_MODE) {
             // We specifically don't test param 5/6/7 since we don't have NaN persistence for those fields
-            if (missionItem.param1() == 0 && (missionItem.param2() == CAMERA_MODE_IMAGE || missionItem.param2() == CAMERA_MODE_VIDEO || missionItem.param2() == CAMERA_MODE_IMAGE_SURVEY) && qIsNaN(missionItem.param3())) {
+            if (missionItem.param1() == 0 && (missionItem.param2() == static_cast<double>(CAMERA_MODE_IMAGE) || missionItem.param2() == static_cast<double>(CAMERA_MODE_VIDEO) || missionItem.param2() == static_cast<double>(CAMERA_MODE_IMAGE_SURVEY)) && qIsNaN(missionItem.param3())) {
                 setSpecifyCameraMode(true);
                 cameraMode()->setRawValue(missionItem.param2());
                 visualItems->removeAt(scanIndex)->deleteLater();

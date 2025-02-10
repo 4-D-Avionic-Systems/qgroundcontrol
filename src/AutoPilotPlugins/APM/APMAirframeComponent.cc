@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,10 +8,8 @@
  ****************************************************************************/
 
 #include "APMAirframeComponent.h"
-#include "ArduCopterFirmwarePlugin.h"
 #include "ParameterManager.h"
-
-const char* APMAirframeComponent::_frameClassParam = "FRAME_CLASS";
+#include "Vehicle.h"
 
 APMAirframeComponent::APMAirframeComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent)
     : VehicleComponent      (vehicle, autopilot, parent)
@@ -20,8 +18,8 @@ APMAirframeComponent::APMAirframeComponent(Vehicle* vehicle, AutoPilotPlugin* au
 {
     ParameterManager* paramMgr = vehicle->parameterManager();
 
-    if (paramMgr->parameterExists(FactSystem::defaultComponentId, _frameClassParam)) {
-        _frameClassFact = paramMgr->getParameter(FactSystem::defaultComponentId, _frameClassParam);
+    if (paramMgr->parameterExists(ParameterManager::defaultComponentId, _frameClassParam)) {
+        _frameClassFact = paramMgr->getParameter(ParameterManager::defaultComponentId, _frameClassParam);
         if (vehicle->vehicleType() != MAV_TYPE_HELICOPTER) {
             _requiresFrameSetup = true;
         }

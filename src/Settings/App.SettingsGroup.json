@@ -101,13 +101,6 @@
     "default":     false
 },
 {
-    "name":             "checkInternet",
-    "shortDesc": "Check Internet connection",
-    "longDesc":  "Check Internet connection before accessing Internet resources.",
-    "type":             "bool",
-    "default":     true
-},
-{
     "name":             "virtualJoystick",
     "shortDesc": "Show virtual joystick",
     "longDesc":  "If this option is enabled the virtual joystick will be shown on the Fly view.",
@@ -146,6 +139,13 @@
     "default":     false
 },
 {
+    "name":                 "enableMultiVehiclePanel",
+    "shortDesc":            "Enable Multi-Vehicle Panel",
+    "longDesc":             "Enable Multi-Vehicle Panel when multiple vehicles are connected.",
+    "type":                 "bool",
+    "default":              true
+},
+{
     "name":                 "appFontPointSize",
     "shortDesc":     "Application font size",
     "longDesc":      "The point size for the default font used.",
@@ -165,13 +165,6 @@
     "default":     0
 },
 {
-    "name":             "showLargeCompass",
-    "shortDesc": "Show large compass",
-    "longDesc":  "Show large compass on instrument panel",
-    "type":             "bool",
-    "default":     false
-},
-{
     "name":             "savePath",
     "shortDesc": "Application save directory",
     "longDesc":  "Directory to which all data files are saved/loaded from",
@@ -185,20 +178,6 @@
     "type":                 "bool",
     "default":              false,
     "qgcRebootRequired":    true
-},
-{
-    "name":             "userBrandImageIndoor",
-    "shortDesc": "User-selected brand image",
-    "longDesc":  "Location in file system of user-selected brand image (indoor)",
-    "type":             "string",
-    "default":     ""
-},
-{
-    "name":             "userBrandImageOutdoor",
-    "shortDesc": "User-selected brand image",
-    "longDesc":  "Location in file system of user-selected brand image (outdoor)",
-    "type":             "string",
-    "default":     ""
 },
 {
     "name":             "mapboxToken",
@@ -243,12 +222,6 @@
     "default":     ""
 },
 {
-    "name":             "defaultFirmwareType",
-    "shortDesc": "Default firmware type for flashing",
-    "type":             "uint32",
-    "default":     12
-},
-{
     "name":             "followTarget",
     "shortDesc": "Stream GCS' coordinates to Autopilot",
     "type":             "uint32",
@@ -264,46 +237,17 @@
     "qgcRebootRequired":    true
 },
 {
-    "name":             "enableTaisync",
-    "shortDesc": "Enable Taisync Module Support",
-    "longDesc":  "Enable Taisync Module Support",
-    "type":             "bool",
-    "default":     false
-},
-{
-    "name":             "enableTaisyncVideo",
-    "shortDesc": "Enable Taisync Video Support",
-    "longDesc":  "Enable Taisync Video Support",
-    "type":             "bool",
-    "default":     true
-},
-{
-    "name":             "enableMicrohard",
-    "shortDesc": "Enable Microhard Module Support",
-    "longDesc":  "Enable Microhard Module Support",
-    "type":             "bool",
-    "default":     false
-},
-{
-    "name":         "qLocaleLanguage",
-    "shortDesc":    "Language",
-    "type":         "uint32",
-    "enumStrings":  "System,Azerbaijani (Azerbaijani),български (Bulgarian),中文 (Chinese),Nederlands (Dutch),English,Suomi (Finnish),Français (French),Deutsche (German),Ελληνικά (Greek), עברית (Hebrew),Italiano (Italian),日本語 (Japanese),한국어 (Korean),Norsk (Norwegian),Polskie (Polish),Português (Portuguese),Pусский (Russian),Español (Spanish),Svenska (Swedish),Türk (Turkish)",
-    "enumValues":   "0,12,20,25,30,31,36,37,42,43,48,58,59,66,85,90,91,96,111,114,125",
-    "comment":      "enumValues uses Qt QLocale::Language values",
-    "default":      0
+    "name":                 "qLocaleLanguage",
+    "shortDesc":            "Language",
+    "type":                 "uint32",
+    "default":              0,
+    "qgcRebootRequired":    true,
+    "comment":              "QLocale::Language id. Fact enum metadata is setup in AppSettings code. QGC reboot required in order to load new json translations into FactMetaData."
 },
 {
     "name":             "disableAllPersistence",
     "shortDesc": "Disable all data persistence",
     "longDesc":  "If this option is set, nothing will be saved to disk.",
-    "type":             "bool",
-    "default":     false
-},
-{
-    "name":             "usePairing",
-    "shortDesc": "Use Pairing",
-    "longDesc":  "Use Link Pairing.",
     "type":             "bool",
     "default":     false
 },
@@ -332,7 +276,8 @@
     "shortDesc": "Host name",
     "longDesc":  "Host name to forward mavlink to. i.e: localhost:14445",
     "type":             "string",
-    "default":     "localhost:14445"
+    "default":     "localhost:14445",
+    "qgcRebootRequired":    true
 },
 {
     "name":      "forwardMavlinkAPMSupportHostName",
@@ -340,6 +285,24 @@
     "longDesc":  "Ardupilot Support server to forward mavlink to. i.e: support.ardupilot.org:xxxx",
     "type":      "string",
     "default":   "support.ardupilot.org:xxxx"
+},
+{
+    "name": "loginAirLink",
+    "shortDesc": "AirLink User Name",
+    "type": "string",
+    "default": ""
+},
+{
+    "name": "passAirLink",
+    "shortDesc": "AirLink Password",
+    "type": "string",
+    "default": ""
+},
+{
+    "name":             "mavlink2SigningKey",
+    "shortDesc":        "MAVLink 2.0 signing key",
+    "type":             "string",
+    "default":          ""
 }
 ]
 }

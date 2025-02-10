@@ -7,16 +7,15 @@
  *
  ****************************************************************************/
 
-import QtQuick              2.3
-import QtQuick.Controls     1.2
-import QtGraphicalEffects   1.0
-import QtQuick.Layouts      1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import QGroundControl.FactSystem    1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.Palette
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
 
 SetupPage {
     id:             safetyPage
@@ -145,7 +144,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery1 Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -179,7 +178,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery2 Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -218,7 +217,7 @@ SetupPage {
 
                     QGCLabel {
                         text:       qsTr("Failsafe Triggers")
-                        font.family: ScreenTools.demiboldFontFamily
+                        font.bold:   true
                     }
 
                     Rectangle {
@@ -277,7 +276,7 @@ SetupPage {
                     QGCLabel {
                         id:         failsafeLabel
                         text:       qsTr("Failsafe Triggers")
-                        font.family: ScreenTools.demiboldFontFamily
+                        font.bold:   true
                     }
 
                     Rectangle {
@@ -343,7 +342,7 @@ SetupPage {
 
                     QGCLabel {
                         text:       qsTr("General Failsafe Triggers")
-                        font.family: ScreenTools.demiboldFontFamily
+                        font.bold:   true
                     }
 
                     Rectangle {
@@ -377,7 +376,7 @@ SetupPage {
                                     currentIndex:       _failsafeThrEnable.value
                                     Layout.fillWidth:   true
 
-                                    onActivated: _failsafeThrEnable.value = index
+                                    onActivated: (index) => { _failsafeThrEnable.value = index }
                                 }
 
                                 QGCLabel { text: qsTr("PWM threshold:") }
@@ -415,7 +414,7 @@ SetupPage {
 
                     QGCLabel {
                         text:           qsTr("GeoFence")
-                        font.family:    ScreenTools.demiboldFontFamily
+                        font.bold:      true
                     }
 
                     Rectangle {
@@ -542,7 +541,7 @@ SetupPage {
                     QGCLabel {
                         id:             rtlLabel
                         text:           qsTr("Return to Launch")
-                        font.family:    ScreenTools.demiboldFontFamily
+                        font.bold:      true
                     }
 
                     Rectangle {
@@ -551,25 +550,19 @@ SetupPage {
                         height: landSpeedField.y + landSpeedField.height + _margins
                         color:  ggcPal.windowShade
 
-                        Image {
+                        QGCColoredImage {
                             id:                 icon
+                            visible:            _showIcon
                             anchors.margins:    _margins
                             anchors.left:       parent.left
                             anchors.top:        parent.top
                             height:             ScreenTools.defaultFontPixelWidth * 20
                             width:              ScreenTools.defaultFontPixelWidth * 20
+                            color:              ggcPal.text
                             sourceSize.width:   width
                             mipmap:             true
                             fillMode:           Image.PreserveAspectFit
-                            visible:            false
                             source:             "/qmlimages/ReturnToHomeAltitude.svg"
-                        }
-
-                        ColorOverlay {
-                            anchors.fill:   icon
-                            source:         icon
-                            color:          ggcPal.text
-                            visible:        _showIcon
                         }
 
                         QGCRadioButton {
@@ -667,11 +660,17 @@ SetupPage {
                 Column {
                     spacing: _margins / 2
 
-                    property Fact _rtlAltFact: controller.getParameterFact(-1, "ALT_HOLD_RTL")
+                    property Fact _rtlAltFact: {
+                        if (controller.firmwareMajorVersion < 4 || (controller.firmwareMajorVersion === 4 && controller.firmwareMinorVersion < 5)) {
+                            return controller.getParameterFact(-1, "ALT_HOLD_RTL")
+                        } else {
+                            return controller.getParameterFact(-1, "RTL_ALTITUDE")
+                        }
+                    }
 
                     QGCLabel {
                         text:           qsTr("Return to Launch")
-                        font.family:    ScreenTools.demiboldFontFamily
+                        font.bold:      true
                     }
 
                     Rectangle {
@@ -723,7 +722,7 @@ SetupPage {
 
                 QGCLabel {
                     text:           qsTr("Arming Checks")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:      true
                 }
 
                 Rectangle {

@@ -11,15 +11,15 @@
  */
 
 #include "CustomAutoPilotPlugin.h"
-
-#include "QGCApplication.h"
+#include "ParameterManager.h"
 #include "QGCCorePlugin.h"
+#include "Vehicle.h"
 
 CustomAutoPilotPlugin::CustomAutoPilotPlugin(Vehicle* vehicle, QObject* parent)
     : PX4AutoPilotPlugin(vehicle, parent)
 {
     // Whenever we go on/out of advanced mode the available list of settings pages will change
-    connect(qgcApp()->toolbox()->corePlugin(), &QGCCorePlugin::showAdvancedUIChanged, this, &CustomAutoPilotPlugin::_advancedChanged);
+    connect(QGCCorePlugin::instance(), &QGCCorePlugin::showAdvancedUIChanged, this, &CustomAutoPilotPlugin::_advancedChanged);
 }
 
 // This signals that when Advanced Mode changes the list of Vehicle Settings page also changed
@@ -34,7 +34,7 @@ const QVariantList& CustomAutoPilotPlugin::vehicleComponents()
 {
     if (_components.count() == 0 && !_incorrectParameterVersion) {
         if (_vehicle) {
-            bool showAdvanced = qgcApp()->toolbox()->corePlugin()->showAdvancedUI();
+            bool showAdvanced = QGCCorePlugin::instance()->showAdvancedUI();
             if (_vehicle->parameterManager()->parametersReady()) {
                 if (showAdvanced) {
                     _airframeComponent = new AirframeComponent(_vehicle, this);

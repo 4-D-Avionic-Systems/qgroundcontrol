@@ -7,182 +7,181 @@
  *
  ****************************************************************************/
 
-import QtQuick              2.3
-import QtQuick.Controls     1.2
-import QtQuick.Dialogs      1.2
-import QtQuick.Layouts      1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import Qt.labs.qmlmodels
 
-import QGroundControl               1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.Controllers   1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Controllers
+import QGroundControl.ScreenTools
 
 AnalyzePage {
-    id:                 logDownloadPage
-    pageComponent:      pageComponent
-    pageDescription:    qsTr("Log Download allows you to download binary log files from your vehicle. Click Refresh to get list of available logs.")
-
-    property real _margin:          ScreenTools.defaultFontPixelWidth
-    property real _butttonWidth:    ScreenTools.defaultFontPixelWidth * 10
-
-    QGCPalette { id: palette; colorGroupEnabled: enabled }
+    id: logDownloadPage
+    pageComponent: pageComponent
+    pageDescription: qsTr("Log Download allows you to download binary log files from your vehicle. Click Refresh to get list of available logs.")
 
     Component {
         id: pageComponent
 
         RowLayout {
-            width:  availableWidth
+            width: availableWidth
             height: availableHeight
 
-            Connections {
-                target: logController
-                onSelectionChanged: {
-                    tableView.selection.clear()
-                    for(var i = 0; i < logController.model.count; i++) {
-                        var o = logController.model.get(i)
-                        if (o && o.selected) {
-                            tableView.selection.select(i, i)
-                        }
+            QGCFlickable {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                contentWidth: gridLayout.width
+                contentHeight: gridLayout.height
+
+                GridLayout {
+                    id: gridLayout
+                    rows: logDownloadController.model.count + 1
+                    columns: 5
+                    flow: GridLayout.TopToBottom
+                    columnSpacing: ScreenTools.defaultFontPixelWidth
+                    rowSpacing: 0
+
+                    QGCCheckBox {
+                        id: headerCheckBox
+                        enabled: false
                     }
-                }
-            }
 
-            TableView {
-                id: tableView
-                Layout.fillHeight:  true
-                model:              logController.model
-                selectionMode:      SelectionMode.MultiSelection
-                Layout.fillWidth:   true
+                    Repeater {
+                        model: logDownloadController.model
 
-                TableViewColumn {
-                    title: qsTr("Id")
-                    width: ScreenTools.defaultFontPixelWidth * 6
-                    horizontalAlignment: Text.AlignHCenter
-                    delegate : Text  {
-                        color: styleData.textColor
-                        horizontalAlignment: Text.AlignHCenter
-                        text: {
-                            var o = logController.model.get(styleData.row)
-                            return o ? o.id : ""
-                        }
-                    }
-                }
-
-                TableViewColumn {
-                    title: qsTr("Date")
-                    width: ScreenTools.defaultFontPixelWidth * 34
-                    horizontalAlignment: Text.AlignHCenter
-                    delegate: Text  {
-                        color: styleData.textColor
-                        text: {
-                            var o = logController.model.get(styleData.row)
-                            if (o) {
-                                //-- Have we received this entry already?
-                                if(logController.model.get(styleData.row).received) {
-                                    var d = logController.model.get(styleData.row).time
-                                    if(d.getUTCFullYear() < 2010)
-                                        return qsTr("Date Unknown")
-                                    else
-                                        return d.toLocaleString(undefined, "short")
-                                }
+                        QGCCheckBox {
+                            Binding on checkState {
+                                value: object.selected ? Qt.Checked : Qt.Unchecked
                             }
-                            return ""
+
+                            onClicked: object.selected = checked
                         }
                     }
-                }
 
-                TableViewColumn {
-                    title: qsTr("Size")
-                    width: ScreenTools.defaultFontPixelWidth * 18
-                    horizontalAlignment: Text.AlignHCenter
-                    delegate : Text  {
-                        color: styleData.textColor
-                        horizontalAlignment: Text.AlignRight
-                        text: {
-                            var o = logController.model.get(styleData.row)
-                            return o ? o.sizeStr : ""
+                    QGCLabel { text: qsTr("Id") }
+
+                    Repeater {
+                        model: logDownloadController.model
+
+                        QGCLabel { text: object.id }
+                    }
+
+                    QGCLabel { text: qsTr("Date") }
+
+                    Repeater {
+                        model: logDownloadController.model
+
+                        QGCLabel {
+                            text: {
+                                if (!object.received) {
+                                    return ""
+                                }
+
+                                if (object.time.getUTCFullYear() < 2010) {
+                                    return qsTr("Date Unknown")
+                                }
+
+                                return object.time.toLocaleString(undefined)
+                            }
                         }
                     }
-                }
 
-                TableViewColumn {
-                    title: qsTr("Status")
-                    width: ScreenTools.defaultFontPixelWidth * 22
-                    horizontalAlignment: Text.AlignHCenter
-                    delegate : Text  {
-                        color: styleData.textColor
-                        horizontalAlignment: Text.AlignHCenter
-                        text: {
-                            var o = logController.model.get(styleData.row)
-                            return o ? o.status : ""
-                        }
+                    QGCLabel { text: qsTr("Size") }
+
+                    Repeater {
+                        model: logDownloadController.model
+
+                        QGCLabel { text: object.sizeStr }
+                    }
+
+                    QGCLabel { text: qsTr("Status") }
+
+                    Repeater {
+                        model: logDownloadController.model
+
+                        QGCLabel { text: object.status }
                     }
                 }
             }
-            Column {
-                spacing:            _margin
-                Layout.alignment:   Qt.AlignTop | Qt.AlignLeft
+
+            ColumnLayout {
+                spacing: ScreenTools.defaultFontPixelWidth
+                Layout.alignment: Qt.AlignTop
+                Layout.fillWidth: false
+
                 QGCButton {
-                    enabled:    !logController.requestingList && !logController.downloadingLogs
-                    text:       qsTr("Refresh")
-                    width:      _butttonWidth
+                    Layout.fillWidth: true
+                    enabled: !logDownloadController.requestingList && !logDownloadController.downloadingLogs
+                    text: qsTr("Refresh")
+
                     onClicked: {
                         if (!QGroundControl.multiVehicleManager.activeVehicle || QGroundControl.multiVehicleManager.activeVehicle.isOfflineEditingVehicle) {
                             mainWindow.showMessageDialog(qsTr("Log Refresh"), qsTr("You must be connected to a vehicle in order to download logs."))
-                        } else {
-                            logController.refresh()
+                            return
                         }
+
+                        logDownloadController.refresh()
                     }
                 }
+
                 QGCButton {
-                    enabled:    !logController.requestingList && !logController.downloadingLogs && tableView.selection.count > 0
-                    text:       qsTr("Download")
-                    width:      _butttonWidth
+                    Layout.fillWidth: true
+                    enabled: !logDownloadController.requestingList && !logDownloadController.downloadingLogs
+                    text: qsTr("Download")
+
                     onClicked: {
-                        //-- Clear selection
-                        for(var i = 0; i < logController.model.count; i++) {
-                            var o = logController.model.get(i)
-                            if (o) o.selected = false
+                        var logsSelected = false
+                        for (var i = 0; i < logDownloadController.model.count; i++) {
+                            if (logDownloadController.model.get(i).selected) {
+                                logsSelected = true
+                                break
+                            }
                         }
-                        //-- Flag selected log files
-                        tableView.selection.forEach(function(rowIndex){
-                            var o = logController.model.get(rowIndex)
-                            if (o) o.selected = true
-                        })
+
+                        if (!logsSelected) {
+                            mainWindow.showMessageDialog(qsTr("Log Download"), qsTr("You must select at least one log file to download."))
+                            return
+                        }
+
                         if (ScreenTools.isMobile) {
-                            // You can't pick folders in mobile, only default location is used
-                            logController.download()
-                        } else {
-                            fileDialog.title =          qsTr("Select save directory")
-                            fileDialog.selectExisting = true
-                            fileDialog.folder =         QGroundControl.settingsManager.appSettings.logSavePath
-                            fileDialog.selectFolder =   true
-                            fileDialog.openForLoad()
+                            logDownloadController.download()
+                            return
                         }
+
+                        fileDialog.title = qsTr("Select save directory")
+                        fileDialog.folder = QGroundControl.settingsManager.appSettings.logSavePath
+                        fileDialog.selectFolder = true
+                        fileDialog.openForLoad()
                     }
+
                     QGCFileDialog {
                         id: fileDialog
-                        onAcceptedForLoad: {
-                            logController.download(file)
+                        onAcceptedForLoad: (file) => {
+                            logDownloadController.download(file)
                             close()
                         }
                     }
                 }
+
                 QGCButton {
-                    enabled:    !logController.requestingList && !logController.downloadingLogs && logController.model.count > 0
-                    text:       qsTr("Erase All")
-                    width:      _butttonWidth
-                    onClicked:  mainWindow.showMessageDialog(qsTr("Delete All Log Files"),
-                                                             qsTr("All log files will be erased permanently. Is this really what you want?"),
-                                                             StandardButton.Yes | StandardButton.No,
-                                                             function() { logController.eraseAll() })
+                    Layout.fillWidth: true
+                    enabled: !logDownloadController.requestingList && !logDownloadController.downloadingLogs && (logDownloadController.model.count > 0)
+                    text: qsTr("Erase All")
+                    onClicked: mainWindow.showMessageDialog(
+                        qsTr("Delete All Log Files"),
+                        qsTr("All log files will be erased permanently. Is this really what you want?"),
+                        Dialog.Yes | Dialog.No,
+                        function() { logDownloadController.eraseAll() }
+                    )
                 }
+
                 QGCButton {
-                    text:       qsTr("Cancel")
-                    width:      _butttonWidth
-                    enabled:    logController.requestingList || logController.downloadingLogs
-                    onClicked:  logController.cancel()
+                    Layout.fillWidth: true
+                    text: qsTr("Cancel")
+                    enabled: logDownloadController.requestingList || logDownloadController.downloadingLogs
+                    onClicked: logDownloadController.cancel()
                 }
             }
         }

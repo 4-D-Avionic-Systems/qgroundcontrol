@@ -1,21 +1,16 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#ifndef SettingsGroup_H
-#define SettingsGroup_H
+#pragma once
 
-#include "QGCLoggingCategory.h"
-#include "Joystick.h"
-#include "MultiVehicleManager.h"
-#include "QGCToolbox.h"
 
-#include <QVariantList>
+#include "SettingsFact.h"
 
 #define DEFINE_SETTING_NAME_GROUP() \
     static const char* name; \
@@ -75,6 +70,7 @@ protected:
     QString         _settingsGroup;
 
     QMap<QString, FactMetaData*> _nameToMetaDataMap;
-};
 
-#endif
+private:
+    static constexpr const char* kJsonFile = ":/json/%1.SettingsGroup.json";
+};

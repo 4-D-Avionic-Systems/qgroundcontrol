@@ -1,17 +1,16 @@
-import QtQuick          2.3
-import QtQuick.Controls 1.2
-import QtQuick.Controls.Styles 1.4
-import QtQuick.Dialogs  1.2
-import QtQuick.Extras   1.4
-import QtQuick.Layouts  1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
+import QtQuick.Extras
+import QtQuick.Layouts
 
-import QGroundControl               1.0
-import QGroundControl.ScreenTools   1.0
-import QGroundControl.Vehicle       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.FlightMap     1.0
+import QGroundControl
+import QGroundControl.ScreenTools
+import QGroundControl.Vehicle
+import QGroundControl.Controls
+import QGroundControl.FactControls
+import QGroundControl.Palette
+import QGroundControl.FlightMap
 
 // Editor for Survery mission items
 Rectangle {
@@ -196,10 +195,10 @@ Rectangle {
                     QGCLabel { text: missionItem.cameraCalc.adjustedFootprintFrontal.valueString + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString }
 
                     QGCLabel { text: qsTr("Top Layer Alt") }
-                    QGCLabel { text: QGroundControl.unitsConversion.metersToAppSettingsHorizontalDistanceUnits(missionItem.topFlightAlt).toFixed(1) + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString }
+                    QGCLabel { text: QGroundControl.unitsConversion.metersToAppSettingsVerticalDistanceUnits(missionItem.topFlightAlt).toFixed(1) + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString }
 
                     QGCLabel { text: qsTr("Bottom Layer Alt") }
-                    QGCLabel { text: QGroundControl.unitsConversion.metersToAppSettingsHorizontalDistanceUnits(missionItem.bottomFlightAlt).toFixed(1) + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString }
+                    QGCLabel { text: QGroundControl.unitsConversion.metersToAppSettingsVerticalDistanceUnits(missionItem.bottomFlightAlt).toFixed(1) + " " + QGroundControl.unitsConversion.appSettingsHorizontalDistanceUnitsString }
 
                     QGCLabel { text: qsTr("Photo Count") }
                     QGCLabel { text: missionItem.cameraShots }

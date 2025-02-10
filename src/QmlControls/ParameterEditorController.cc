@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,14 +10,18 @@
 #include "ParameterEditorController.h"
 #include "QGCApplication.h"
 #include "ParameterManager.h"
-#include "SettingsManager.h"
 #include "AppSettings.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-#include <QStandardPaths>
+QGC_LOGGING_CATEGORY(ParameterEditorControllerLog, "qgc.qmlcontrols.parametereditorcontroller")
 
-ParameterEditorController::ParameterEditorController(void)
-    : _parameterMgr(_vehicle->parameterManager())
+ParameterEditorController::ParameterEditorController(QObject *parent)
+    : FactPanelController(parent)
+    , _parameterMgr(_vehicle->parameterManager())
 {
+    // qCDebug(ParameterEditorControllerLog) << Q_FUNC_INFO << this;
+
     _buildLists();
 
     connect(this, &ParameterEditorController::currentCategoryChanged,   this, &ParameterEditorController::_currentCategoryChanged);
@@ -33,7 +37,7 @@ ParameterEditorController::ParameterEditorController(void)
 
 ParameterEditorController::~ParameterEditorController()
 {
-
+    // qCDebug(ParameterEditorControllerLog) << Q_FUNC_INFO << this;
 }
 
 void ParameterEditorController::_buildListsForComponent(int compId)
@@ -108,7 +112,7 @@ void ParameterEditorController::_buildLists(void)
             if (group->name == FactMetaData::kDefaultGroup) {
                 if (j != _categories.count() - 1) {
                     category->groups.removeAt(j);
-                    category->groups.append(category);
+                    category->groups.append(group);
                 }
                 break;
             }

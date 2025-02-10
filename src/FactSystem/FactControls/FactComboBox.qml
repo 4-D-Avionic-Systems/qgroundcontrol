@@ -1,14 +1,13 @@
-import QtQuick 2.3
-import QtQuick.Controls 1.2
-import QtQuick.Controls.Styles 1.4
+import QtQuick
+import QtQuick.Controls
 
-import QGroundControl.FactSystem 1.0
-import QGroundControl.Palette 1.0
-import QGroundControl.Controls 1.0
+import QGroundControl.FactSystem
+import QGroundControl.Palette
+import QGroundControl.Controls
 
 QGCComboBox {
     property Fact fact: Fact { }
-    property bool indexModel: true  ///< true: model must be specifed, selected index is fact value, false: use enum meta data
+    property bool indexModel: fact ? fact.enumValues.length !== 0 : false
 
     model: fact ? fact.enumStrings : null
 
@@ -25,7 +24,7 @@ QGCComboBox {
         })
     }
 
-    onActivated: {
+    onActivated: (index) => {
         if (indexModel) {
             fact.value = index
         } else {

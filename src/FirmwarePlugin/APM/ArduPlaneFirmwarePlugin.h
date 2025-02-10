@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,15 +11,13 @@
 /// @file
 ///     @author Pritam Ghanghas <pritam.ghanghas@gmail.com>
 
-#ifndef ArduPlaneFirmwarePlugin_H
-#define ArduPlaneFirmwarePlugin_H
+#pragma once
 
 #include "APMFirmwarePlugin.h"
 
-class APMPlaneMode: public APMCustomMode
+struct APMPlaneMode
 {
-public:
-    enum Mode {
+    enum Mode : uint32_t {
         MANUAL        = 0,
         CIRCLE        = 1,
         STABILIZE     = 2,
@@ -45,9 +43,9 @@ public:
         QAUTOTUNE     = 22,
         QACRO         = 23,
         THERMAL       = 24,
+        LOITER2QLAND  = 25,
+        AUTOLAND      = 26,
     };
-
-    APMPlaneMode(uint32_t mode, bool settable);
 };
 
 class ArduPlaneFirmwarePlugin : public APMFirmwarePlugin
@@ -64,9 +62,40 @@ public:
     int     remapParamNameHigestMinorVersionNumber  (int majorVersionNumber) const final;    
     const FirmwarePlugin::remapParamNameMajorVersionMap_t& paramNameRemapMajorVersionMap(void) const final { return _remapParamName; }
 
+    QString stabilizedFlightMode                    (void) const override;
+    void    updateAvailableFlightModes              (FlightModeList modeList) override;
+
+protected:
+    uint32_t    _convertToCustomFlightModeEnum(uint32_t val) const override;
+
+
+    QString     _manualFlightMode       ;
+    QString     _circleFlightMode       ;
+    QString     _stabilizeFlightMode    ;
+    QString     _trainingFlightMode     ;
+    QString     _acroFlightMode         ;
+    QString     _flyByWireAFlightMode   ;
+    QString     _flyByWireBFlightMode   ;
+    QString     _cruiseFlightMode       ;
+    QString     _autoTuneFlightMode     ;
+    QString     _autoFlightMode         ;
+    QString     _rtlFlightMode          ;
+    QString     _loiterFlightMode       ;
+    QString     _takeoffFlightMode      ;
+    QString     _avoidADSBFlightMode    ;
+    QString     _guidedFlightMode       ;
+    QString     _initializingFlightMode ;
+    QString     _qStabilizeFlightMode   ;
+    QString     _qHoverFlightMode       ;
+    QString     _qLoiterFlightMode      ;
+    QString     _qLandFlightMode        ;
+    QString     _qRTLFlightMode         ;
+    QString     _qAutotuneFlightMode    ;
+    QString     _qAcroFlightMode        ;
+    QString     _thermalFlightMode      ;
+    QString     _loiter2qlandFlightMode ;
+    QString     _autolandFlightMode     ;
 private:
     static bool _remapParamNameIntialized;
     static FirmwarePlugin::remapParamNameMajorVersionMap_t  _remapParamName;
 };
-
-#endif

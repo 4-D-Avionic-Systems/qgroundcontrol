@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,23 +10,17 @@
 #include "RallyPointController.h"
 #include "RallyPoint.h"
 #include "Vehicle.h"
-#include "FirmwarePlugin.h"
-#include "MAVLinkProtocol.h"
-#include "QGCApplication.h"
-#include "ParameterManager.h"
 #include "JsonHelper.h"
-#include "SimpleMissionItem.h"
 #include "SettingsManager.h"
 #include "AppSettings.h"
 #include "PlanMasterController.h"
+#include "RallyPointManager.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-#include <QJsonDocument>
-#include <QJsonArray>
+#include <QtCore/QJsonArray>
 
 QGC_LOGGING_CATEGORY(RallyPointControllerLog, "RallyPointControllerLog")
-
-const char* RallyPointController::_jsonFileTypeValue =  "RallyPoints";
-const char* RallyPointController::_jsonPointsKey =      "points";
 
 RallyPointController::RallyPointController(PlanMasterController* masterController, QObject* parent)
     : PlanElementController (masterController, parent)
@@ -245,7 +239,7 @@ void RallyPointController::addPoint(QGeoCoordinate point)
         defaultAlt = qobject_cast<RallyPoint*>(_points[_points.count() - 1])->coordinate().altitude();
     } else {
         if(_masterController->controllerVehicle()->fixedWing()) {
-            defaultAlt = qgcApp()->toolbox()->settingsManager()->appSettings()->defaultMissionItemAltitude()->rawValue().toDouble();
+            defaultAlt = SettingsManager::instance()->appSettings()->defaultMissionItemAltitude()->rawValue().toDouble();
         }
         else {
             defaultAlt = RallyPoint::getDefaultFactAltitude();

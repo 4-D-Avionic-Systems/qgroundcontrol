@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,22 +12,19 @@
 ///     @brief PX4 Firmware Upgrade operations which occur on a separate thread.
 ///     @author Don Gagne <don@thegagnes.com>
 
-#ifndef PX4FirmwareUpgradeThread_H
-#define PX4FirmwareUpgradeThread_H
+#pragma once
 
-#include "Bootloader.h"
-#include "FirmwareImage.h"
+
 #include "QGCSerialPortInfo.h"
 
-#include <QObject>
-#include <QThread>
-#include <QTimer>
-#include <QTime>
-#include <QSerialPort>
-
-#include <stdint.h>
+#include <QtCore/QObject>
+#include <QtCore/QTime>
 
 class PX4FirmwareUpgradeThreadController;
+class Bootloader;
+class FirmwareImage;
+class QThread;
+class QTimer;
 
 /// @brief Used to run bootloader commands on a separate thread. These routines are mainly meant to to be called
 ///         internally by the PX4FirmwareUpgradeThreadController. Clients should call the various public methods
@@ -138,4 +135,3 @@ private:
     const FirmwareImage* _image;
 };
 
-#endif

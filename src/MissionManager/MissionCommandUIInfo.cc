@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,40 +12,10 @@
 #include "FactMetaData.h"
 #include "QGCLoggingCategory.h"
 
-const char* MissionCommandUIInfo::_categoryJsonKey              = "category";
-const char* MissionCommandUIInfo::_decimalPlacesJsonKey         = "decimalPlaces";
-const char* MissionCommandUIInfo::_defaultJsonKey               = "default";
-const char* MissionCommandUIInfo::_descriptionJsonKey           = "description";
-const char* MissionCommandUIInfo::_enumStringsJsonKey           = "enumStrings";
-const char* MissionCommandUIInfo::_enumValuesJsonKey            = "enumValues";
-const char* MissionCommandUIInfo::_nanUnchangedJsonKey          = "nanUnchanged";
-const char* MissionCommandUIInfo::_friendlyEditJsonKey          = "friendlyEdit";
-const char* MissionCommandUIInfo::_friendlyNameJsonKey          = "friendlyName";
-const char* MissionCommandUIInfo::_idJsonKey                    = "id";
-const char* MissionCommandUIInfo::_labelJsonKey                 = "label";
-const char* MissionCommandUIInfo::_mavCmdInfoJsonKey            = "mavCmdInfo";
-const char* MissionCommandUIInfo::_param1JsonKey                = "param1";
-const char* MissionCommandUIInfo::_param2JsonKey                = "param2";
-const char* MissionCommandUIInfo::_param3JsonKey                = "param3";
-const char* MissionCommandUIInfo::_param4JsonKey                = "param4";
-const char* MissionCommandUIInfo::_param5JsonKey                = "param5";
-const char* MissionCommandUIInfo::_param6JsonKey                = "param6";
-const char* MissionCommandUIInfo::_param7JsonKey                = "param7";
-const char* MissionCommandUIInfo::_paramJsonKeyFormat           = "param%1";
-const char* MissionCommandUIInfo::_paramRemoveJsonKey           = "paramRemove";
-const char* MissionCommandUIInfo::_rawNameJsonKey               = "rawName";
-const char* MissionCommandUIInfo::_standaloneCoordinateJsonKey  = "standaloneCoordinate";
-const char* MissionCommandUIInfo::_specifiesCoordinateJsonKey   = "specifiesCoordinate";
-const char* MissionCommandUIInfo::_specifiesAltitudeOnlyJsonKey = "specifiesAltitudeOnly";
-const char* MissionCommandUIInfo::_isLandCommandJsonKey         = "isLandCommand";
-const char* MissionCommandUIInfo::_isTakeoffCommandJsonKey      = "isTakeoffCommand";
-const char* MissionCommandUIInfo::_isLoiterCommandJsonKey       = "isLoiterCommand";
-const char* MissionCommandUIInfo::_unitsJsonKey                 = "units";
-const char* MissionCommandUIInfo::_commentJsonKey               = "comment";
-const char* MissionCommandUIInfo::_advancedCategory             = "Advanced";
-
 MissionCmdParamInfo::MissionCmdParamInfo(QObject* parent)
     : QObject(parent)
+    , _min   (FactMetaData::minForType(FactMetaData::valueTypeDouble).toDouble())
+    , _max   (FactMetaData::maxForType(FactMetaData::valueTypeDouble).toDouble())
 {
 
 }
@@ -66,6 +36,8 @@ const MissionCmdParamInfo& MissionCmdParamInfo::operator=(const MissionCmdParamI
     _param =            other._param;
     _units =            other._units;
     _nanUnchanged =     other._nanUnchanged;
+    _min =              other._min;
+    _max =              other._max;
 
     return *this;
 }
@@ -370,7 +342,9 @@ bool MissionCommandUIInfo::loadJsonInfo(const QJsonObject& jsonObject, bool requ
             QJsonObject paramObject = jsonObject.value(paramKey).toObject();
 
             QStringList allParamKeys;
-            allParamKeys << _defaultJsonKey << _decimalPlacesJsonKey << _enumStringsJsonKey << _enumValuesJsonKey << _labelJsonKey << _unitsJsonKey << _nanUnchangedJsonKey;
+            allParamKeys << _defaultJsonKey << _decimalPlacesJsonKey << _enumStringsJsonKey << _enumValuesJsonKey
+                         << _labelJsonKey << _unitsJsonKey << _nanUnchangedJsonKey
+                         << _minJsonKey << _maxJsonKey;
 
             // Look for unknown keys in param object
             for (const QString& key: paramObject.keys()) {
@@ -405,6 +379,14 @@ bool MissionCommandUIInfo::loadJsonInfo(const QJsonObject& jsonObject, bool requ
             paramInfo->_nanUnchanged =  paramObject.value(_nanUnchangedJsonKey).toBool(false);
             paramInfo->_enumStrings =   paramObject.value(_enumStringsJsonKey).toString().split(",", Qt::SkipEmptyParts);
 
+            // The min and max values are defaulted correctly already, so only set them if a value is present in the JSON.
+            if (paramObject.value(_minJsonKey).isDouble()) {
+                paramInfo->_min = paramObject.value(_minJsonKey).toDouble();
+            }
+            if (paramObject.value(_maxJsonKey).isDouble()) {
+                paramInfo->_max = paramObject.value(_maxJsonKey).toDouble();
+            }
+
             if (paramObject.contains(_defaultJsonKey)) {
                 if (paramInfo->_nanUnchanged) {
                     paramInfo->_defaultValue = JsonHelper::possibleNaNJsonValue(paramObject[_defaultJsonKey]);
@@ -418,6 +400,7 @@ bool MissionCommandUIInfo::loadJsonInfo(const QJsonObject& jsonObject, bool requ
             } else {
                 paramInfo->_defaultValue = paramInfo->_nanUnchanged ? std::numeric_limits<double>::quiet_NaN() : 0;
             }
+
             QStringList enumValues = paramObject.value(_enumValuesJsonKey).toString().split(",", Qt::SkipEmptyParts);
             for (const QString &enumValue: enumValues) {
                 bool    convertOk;
@@ -445,7 +428,9 @@ bool MissionCommandUIInfo::loadJsonInfo(const QJsonObject& jsonObject, bool requ
                                         << paramInfo->_units
                                         << paramInfo->_enumStrings
                                         << paramInfo->_enumValues
-                                        << paramInfo->_nanUnchanged;
+                                        << paramInfo->_nanUnchanged
+                                        << paramInfo->_min
+                                        << paramInfo->_max;
 
             _paramInfoMap[i] = paramInfo;
         }

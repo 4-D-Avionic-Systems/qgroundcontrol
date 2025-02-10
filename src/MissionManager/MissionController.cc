@@ -1,15 +1,14 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#include "MissionCommandUIInfo.h"
 #include "MissionController.h"
-#include "MultiVehicleManager.h"
+#include "Vehicle.h"
 #include "MissionManager.h"
 #include "FlightPathSegment.h"
 #include "FirmwarePlugin.h"
@@ -21,38 +20,25 @@
 #include "StructureScanComplexItem.h"
 #include "CorridorScanComplexItem.h"
 #include "JsonHelper.h"
-#include "ParameterManager.h"
 #include "QGroundControlQmlGlobal.h"
 #include "SettingsManager.h"
 #include "AppSettings.h"
 #include "MissionSettingsItem.h"
-#include "QGCQGeoCoordinate.h"
 #include "PlanMasterController.h"
 #include "KMLPlanDomDocument.h"
 #include "QGCCorePlugin.h"
 #include "TakeoffMissionItem.h"
 #include "PlanViewSettings.h"
+#include "MissionCommandTree.h"
+#include "QGC.h"
+#include "QGCLoggingCategory.h"
+
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonDocument>
 
 #define UPDATE_TIMEOUT 5000 ///< How often we check for bounding box changes
 
 QGC_LOGGING_CATEGORY(MissionControllerLog, "MissionControllerLog")
-
-const char* MissionController::_settingsGroup =                 "MissionController";
-const char* MissionController::_jsonFileTypeValue =             "Mission";
-const char* MissionController::_jsonItemsKey =                  "items";
-const char* MissionController::_jsonPlannedHomePositionKey =    "plannedHomePosition";
-const char* MissionController::_jsonFirmwareTypeKey =           "firmwareType";
-const char* MissionController::_jsonVehicleTypeKey =            "vehicleType";
-const char* MissionController::_jsonCruiseSpeedKey =            "cruiseSpeed";
-const char* MissionController::_jsonHoverSpeedKey =             "hoverSpeed";
-const char* MissionController::_jsonParamsKey =                 "params";
-const char* MissionController::_jsonGlobalPlanAltitudeModeKey = "globalPlanAltitudeMode";
-
-// Deprecated V1 format keys
-const char* MissionController::_jsonComplexItemsKey =           "complexItems";
-const char* MissionController::_jsonMavAutopilotKey =           "MAV_AUTOPILOT";
-
-const int   MissionController::_missionFileVersion =            2;
 
 MissionController::MissionController(PlanMasterController* masterController, QObject *parent)
     : PlanElementController (masterController, parent)
@@ -60,8 +46,8 @@ MissionController::MissionController(PlanMasterController* masterController, QOb
     , _managerVehicle       (masterController->managerVehicle())
     , _missionManager       (masterController->managerVehicle()->missionManager())
     , _visualItems          (new QmlObjectListModel(this))
-    , _planViewSettings     (qgcApp()->toolbox()->settingsManager()->planViewSettings())
-    , _appSettings          (qgcApp()->toolbox()->settingsManager()->appSettings())
+    , _planViewSettings     (SettingsManager::instance()->planViewSettings())
+    , _appSettings          (SettingsManager::instance()->appSettings())
 {
     _resetMissionFlightStatus();
 
@@ -111,7 +97,7 @@ void MissionController::_resetMissionFlightStatus(void)
 
     _controllerVehicle->firmwarePlugin()->batteryConsumptionData(_controllerVehicle, _missionFlightStatus.mAhBattery, _missionFlightStatus.hoverAmps, _missionFlightStatus.cruiseAmps);
     if (_missionFlightStatus.mAhBattery != 0) {
-        double batteryPercentRemainingAnnounce = qgcApp()->toolbox()->settingsManager()->appSettings()->batteryPercentRemainingAnnounce()->rawValue().toDouble();
+        double batteryPercentRemainingAnnounce = SettingsManager::instance()->appSettings()->batteryPercentRemainingAnnounce()->rawValue().toDouble();
         _missionFlightStatus.ampMinutesAvailable = static_cast<double>(_missionFlightStatus.mAhBattery) / 1000.0 * 60.0 * ((100.0 - batteryPercentRemainingAnnounce) / 100.0);
     }
 
@@ -320,7 +306,7 @@ VisualMissionItem* MissionController::_insertSimpleMissionItemWorker(QGeoCoordin
     _initVisualItem(newItem);
 
     if (newItem->specifiesAltitude()) {
-        if (!qgcApp()->toolbox()->missionCommandTree()->isLandCommand(command)) {
+        if (!MissionCommandTree::instance()->isLandCommand(command)) {
             double                              prevAltitude;
             QGroundControlQmlGlobal::AltMode    prevAltMode;
 
@@ -739,7 +725,7 @@ bool MissionController::_loadJsonMissionFileV2(const QJsonObject& json, QmlObjec
 
     qCDebug(MissionControllerLog) << "MissionController::_loadJsonMissionFileV2 itemCount:" << json[_jsonItemsKey].toArray().count();
 
-    AppSettings* appSettings = qgcApp()->toolbox()->settingsManager()->appSettings();
+    AppSettings* appSettings = SettingsManager::instance()->appSettings();
 
     // Get the firmware/vehicle type from the plan file
     MAV_AUTOPILOT   planFileFirmwareType =  static_cast<MAV_AUTOPILOT>(json[_jsonFirmwareTypeKey].toInt());
@@ -978,7 +964,7 @@ bool MissionController::_loadTextMissionFile(QTextStream& stream, QmlObjectListM
             }
         }
     } else {
-        errorString = tr("The mission file is not compatible with this version of %1.").arg(qgcApp()->applicationName());
+        errorString = tr("The mission file is not compatible with this version of %1.").arg(QCoreApplication::applicationName());
         return false;
     }
 
@@ -1384,7 +1370,6 @@ void MissionController::_recalcFlightPathSegments(void)
                             _splitSegment = segment;
                             _delayedSplitSegmentUpdate = false;
                             signalSplitSegmentChanged = true;
-                            qDebug() << "Update delayed split segment";
                         }
                         lastFlyThroughVI->setSimpleFlighPathSegment(segment);
                     }
@@ -1576,6 +1561,7 @@ void MissionController::_recalcMissionFlightStatus()
             case MAV_CMD_NAV_ROI:
             case MAV_CMD_DO_SET_ROI_LOCATION:
             case MAV_CMD_DO_SET_ROI_WPNEXT_OFFSET:
+            case MAV_CMD_DO_GIMBAL_MANAGER_PITCHYAW:
                 _missionFlightStatus.gimbalYaw      = qQNaN();
                 _missionFlightStatus.gimbalPitch    = qQNaN();
                 break;
@@ -2016,7 +2002,7 @@ void MissionController::_managerVehicleChanged(Vehicle* managerVehicle)
     connect(_missionManager, &MissionManager::sendComplete,             this, &MissionController::_managerSendComplete);
     connect(_missionManager, &MissionManager::removeAllComplete,        this, &MissionController::_managerRemoveAllComplete);
     connect(_missionManager, &MissionManager::inProgressChanged,        this, &MissionController::_inProgressChanged);
-    connect(_missionManager, &MissionManager::progressPct,              this, &MissionController::_progressPctChanged);
+    connect(_missionManager, &MissionManager::progressPctChanged,       this, &MissionController::_progressPctChanged);
     connect(_missionManager, &MissionManager::currentIndexChanged,      this, &MissionController::_currentMissionIndexChanged);
     connect(_missionManager, &MissionManager::lastCurrentIndexChanged,  this, &MissionController::resumeMissionIndexChanged);
     connect(_missionManager, &MissionManager::resumeMissionReady,       this, &MissionController::resumeMissionReady);
@@ -2264,7 +2250,7 @@ QStringList MissionController::complexMissionItemNames(void) const
 
     // Note: The landing pattern items are not added here since they have there own button which adds them
 
-    return qgcApp()->toolbox()->corePlugin()->complexMissionItemNames(_controllerVehicle, complexItems);
+    return QGCCorePlugin::instance()->complexMissionItemNames(_controllerVehicle, complexItems);
 }
 
 void MissionController::resumeMission(int resumeIndex)
@@ -2367,7 +2353,7 @@ bool MissionController::_isROICancelItem(SimpleMissionItem* simpleItem)
 void MissionController::setCurrentPlanViewSeqNum(int sequenceNumber, bool force)
 {
     if (_visualItems && (force || sequenceNumber != _currentPlanViewSeqNum)) {
-        qDebug() << "setCurrentPlanViewSeqNum";
+        qCDebug(MissionControllerLog) << "setCurrentPlanViewSeqNum";
         bool    foundLand =             false;
         int     takeoffSeqNum =         -1;
         int     landSeqNum =            -1;
@@ -2468,15 +2454,12 @@ void MissionController::setCurrentPlanViewSeqNum(int sequenceNumber, bool force)
                         for (int j=viIndex-1; j>0; j--) {
                             VisualMissionItem* pPrev = qobject_cast<VisualMissionItem*>(_visualItems->get(j));
                             if (pPrev->specifiesCoordinate() && !pPrev->isStandaloneCoordinate()) {
-                                qDebug() << "Found";
                                 VisualItemPair splitPair(pPrev, pVI);
                                 if (_flightPathSegmentHashTable.contains(splitPair)) {
-                                    qDebug() << "Split segment added in setCurrentPlanViewSeqNum";
                                     _splitSegment = _flightPathSegmentHashTable[splitPair];
                                 } else {
                                     // The recalc of flight path segments hasn't happened yet since it is delayed and compressed.
                                     // So we need to register the fact that we need a split segment update and it will happen in the recalc instead.
-                                    qDebug() << "Delayed split";
                                     _delayedSplitSegmentUpdate = true;
                                 }
                                 break;
@@ -2488,6 +2471,8 @@ void MissionController::setCurrentPlanViewSeqNum(int sequenceNumber, bool force)
                 }
             } else {
                 pVI->setIsCurrentItem(false);
+                // Child items will always be later in the mission sequence, so this should be correct, to be sure the HasCurrentChildItem is cleared
+                pVI->setHasCurrentChildItem(false);
             }
         }
 

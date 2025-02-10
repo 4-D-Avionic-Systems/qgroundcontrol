@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,12 +9,11 @@
 
 #pragma once
 
+#include <QtCore/QLoggingCategory>
+
 #include "TransectStyleComplexItem.h"
-#include "MissionItem.h"
 #include "SettingsFact.h"
-#include "QGCLoggingCategory.h"
 #include "QGCMapPolyline.h"
-#include "QGCMapPolygon.h"
 
 Q_DECLARE_LOGGING_CATEGORY(CorridorScanComplexItemLog)
 
@@ -57,10 +56,10 @@ public:
 
     static const QString name;
 
-    static const char* jsonComplexItemTypeValue;
+    static constexpr const char* settingsGroup =            "CorridorScan";
+    static constexpr const char* corridorWidthName =        "CorridorWidth";
 
-    static const char* settingsGroup;
-    static const char* corridorWidthName;
+    static constexpr const char* jsonComplexItemTypeValue = "CorridorScan";
 
 private slots:
     void _polylineDirtyChanged          (bool dirty);
@@ -85,5 +84,5 @@ private:
     QMap<QString, FactMetaData*>    _metaDataMap;
     SettingsFact                    _corridorWidthFact;
 
-    static const char* _jsonEntryPointKey;
+    static constexpr const char* _jsonEntryPointKey =       "EntryPoint";
 };

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,10 +11,11 @@
 #include "MissionController.h"
 #include "QmlObjectListModel.h"
 #include "FlightPathSegment.h"
-#include "SimpleMissionItem.h"
 #include "ComplexMissionItem.h"
+#include "QGCLoggingCategory.h"
+#include "QGCApplication.h"
 
-#include <QSGSimpleRectNode>
+#include <QtQuick/QSGFlatColorMaterial>
 
 QGC_LOGGING_CATEGORY(TerrainProfileLog, "TerrainProfileLog")
 

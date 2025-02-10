@@ -9,15 +9,14 @@
  *   @author Gus Grubba <gus@auterion.com>
  */
 
-import QtQuick              2.11
-import QtGraphicalEffects   1.0
+import QtQuick
 
-import QGroundControl               1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.ScreenTools   1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.FlightMap     1.0
-
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
+import QGroundControl.Palette
+import QGroundControl.FlightMap
+import Qt5Compat.GraphicalEffects
 Item {
     id: root
 

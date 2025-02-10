@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,31 +9,25 @@
 
 #pragma once
 
-#include <QObject>
-#include <QString>
-#include <QtQml>
-#include <QTextStream>
-#include <QJsonObject>
-#include <QGeoCoordinate>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtPositioning/QGeoCoordinate>
+#include <QtCore/QLoggingCategory>
 
 #include "QGCMAVLink.h"
-#include "QGC.h"
 #include "QmlObjectListModel.h"
-#include "Fact.h"
-#include "QGCLoggingCategory.h"
-#include "QmlObjectListModel.h"
-#include "Vehicle.h"
 #include "MissionController.h"
 
 class MissionItem;
 class PlanMasterController;
-class MissionController;
 class TerrainAtCoordinateQuery;
+class Vehicle;
 
 // Abstract base class for all Simple and Complex visual mission objects.
 class VisualMissionItem : public QObject
 {
     Q_OBJECT
+    Q_MOC_INCLUDE("PlanMasterController.h")
 
 public:
     VisualMissionItem(PlanMasterController* masterController, bool flyView);
@@ -200,9 +194,9 @@ public:
     double  missionVehicleYaw   (void) const { return _missionVehicleYaw; }
     void    setMissionVehicleYaw(double vehicleYaw);
 
-    static const char* jsonTypeKey;                 ///< Json file attribute which specifies the item type
-    static const char* jsonTypeSimpleItemValue;     ///< Item type is MISSION_ITEM
-    static const char* jsonTypeComplexItemValue;    ///< Item type is Complex Item
+    static constexpr const char* jsonTypeKey =                "type"; ///< Json file attribute which specifies the item type
+    static constexpr const char* jsonTypeSimpleItemValue =    "SimpleItem"; ///< Item type is MISSION_ITEM
+    static constexpr const char* jsonTypeComplexItemValue =   "ComplexItem"; ///< Item type is Complex Item
 
 signals:
     void altDifferenceChanged           (double altDifference);

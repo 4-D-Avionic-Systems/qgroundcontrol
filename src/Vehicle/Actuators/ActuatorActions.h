@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,12 +9,12 @@
 
 #pragma once
 
-#include <QObject>
-#include <QString>
-
 #include "Common.h"
+#include "Vehicle.h"
+#include "QmlObjectListModel.h"
 
-#include <QmlObjectListModel.h>
+#include <QtCore/QObject>
+#include <QtCore/QString>
 
 namespace ActuatorActions {
 
@@ -48,8 +48,7 @@ public:
     Q_INVOKABLE void trigger();
 
 private:
-    static void ackHandlerEntry(void* resultHandlerData, int compId, MAV_RESULT commandResult, uint8_t progress,
-            Vehicle::MavCmdResultFailureCode_t failureCode);
+    static void ackHandlerEntry(void* resultHandlerData, int compId, const mavlink_command_ack_t& ack, Vehicle::MavCmdResultFailureCode_t failureCode);
     void ackHandler(MAV_RESULT commandResult, Vehicle::MavCmdResultFailureCode_t failureCode);
     void sendMavlinkRequest();
 

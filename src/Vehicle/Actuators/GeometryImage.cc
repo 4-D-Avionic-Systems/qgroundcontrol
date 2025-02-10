@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,14 +9,13 @@
 
 #include "GeometryImage.h"
 
-#include <QDir>
+#include <QtCore/QDir>
 
 #include <array>
 
 using namespace GeometryImage;
 
-
-static void generateTestGeometries(VehicleGeometryImageProvider& provider)
+static void generateTestGeometries([[maybe_unused]] VehicleGeometryImageProvider &provider)
 {
 #if 0 // enable this to generate a set of test geometry images on startup in the current working directory
     const QString imagePrefix = "test_geometry_";
@@ -163,7 +162,7 @@ void VehicleGeometryImageProvider::drawAxisIndicator(QPainter& p, const QPointF&
     }
 }
 
-QPixmap VehicleGeometryImageProvider::requestPixmap(const QString& id, QSize* size, const QSize& requestedSize)
+QPixmap VehicleGeometryImageProvider::requestPixmap([[maybe_unused]] const QString& id, QSize* size, const QSize& requestedSize)
 {
     int width = requestedSize.width();
     int height = requestedSize.height();
@@ -270,7 +269,7 @@ QPixmap VehicleGeometryImageProvider::requestPixmap(const QString& id, QSize* si
             };
 
     // draw line from center to actuators first
-    iterateMotors(actuators, [&](const ActuatorGeometry& actuator, QPointF pos) {
+    iterateMotors(actuators, [&]([[maybe_unused]] const ActuatorGeometry& actuator, QPointF pos) {
         p.setPen(QPen{frameColor, frameWidth});
         p.drawLine(QPointF{offsetX, offsetY}, pos);
     });

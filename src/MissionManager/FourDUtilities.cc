@@ -8,13 +8,13 @@
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
-FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef, QGCToolbox* toolboxRef)
+FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
     : QObject(parent)
 {
     _vehicle = managerVehicleRef;
     _localPositionFactGroup = _vehicle->localPositionFactGroup();
     _timer = new QTimer(this);
-    _toolbox = toolboxRef;
+    // _toolbox = toolboxRef;
 
     _commonInit();
 

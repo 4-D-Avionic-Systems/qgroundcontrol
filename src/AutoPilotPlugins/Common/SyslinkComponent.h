@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,8 +8,7 @@
  ****************************************************************************/
 
 
-#ifndef SyslinkComponent_H
-#define SyslinkComponent_H
+#pragma once
 
 #include "VehicleComponent.h"
 
@@ -37,4 +36,3 @@ private:
     QVariantList    _summaryItems;
 };
 
-#endif

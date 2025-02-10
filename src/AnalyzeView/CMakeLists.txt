@@ -1,53 +1,185 @@
+find_package(Qt6 REQUIRED COMPONENTS Core Charts Gui Qml QmlIntegration)
 
-set(EXTRA_SRC)
-if(BUILD_TESTING)
-	list(APPEND EXTRA_SRC
-		LogDownloadTest.cc
-		LogDownloadTest.h
-	)
-endif()
-
-add_library(AnalyzeView
-	ExifParser.cc
-	ExifParser.h
-	GeoTagController.cc
-	GeoTagController.h
-	LogDownloadController.cc
-	LogDownloadController.h
-	MavlinkConsoleController.cc
-	MavlinkConsoleController.h
-	MAVLinkInspectorController.cc
-	MAVLinkInspectorController.h
-	PX4LogParser.cc
-	PX4LogParser.h
-	ULogParser.cc
-	ULogParser.h
-
-	${EXTRA_SRC}
-)
-
-add_custom_target(AnalyzeViewQml
-	SOURCES
-		AnalyzePage.qml
-		AnalyzeView.qml
-		GeoTagPage.qml
-		LogDownloadPage.qml
-		MavlinkConsolePage.qml
-		MAVLinkInspectorPage.qml
-		VibrationPage.qml
+qt_add_library(AnalyzeView STATIC
+    ExifParser.cc
+    ExifParser.h
+    GeoTagController.cc
+    GeoTagController.h
+    GeoTagWorker.cc
+    GeoTagWorker.h
+    LogDownloadController.cc
+    LogDownloadController.h
+    LogEntry.cc
+    LogEntry.h
+    MAVLinkChartController.cc
+    MAVLinkChartController.h
+    MAVLinkConsoleController.cc
+    MAVLinkConsoleController.h
+    MAVLinkInspectorController.cc
+    MAVLinkInspectorController.h
+    MAVLinkMessage.cc
+    MAVLinkMessage.h
+    MAVLinkMessageField.cc
+    MAVLinkMessageField.h
+    MAVLinkSystem.cc
+    MAVLinkSystem.h
+    PX4LogParser.cc
+    PX4LogParser.h
+    ULogParser.cc
+    ULogParser.h
 )
 
 target_link_libraries(AnalyzeView
-	PRIVATE
-		qgc
-
-	PUBLIC
-		Qt5::Charts
-		Qt5::Location
-		Qt5::SerialPort
-		Qt5::TextToSpeech
-		Qt5::Widgets
+    PRIVATE
+        Qt6::Charts
+        Qt6::Gui
+        Qt6::Qml
+        FactSystem
+        QGC
+        Settings
+        Utilities
+        Vehicle
+    PUBLIC
+        Qt6::Core
+        Qt6::QmlIntegration
+        MAVLink
+        QmlControls
 )
 
-target_include_directories(AnalyzeView INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(AnalyzeView PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# qt_add_qml_module(AnalyzeView
+#     URI QGroundControl.AnalyzeView
+#     VERSION 1.0
+#     QML_FILES
+#         AnalyzePage.qml
+#         AnalyzeView.qml
+#         GeoTagPage.qml
+#         LogDownloadPage.qml
+#         MAVLinkConsolePage.qml
+#         MAVLinkInspectorPage.qml
+#         VibrationPage.qml
+#     RESOURCES
+#         FloatingWindow.svg
+#         GeoTagIcon.svg
+#         LogDownloadIcon.svg
+#         MAVLinkConsoleIcon.svg
+#         MAVLinkInspector.svg
+#         VibrationPageIcon.png
+#     OUTPUT_TARGETS AnalyzeView_targets
+#     IMPORT_PATH ${QT_QML_OUTPUT_DIRECTORY}
+#     IMPORTS
+#         QGroundControl
+#         QGroundControl.Controllers
+#         QGroundControl.Controls
+#         QGroundControl.FactControls
+#         QGroundControl.FactSystem
+#         QGroundControl.Palette
+#         QGroundControl.ScreenTools
+#         Qt.labs.qmlmodels
+#         QtCharts
+#         QtQuick
+#         QtQuick.Controls
+#         QtQuick.Dialogs
+#         QtQuick.Layouts
+#         QtQuick.Window
+#     DEPENDENCIES
+#         QtCore
+# )
+
+#===========================================================================#
+
+include(CPM)
+CPMAddPackage(
+    NAME ulog_cpp
+    GITHUB_REPOSITORY PX4/ulog_cpp
+    GIT_TAG main
+)
+
+if(TARGET ulog_cpp::ulog_cpp)
+    target_link_libraries(AnalyzeView PRIVATE ulog_cpp::ulog_cpp)
+endif()
+
+#===========================================================================#
+
+set(EXIV2_VERSION 0.28.3)
+
+if(NOT QGC_BUILD_DEPENDENCIES)
+    if(LINUX)
+        set(EXIV2_RELEASE_URL "https://github.com/Exiv2/exiv2/releases/download/v${EXIV2_VERSION}/exiv2-${EXIV2_VERSION}-Linux64.tar.gz")
+    endif()
+endif()
+
+if(EXIV2_RELEASE_URL)
+    include(CPM)
+    CPMAddPackage(
+        NAME exiv2
+        URL ${EXIV2_RELEASE_URL}
+        VERSION ${EXIV2_VERSION}
+        DOWNLOAD_ONLY
+    )
+
+    if(exiv2_ADDED)
+        target_include_directories(AnalyzeView PRIVATE ${exiv2_SOURCE_DIR}/include)
+        target_link_directories(AnalyzeView PUBLIC ${exiv2_SOURCE_DIR}/lib)
+        target_link_libraries(AnalyzeView PRIVATE exiv2)
+        return()
+    endif()
+endif()
+
+# https://github.com/libexpat/libexpat/releases/download/R_2_6_4/expat-win32bin-2.6.4.zip
+
+CPMFindPackage(
+    NAME EXPAT
+    VERSION 2.2.6
+    GITHUB_REPOSITORY libexpat/libexpat
+    GIT_TAG "R_2_6_4"
+    SOURCE_SUBDIR expat
+    OPTIONS
+        "EXPAT_BUILD_DOCS OFF"
+        "EXPAT_BUILD_EXAMPLES OFF"
+        "EXPAT_BUILD_FUZZERS OFF"
+        "EXPAT_BUILD_PKGCONFIG OFF"
+        "EXPAT_BUILD_TESTS OFF"
+        "EXPAT_BUILD_TOOLS OFF"
+        "EXPAT_ENABLE_INSTALL OFF"
+        "EXPAT_SHARED_LIBS OFF"
+)
+
+if(TARGET EXPAT::EXPAT)
+    set(_EXIV2_ENABLE_XMP ON)
+else()
+    set(_EXIV2_ENABLE_XMP OFF)
+endif()
+
+CPMAddPackage(
+    NAME exiv2
+    VERSION ${EXIV2_VERSION}
+    GITHUB_REPOSITORY Exiv2/exiv2
+    OPTIONS
+        "EXIV2_ENABLE_XMP ${_EXIV2_ENABLE_XMP}"
+        "EXIV2_ENABLE_EXTERNAL_XMP OFF"
+        "EXIV2_ENABLE_PNG OFF"
+        "EXIV2_ENABLE_NLS OFF"
+        "EXIV2_ENABLE_LENSDATA OFF"
+        "EXIV2_ENABLE_DYNAMIC_RUNTIME OFF"
+        "EXIV2_ENABLE_WEBREADY OFF"
+        "EXIV2_ENABLE_CURL OFF"
+        "EXIV2_ENABLE_BMFF OFF"
+        "EXIV2_ENABLE_BROTLI OFF"
+        "EXIV2_ENABLE_VIDEO OFF"
+        "EXIV2_ENABLE_INIH OFF"
+        "EXIV2_ENABLE_FILESYSTEM_ACCESS OFF"
+        "EXIV2_BUILD_SAMPLES OFF"
+        "EXIV2_BUILD_EXIV2_COMMAND OFF"
+        "EXIV2_BUILD_UNIT_TESTS OFF"
+        "EXIV2_BUILD_FUZZ_TESTS OFF"
+        "EXIV2_BUILD_DOC OFF"
+        "BUILD_WITH_CCACHE OFF"
+        "BUILD_SHARED_LIBS OFF"
+)
+
+if(TARGET Exiv2::exiv2lib)
+    target_link_libraries(AnalyzeView PRIVATE Exiv2::exiv2lib)
+    target_include_directories(AnalyzeView PRIVATE ${CMAKE_BINARY_DIR})
+endif()

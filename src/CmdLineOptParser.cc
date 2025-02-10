@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,8 +13,6 @@
 /// @author Don Gagne <don@thegagnes.com>
 
 #include "CmdLineOptParser.h"
-
-#include <QString>
 
 /// @brief Implements a simple command line parser which sets booleans to true if the option is found.
 void ParseCmdLineOptions(int&           argc,                   ///< count of arguments in argv

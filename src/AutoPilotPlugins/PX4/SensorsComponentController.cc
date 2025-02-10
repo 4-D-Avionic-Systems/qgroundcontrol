@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,13 +8,10 @@
  ****************************************************************************/
 
 #include "SensorsComponentController.h"
-#include "QGCMAVLink.h"
-#include "UAS.h"
 #include "QGCApplication.h"
 #include "ParameterManager.h"
-
-#include <QVariant>
-#include <QQmlProperty>
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
 QGC_LOGGING_CATEGORY(SensorsComponentControllerLog, "SensorsComponentControllerLog")
 
@@ -67,12 +64,11 @@ SensorsComponentController::SensorsComponentController(void)
 
 bool SensorsComponentController::usingUDPLink(void)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (weakLink.expired()) {
-        return false;
-    } else {
-        SharedLinkInterfacePtr sharedLink = weakLink.lock();
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         return sharedLink->linkConfiguration()->type() == LinkConfiguration::TypeUdp;
+    } else {
+        return false;
     }
 }
 
@@ -84,12 +80,10 @@ void SensorsComponentController::_appendStatusLog(const QString& text)
         return;
     }
     
-    QVariant returnedValue;
-    QVariant varText = text;
+    QString varText = text;
     QMetaObject::invokeMethod(_statusLog,
                               "append",
-                              Q_RETURN_ARG(QVariant, returnedValue),
-                              Q_ARG(QVariant, varText));
+                              Q_ARG(QString, varText));
 }
 
 void SensorsComponentController::_startLogCalibration(void)
@@ -200,31 +194,31 @@ void SensorsComponentController::_stopCalibration(SensorsComponentController::St
 void SensorsComponentController::calibrateGyro(void)
 {
     _startLogCalibration();
-    _vehicle->startCalibration(Vehicle::CalibrationGyro);
+    _vehicle->startCalibration(QGCMAVLink::CalibrationGyro);
 }
 
 void SensorsComponentController::calibrateCompass(void)
 {
     _startLogCalibration();
-    _vehicle->startCalibration(Vehicle::CalibrationMag);
+    _vehicle->startCalibration(QGCMAVLink::CalibrationMag);
 }
 
 void SensorsComponentController::calibrateAccel(void)
 {
     _startLogCalibration();
-    _vehicle->startCalibration(Vehicle::CalibrationAccel);
+    _vehicle->startCalibration(QGCMAVLink::CalibrationAccel);
 }
 
 void SensorsComponentController::calibrateLevel(void)
 {
     _startLogCalibration();
-    _vehicle->startCalibration(Vehicle::CalibrationLevel);
+    _vehicle->startCalibration(QGCMAVLink::CalibrationLevel);
 }
 
 void SensorsComponentController::calibrateAirspeed(void)
 {
     _startLogCalibration();
-    _vehicle->startCalibration(Vehicle::CalibrationPX4Airspeed);
+    _vehicle->startCalibration(QGCMAVLink::CalibrationPX4Airspeed);
 }
 
 void SensorsComponentController::_handleUASTextMessage(int uasId, int compId, int severity, QString text)
@@ -320,9 +314,9 @@ void SensorsComponentController::_handleUASTextMessage(int uasId, int compId, in
                 // Work out what the autopilot is configured to
                 int sides = 0;
 
-                if (_vehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, "CAL_MAG_SIDES")) {
+                if (_vehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, "CAL_MAG_SIDES")) {
                     // Read the requested calibration directions off the system
-                    sides = _vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, "CAL_MAG_SIDES")->rawValue().toFloat();
+                    sides = _vehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, "CAL_MAG_SIDES")->rawValue().toFloat();
                 } else {
                     // There is no valid setting, default to all six sides
                     sides = (1 << 5) | (1 << 4) | (1 << 3) | (1 << 2) | (1 << 1) | (1 << 0);
@@ -467,12 +461,12 @@ void SensorsComponentController::_refreshParams(void)
     // We ask for a refresh on these first so that the rotation combo show up as fast as possible
     fastRefreshList << "CAL_MAG0_ID" << "CAL_MAG1_ID" << "CAL_MAG2_ID" << "CAL_MAG0_ROT" << "CAL_MAG1_ROT" << "CAL_MAG2_ROT";
     foreach (const QString &paramName, fastRefreshList) {
-        _vehicle->parameterManager()->refreshParameter(FactSystem::defaultComponentId, paramName);
+        _vehicle->parameterManager()->refreshParameter(ParameterManager::defaultComponentId, paramName);
     }
     
     // Now ask for all to refresh
-    _vehicle->parameterManager()->refreshParametersPrefix(FactSystem::defaultComponentId, "CAL_");
-    _vehicle->parameterManager()->refreshParametersPrefix(FactSystem::defaultComponentId, "SENS_");
+    _vehicle->parameterManager()->refreshParametersPrefix(ParameterManager::defaultComponentId, "CAL_");
+    _vehicle->parameterManager()->refreshParametersPrefix(ParameterManager::defaultComponentId, "SENS_");
 }
 
 void SensorsComponentController::_updateAndEmitShowOrientationCalArea(bool show)

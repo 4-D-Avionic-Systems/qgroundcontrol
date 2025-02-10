@@ -120,18 +120,12 @@
     </airframe>
   </airframe_group>
   <airframe_group name="Quadrotor +" image="QuadRotorPlus">
-    <airframe name="Generic 10&quot; Quad + geometry" id="5001" maintainer="Lorenz Meier &lt;lorenz@px4.io&gt;">
+    <airframe name="Generic Quad + geometry" id="5001" maintainer="John Doe &lt;john@example.com&gt;">
       <class>Copter</class>
-      <maintainer>Lorenz Meier &lt;lorenz@px4.io&gt;</maintainer>
       <type>Quadrotor +</type>
     </airframe>
   </airframe_group>
   <airframe_group name="Quadrotor H" image="QuadRotorH">
-    <airframe name="Reaper 500 Quad" id="4040" maintainer="Blankered">
-      <class>Copter</class>
-      <maintainer>Blankered</maintainer>
-      <type>Quadrotor H</type>
-    </airframe>
     <airframe name="BetaFPV Beta75X 2S Brushless Whoop" id="4041" maintainer="Beat Kueng &lt;beat-kueng@gmx.net&gt;">
       <class>Copter</class>
       <maintainer>Beat Kueng &lt;beat-kueng@gmx.net&gt;</maintainer>
@@ -208,9 +202,9 @@
       <maintainer>Oleg Kalachev &lt;okalachev@gmail.com&gt;</maintainer>
       <type>Quadrotor x</type>
     </airframe>
-    <airframe name="Crazyflie 2" id="4900" maintainer="Dennis Shtatov &lt;densht@gmail.com&gt;">
+    <airframe name="Droneblocks DEXI 5" id="4601" maintainer="Alex klimaj &lt;alex@arkelectron.com&gt;">
       <class>Copter</class>
-      <maintainer>Dennis Shtatov &lt;densht@gmail.com&gt;</maintainer>
+      <maintainer>Alex klimaj &lt;alex@arkelectron.com&gt;</maintainer>
       <type>Quadrotor x</type>
     </airframe>
     <airframe name="Crazyflie 2.1" id="4901" maintainer="Dennis Shtatov &lt;densht@gmail.com&gt;">
@@ -276,19 +270,36 @@
     </airframe>
   </airframe_group>
   <airframe_group name="Rover" image="Rover">
-    <airframe name="Generic Ground Vehicle (Ackermann)" id="50000" maintainer="">
+    <airframe name="Generic Rover Differential" id="50000" maintainer="John Doe &lt;john@example.com&gt;">
+      <class>Rover</class>
+      <type>Rover</type>
+    </airframe>
+    <airframe name="Aion Robotics R1 UGV" id="50001" maintainer="John Doe &lt;john@example.com&gt;">
+      <class>Rover</class>
+      <type>Rover</type>
+      <url>https://www.aionrobotics.com/r1</url>
+    </airframe>
+    <airframe name="Generic Rover Ackermann" id="51000" maintainer="John Doe &lt;john@example.com&gt;">
+      <class>Rover</class>
+      <type>Rover</type>
+    </airframe>
+    <airframe name="Axial SCX10 2 Trail Honcho" id="51001" maintainer="John Doe &lt;john@example.com&gt;">
+      <class>Rover</class>
+      <type>Rover</type>
+      <url>https://www.axialadventure.com/product/1-10-scx10-ii-trail-honcho-4wd-rock-crawler-brushed-rtr/AXID9059.html</url>
+    </airframe>
+    <airframe name="Generic Rover Mecanum" id="52000" maintainer="John Doe &lt;john@example.com&gt;">
+      <class>Rover</class>
+      <type>Rover</type>
+    </airframe>
+    <airframe name="Generic Ground Vehicle (Deprecated)" id="59000" maintainer="">
       <class>Rover</class>
       <maintainer />
       <type>Rover</type>
       <output name="Motor1">throttle</output>
       <output name="Servo1">steering</output>
     </airframe>
-    <airframe name="Aion Robotics R1 UGV" id="50003" maintainer="John Doe &lt;john@example.com&gt;">
-      <class>Rover</class>
-      <type>Rover</type>
-      <url>https://www.aionrobotics.com/r1</url>
-    </airframe>
-    <airframe name="NXP Cup car: DF Robot GPX" id="50004" maintainer="Katrin Moritz">
+    <airframe name="NXP Cup car: DF Robot GPX (Deprecated)" id="59001" maintainer="Katrin Moritz">
       <class>Rover</class>
       <maintainer>Katrin Moritz</maintainer>
       <type>Rover</type>
@@ -297,9 +308,8 @@
     </airframe>
   </airframe_group>
   <airframe_group name="Underwater Robot" image="AirframeUnknown">
-    <airframe name="Generic Underwater Robot" id="60000" maintainer="">
+    <airframe name="Generic Underwater Robot" id="60000" maintainer="John Doe &lt;john@example.com&gt;">
       <class>Underwater Robot</class>
-      <maintainer />
       <type>Underwater Robot</type>
     </airframe>
     <airframe name="HippoCampus UUV (Unmanned Underwater Vehicle)" id="60001" maintainer="Daniel Duecker &lt;daniel.duecker@tuhh.de&gt;">
@@ -343,32 +353,6 @@
     <airframe name="Generic Standard VTOL" id="13000" maintainer="John Doe &lt;john@example.com&gt;">
       <class>VTOL</class>
       <type>Standard VTOL</type>
-    </airframe>
-    <airframe name="Vertical Technologies DeltaQuad" id="13013" maintainer="Sander Smeets &lt;sander@droneslab.com&gt;">
-      <class>VTOL</class>
-      <maintainer>Sander Smeets &lt;sander@droneslab.com&gt;</maintainer>
-      <type>Standard VTOL</type>
-      <output name="Motor1">motor 1</output>
-      <output name="Motor2">motor 2</output>
-      <output name="Motor3">motor 3</output>
-      <output name="Motor4">motor 4</output>
-      <output name="Servo1">Right elevon</output>
-      <output name="Servo2">Left elevon</output>
-      <output name="Servo3">Pusher motor</output>
-      <output name="Servo4">Pusher reverse channel</output>
-    </airframe>
-    <airframe name="BabyShark VTOL" id="13014" maintainer="Silvan Fuhrer &lt;silvan@auterion.com&gt;">
-      <class>VTOL</class>
-      <maintainer>Silvan Fuhrer &lt;silvan@auterion.com&gt;</maintainer>
-      <type>Standard VTOL</type>
-      <output name="Motor1">motor 1</output>
-      <output name="Motor2">motor 2</output>
-      <output name="Motor3">motor 3</output>
-      <output name="Motor4">motor 4</output>
-      <output name="Motor5">Pusher motor</output>
-      <output name="Servo1">Ailerons</output>
-      <output name="Servo2">A-tail left</output>
-      <output name="Servo3">A-tail right</output>
     </airframe>
   </airframe_group>
   <airframe_group name="VTOL Tailsitter" image="AirframeUnknown">

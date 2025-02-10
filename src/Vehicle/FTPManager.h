@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,14 +9,12 @@
 
 #pragma once
 
-#include <QObject>
-#include <QDir>
-#include <QTimer>
-#include <QQueue>
+#include "MAVLinkFTP.h"
 
-#include "UASInterface.h"
-#include "QGCLoggingCategory.h"
-#include "QGCMAVLink.h"
+#include <QtCore/QObject>
+#include <QtCore/QDir>
+#include <QtCore/QTimer>
+#include <QtCore/QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(FTPManagerLog)
 
@@ -43,25 +41,27 @@ public:
     ///                       This is used for the APM parameter download where the filesize is wrong due to
     ///                       a dynamic file creation on the vehicle.
     /// @return true: download has started, false: error, no download
-    /// Signals downloadComplete, commandError, commandProgress
+    /// Signals downloadComplete, commandProgress
     bool download(uint8_t fromCompId, const QString& fromURI, const QString& toDir, const QString& fileName="", bool checksize = true);
 
-    /// Cancel the current operation
-    /// This will emit downloadComplete() when done, and if there's currently a download in progress
-    void cancel();
+	/// Get the directory listing of the specified directory.
+    ///     @param fromCompId Component id of the component to download from. If fromCompId is MAV_COMP_ID_ALL, then MAV_COMP_ID_AUTOPILOT1 is used.
+    ///     @param fromURI    Directory path to list from component. May be in the format "mftp://[;comp=<id>]..." where the component id
+    ///                       is specified. If component id is not specified, then the id set via fromCompId is used.
+    /// @return true: process has started, false: error
+    /// Signals listDirectoryComplete
+    bool listDirectory(uint8_t fromCompId, const QString& fromURI);
 
-    static const char* mavlinkFTPScheme;
+    /// Cancel the download operation
+    /// This will emit downloadComplete() when done, and if there's currently a download in progress
+    void cancelDownload();
+
+    static constexpr const char* mavlinkFTPScheme = "mftp";
 
 signals:
-    void downloadComplete(const QString& file, const QString& errorMsg);
-    
-    // Signals associated with all commands
-    
-    /// Signalled after a command has completed
-    void commandComplete(void);
-    
-    void commandError(const QString& msg);
-    
+    void downloadComplete       (const QString& file, const QString& errorMsg);
+    void listDirectoryComplete  (const QStringList& dirList, const QString& errorMsg);
+
     /// Signalled during a lengthy command to show progress
     ///     @param value Amount of progress: 0.0 = none, 1.0 = complete
     void commandProgress(float value);
@@ -70,9 +70,9 @@ private slots:
     void _ackOrNakTimeout(void);
 
 private:
-    typedef void (FTPManager::*StateBeginFn)            (void);
-    typedef void (FTPManager::*StateAckNakFn)    (const MavlinkFTP::Request* ackOrNak);
-    typedef void (FTPManager::*StateTimeoutFn)          (void);
+    typedef void (FTPManager::*StateBeginFn)    (void);
+    typedef void (FTPManager::*StateAckNakFn)   (const MavlinkFTP::Request* ackOrNak);
+    typedef void (FTPManager::*StateTimeoutFn)  (void);
 
     struct StateFunctions_t {
         StateBeginFn    beginFn;
@@ -113,10 +113,30 @@ private:
         }
     };
 
+    struct ListDirectoryState_t {
+        uint8_t     sessionId;
+        uint32_t    expectedOffset;         ///< offset which should be coming next
+        QString     fullPathOnVehicle;      ///< Fully qualified path to file on vehicle
+        QStringList rgDirectoryList;
+        int         retryCount;
+
+        bool inProgress() const { return rgDirectoryList.count() > 0; }
+
+        void reset() {
+            sessionId       = 0;
+            expectedOffset  = 0;
+            fullPathOnVehicle.clear();
+            rgDirectoryList.clear();
+            retryCount      = 0;
+        }
+    };
 
     void    _mavlinkMessageReceived     (const mavlink_message_t& message);
     void    _startStateMachine          (void);
     void    _advanceStateMachine        (void);
+    void    _listDirectoryBegin         (void);
+    void    _listDirectoryAckOrNak      (const MavlinkFTP::Request* ackOrNak);
+    void    _listDirectoryTimeout       (void);
     void    _openFileROBegin            (void);
     void    _openFileROAckOrNak         (const MavlinkFTP::Request* ackOrNak);
     void    _openFileROTimeout          (void);
@@ -133,11 +153,14 @@ private:
     void    _sendRequestExpectAck       (MavlinkFTP::Request* request);
     void    _downloadCompleteNoError    (void) { _downloadComplete(QString()); }
     void    _downloadComplete           (const QString& errorMsg);
-    void    _emitErrorMessage           (const QString& msg);
     void    _fillRequestDataWithString(MavlinkFTP::Request* request, const QString& str);
     void    _fillMissingBlocksWorker    (bool firstRequest);
     void    _burstReadFileWorker        (bool firstRequest);
+    void    _listDirectoryWorker        (bool firstRequest);
     bool    _parseURI                   (uint8_t fromCompId, const QString& uri, QString& parsedURI, uint8_t& compId);
+    bool    _isListDirectoryStateMachine(void);
+    void    _listDirectoryCompleteNoError(void) { _listDirectoryComplete(QString()); }
+    void    _listDirectoryComplete      (const QString& errorMsg);
 
     void    _terminateSessionBegin      (void);
     void    _terminateSessionAckOrNak   (const MavlinkFTP::Request* ackOrNak);
@@ -148,6 +171,7 @@ private:
     uint8_t                 _ftpCompId = MAV_COMP_ID_AUTOPILOT1;
     QList<StateFunctions_t> _rgStateMachine;
     DownloadState_t         _downloadState;
+    ListDirectoryState_t    _listDirectoryState;
     QTimer                  _ackOrNakTimeoutTimer;
     int                     _currentStateMachineIndex   = -1;
     uint16_t                _expectedIncomingSeqNumber  = 0;

@@ -1,79 +1,85 @@
-import QtQuick                  2.3
-import QtQuick.Controls         2.12
-import QtQuick.Controls.Styles  1.4
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
 
-import QGroundControl.Palette 1.0
-import QGroundControl.ScreenTools 1.0
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
 
+/// Standard push button control:
+///     If there is both an icon and text the icon will be to the left of the text
+///     If icon only, icon will be centered
 Button {
     id:             control
-    hoverEnabled:   true
+    hoverEnabled:   !ScreenTools.isMobile
     topPadding:     _verticalPadding
     bottomPadding:  _verticalPadding
     leftPadding:    _horizontalPadding
     rightPadding:   _horizontalPadding
     focusPolicy:    Qt.ClickFocus
+    font.family:    ScreenTools.normalFontFamily
+    text:           ""
 
     property bool   primary:        false                               ///< primary button for a group of buttons
-    property real   pointSize:      ScreenTools.defaultFontPointSize    ///< Point size for button text
     property bool   showBorder:     qgcPal.globalTheme === QGCPalette.Light
-    property bool   iconLeft:       false
-    property real   backRadius:     0
+    property real   backRadius:     ScreenTools.buttonBorderRadius
     property real   heightFactor:   0.5
-    property string iconSource
+    property string iconSource:     ""
+    property real   fontWeight:     Font.Normal // default for qml Text
+    property real   pointSize:      ScreenTools.defaultFontPointSize
 
     property alias wrapMode:            text.wrapMode
     property alias horizontalAlignment: text.horizontalAlignment
+    property alias backgroundColor:     backRect.color
+    property alias textColor:           text.color
 
-    property bool   _showHighlight:     pressed | hovered | checked
+    property bool   _showHighlight:     enabled && (pressed | checked)
 
-    property int _horizontalPadding:    ScreenTools.defaultFontPixelWidth
+    property int _horizontalPadding:    ScreenTools.defaultFontPixelWidth * 2
     property int _verticalPadding:      Math.round(ScreenTools.defaultFontPixelHeight * heightFactor)
 
     QGCPalette { id: qgcPal; colorGroupEnabled: enabled }
 
     background: Rectangle {
         id:             backRect
+        radius:         backRadius
         implicitWidth:  ScreenTools.implicitButtonWidth
         implicitHeight: ScreenTools.implicitButtonHeight
-        radius:         backRadius
         border.width:   showBorder ? 1 : 0
-        border.color:   qgcPal.buttonText
-        color:          _showHighlight ?
-                            qgcPal.buttonHighlight :
-                            (primary ? qgcPal.primaryButton : qgcPal.button)
+        border.color:   qgcPal.buttonBorder
+        color:          primary ? qgcPal.primaryButton : qgcPal.button
+
+        Rectangle {
+            anchors.fill:   parent
+            color:          qgcPal.buttonHighlight
+            opacity:        _showHighlight ? 1 : control.enabled && control.hovered ? .2 : 0
+            radius:         parent.radius
+        }
     }
 
-    contentItem: Item {
-        implicitWidth:  text.implicitWidth + icon.width
-        implicitHeight: text.implicitHeight
-        baselineOffset: text.y + text.baselineOffset
+    contentItem: RowLayout {
+            spacing: ScreenTools.defaultFontPixelWidth
 
-        QGCColoredImage {
-            id:                     icon
-            source:                 control.iconSource
-            height:                 source === "" ? 0 : text.height
-            width:                  height
-            color:                  text.color
-            fillMode:               Image.PreserveAspectFit
-            sourceSize.height:      height
-            anchors.left:           control.iconLeft ? parent.left : undefined
-            anchors.leftMargin:     control.iconLeft ? ScreenTools.defaultFontPixelWidth : undefined
-            anchors.right:          !control.iconLeft ? parent.right : undefined
-            anchors.rightMargin:    !control.iconLeft ? ScreenTools.defaultFontPixelWidth : undefined
-            anchors.verticalCenter: parent.verticalCenter
-        }
+            QGCColoredImage {
+                id:                     icon
+                Layout.alignment:       Qt.AlignHCenter
+                source:                 control.iconSource
+                height:                 text.height
+                width:                  height
+                color:                  text.color
+                fillMode:               Image.PreserveAspectFit
+                sourceSize.height:      height
+                visible:                control.iconSource !== ""
+            }
 
-        Text {
-            id:                     text
-            anchors.centerIn:       parent
-            antialiasing:           true
-            text:                   control.text
-            font.pointSize:         pointSize
-            font.family:            ScreenTools.normalFontFamily
-            color:                  _showHighlight ?
-                                        qgcPal.buttonHighlightText :
-                                        (primary ? qgcPal.primaryButtonText : qgcPal.buttonText)
-        }
+            QGCLabel {
+                id:                     text
+                Layout.alignment:       Qt.AlignHCenter
+                text:                   control.text
+                font.pointSize:         control.pointSize
+                font.family:            control.font.family
+                font.weight:            fontWeight
+                color:                  _showHighlight ? qgcPal.buttonHighlightText : (primary ? qgcPal.primaryButtonText : qgcPal.buttonText)
+                visible:                control.text !== "" 
+            }
     }
 }

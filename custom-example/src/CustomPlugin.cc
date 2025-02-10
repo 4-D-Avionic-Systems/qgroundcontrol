@@ -9,22 +9,19 @@
  *   @author Gus Grubba <gus@auterion.com>
  */
 
-#include <QtQml>
-#include <QQmlEngine>
-#include <QDateTime>
-#include "QGCSettings.h"
-#include "MAVLinkLogManager.h"
-
 #include "CustomPlugin.h"
-
-#include "MultiVehicleManager.h"
-#include "QGCApplication.h"
-#include "SettingsManager.h"
-#include "AppMessages.h"
 #include "QmlComponentInfo.h"
 #include "QGCPalette.h"
+#include "QGCMAVLink.h"
+#include "AppSettings.h"
+#include "BrandImageSettings.h"
 
-QGC_LOGGING_CATEGORY(CustomLog, "CustomLog")
+#include <QtCore/qapplicationstatic.h>
+#include <QtQml/QQmlApplicationEngine>
+
+QGC_LOGGING_CATEGORY(CustomLog, "gcs.custom.customplugin")
+
+Q_APPLICATION_STATIC(CustomPlugin, _customPluginInstance);
 
 CustomFlyViewOptions::CustomFlyViewOptions(CustomOptions* options, QObject* parent)
     : QGCFlyViewOptions(options, parent)
@@ -44,23 +41,23 @@ bool CustomFlyViewOptions::showInstrumentPanel(void) const
     return false;
 }
 
-CustomOptions::CustomOptions(CustomPlugin*, QObject* parent)
+CustomOptions::CustomOptions(CustomPlugin *plugin, QObject *parent)
     : QGCOptions(parent)
+    , _plugin(plugin)
+    , _flyViewOptions(new CustomFlyViewOptions(this, this))
 {
+    Q_CHECK_PTR(_plugin);
 }
 
-QGCFlyViewOptions* CustomOptions::flyViewOptions(void)
+QGCFlyViewOptions* CustomOptions::flyViewOptions(void) const
 {
-    if (!_flyViewOptions) {
-        _flyViewOptions = new CustomFlyViewOptions(this, this);
-    }
     return _flyViewOptions;
 }
 
 // Firmware upgrade page is only shown in Advanced Mode.
 bool CustomOptions::showFirmwareUpgrade() const
 {
-    return qgcApp()->toolbox()->corePlugin()->showAdvancedUI();
+    return _plugin->showAdvancedUI();
 }
 
 // Normal QGC needs to work with an ESP8266 WiFi thing which is remarkably crappy. This in turns causes PX4 Pro calibration to fail
@@ -71,23 +68,21 @@ bool CustomOptions::wifiReliableForCalibration(void) const
     return true;
 }
 
-CustomPlugin::CustomPlugin(QGCApplication *app, QGCToolbox* toolbox)
-    : QGCCorePlugin(app, toolbox)
+CustomPlugin::CustomPlugin(QObject *parent)
+    : QGCCorePlugin(parent)
+    , _options(new CustomOptions(this, this))
 {
-    _options = new CustomOptions(this, this);
     _showAdvancedUI = false;
+    connect(this, &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
 }
 
 CustomPlugin::~CustomPlugin()
 {
 }
 
-void CustomPlugin::setToolbox(QGCToolbox* toolbox)
+QGCCorePlugin *CustomPlugin::instance()
 {
-    QGCCorePlugin::setToolbox(toolbox);
-
-    // Allows us to be notified when the user goes in/out out advanced mode
-    connect(qgcApp()->toolbox()->corePlugin(), &QGCCorePlugin::showAdvancedUIChanged, this, &CustomPlugin::_advancedChanged);
+    return _customPluginInstance();
 }
 
 void CustomPlugin::_advancedChanged(bool changed)
@@ -108,24 +103,6 @@ void CustomPlugin::_addSettingsEntry(const QString& title, const char* qmlFile, 
                 this)));
 }
 
-//-----------------------------------------------------------------------------
-QVariantList&
-CustomPlugin::settingsPages()
-{
-    if(_customSettingsList.isEmpty()) {
-        _addSettingsEntry(tr("General"),     "qrc:/qml/GeneralSettings.qml",     "qrc:/res/gear-white.svg");
-        _addSettingsEntry(tr("Comm Links"),  "qrc:/qml/LinkSettings.qml",        "qrc:/res/waves.svg");
-        _addSettingsEntry(tr("Offline Maps"),"qrc:/qml/OfflineMap.qml",          "qrc:/res/waves.svg");
-        _addSettingsEntry(tr("MAVLink"),     "qrc:/qml/MavlinkSettings.qml",     "qrc:/res/waves.svg");
-        _addSettingsEntry(tr("Console"),     "qrc:/qml/QGroundControl/Controls/AppMessages.qml");
-#if defined(QT_DEBUG)
-        //-- These are always present on Debug builds
-        _addSettingsEntry(tr("Mock Link"),   "qrc:/qml/MockLink.qml");
-#endif
-    }
-    return _customSettingsList;
-}
-
 QGCOptions* CustomPlugin::options()
 {
     return _options;
@@ -133,15 +110,15 @@ QGCOptions* CustomPlugin::options()
 
 QString CustomPlugin::brandImageIndoor(void) const
 {
-    return QStringLiteral("/custom/img/CustomAppIcon.png");
+    return QStringLiteral("/custom/img/dronecode-white.svg");
 }
 
 QString CustomPlugin::brandImageOutdoor(void) const
 {
-    return QStringLiteral("/custom/img/CustomAppIcon.png");
+    return QStringLiteral("/custom/img/dronecode-black.svg");
 }
 
-bool CustomPlugin::overrideSettingsGroupVisibility(QString name)
+bool CustomPlugin::overrideSettingsGroupVisibility(const QString &name)
 {
     // We have set up our own specific brand imaging. Hide the brand image settings such that the end user
     // can't change it.
@@ -172,7 +149,7 @@ bool CustomPlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaD
 }
 
 // This modifies QGC colors palette to match possible custom corporate branding
-void CustomPlugin::paletteOverride(QString colorName, QGCPalette::PaletteColorInfo_t& colorInfo)
+void CustomPlugin::paletteOverride(const QString &colorName, QGCPalette::PaletteColorInfo_t& colorInfo)
 {
     if (colorName == QStringLiteral("window")) {
         colorInfo[QGCPalette::Dark][QGCPalette::ColorGroupEnabled]   = QColor("#212529");

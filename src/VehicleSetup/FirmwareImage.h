@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,16 +11,14 @@
 /// @file
 ///     @author Don Gagne <don@thegagnes.com>
 
-#ifndef FirmwareImage_H
-#define FirmwareImage_H
+#pragma once
 
-#include <QObject>
-#include <QString>
-#include <QByteArray>
-#include <QList>
-#include <QTextStream>
 
-#include <stdint.h>
+#include <QtCore/QObject>
+#include <QtCore/QString>
+#include <QtCore/QByteArray>
+#include <QtCore/QList>
+#include <QtCore/QTextStream>
 
 /// Support for Intel Hex firmware file
 class FirmwareImage : public QObject
@@ -89,14 +87,13 @@ private:
     QList<IntelHexBlock_t>  _ihxBlocks;
     uint32_t                _imageSize;
 
-    static const char* _jsonBoardIdKey;
-    static const char* _jsonParamXmlSizeKey;
-    static const char* _jsonParamXmlKey;
-    static const char* _jsonAirframeXmlSizeKey;
-    static const char* _jsonAirframeXmlKey;
-    static const char* _jsonImageSizeKey;
-    static const char* _jsonImageKey;
-    static const char* _jsonMavAutopilotKey;
+    static constexpr const char* _jsonBoardIdKey =            "board_id";
+    static constexpr const char* _jsonParamXmlSizeKey =       "parameter_xml_size";
+    static constexpr const char* _jsonParamXmlKey =           "parameter_xml";
+    static constexpr const char* _jsonAirframeXmlSizeKey =    "airframe_xml_size";
+    static constexpr const char* _jsonAirframeXmlKey =        "airframe_xml";
+    static constexpr const char* _jsonImageSizeKey =          "image_size";
+    static constexpr const char* _jsonImageKey =              "image";
+    static constexpr const char* _jsonMavAutopilotKey =       "mav_autopilot";
 };
 
-#endif

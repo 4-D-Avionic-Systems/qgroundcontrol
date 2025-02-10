@@ -1,25 +1,26 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#ifndef MissionSettingsComplexItem_H
-#define MissionSettingsComplexItem_H
+#pragma once
 
 #include "ComplexMissionItem.h"
-#include "MissionItem.h"
 #include "Fact.h"
-#include "QGCLoggingCategory.h"
 #include "CameraSection.h"
 #include "SpeedSection.h"
+
+#include <QtCore/QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(MissionSettingsItemLog)
 
 class PlanMasterController;
+class MissionItem;
+class Vehicle;
 
 class MissionSettingsItem : public ComplexMissionItem
 {
@@ -117,7 +118,5 @@ private:
 
     static QMap<QString, FactMetaData*> _metaDataMap;
 
-    static const char* _plannedHomePositionAltitudeName;
+    static constexpr const char* _plannedHomePositionAltitudeName = "PlannedHomePositionAltitude";
 };
-
-#endif

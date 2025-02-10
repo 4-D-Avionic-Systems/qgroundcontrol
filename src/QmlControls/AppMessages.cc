@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -17,9 +17,9 @@
 #include "SettingsManager.h"
 #include "AppSettings.h"
 
-#include <QStringListModel>
-#include <QtConcurrent>
-#include <QTextStream>
+#include <QtCore/QStringListModel>
+#include <QtConcurrent/QtConcurrent>
+#include <QtCore/QTextStream>
 
 Q_GLOBAL_STATIC(AppLogModel, debug_model)
 
@@ -56,7 +56,7 @@ AppLogModel *AppMessages::getModel()
 
 AppLogModel::AppLogModel() : QStringListModel()
 {
-#ifdef __mobile__
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     Qt::ConnectionType contype = Qt::QueuedConnection;
 #else
     Qt::ConnectionType contype = Qt::AutoConnection;
@@ -68,7 +68,7 @@ void AppLogModel::writeMessages(const QString dest_file)
 {
     const QString writebuffer(stringList().join('\n').append('\n'));
 
-    QtConcurrent::run([dest_file, writebuffer] {
+    QFuture<void> future = QtConcurrent::run([dest_file, writebuffer] {
         emit debug_model->writeStarted();
         bool success = false;
         QFile file(dest_file);
@@ -96,17 +96,13 @@ void AppLogModel::threadsafeLog(const QString message)
 
     if (qgcApp() && qgcApp()->logOutput() && _logFile.fileName().isEmpty()) {
         qDebug() << _logFile.fileName().isEmpty() << qgcApp()->logOutput();
-        QGCToolbox* toolbox = qgcApp()->toolbox();
-        // Be careful of toolbox not being open yet
-        if (toolbox) {
-            QString saveDirPath = qgcApp()->toolbox()->settingsManager()->appSettings()->crashSavePath();
-            QDir saveDir(saveDirPath);
-            QString saveFilePath = saveDir.absoluteFilePath(QStringLiteral("QGCConsole.log"));
+        QString saveDirPath = SettingsManager::instance()->appSettings()->crashSavePath();
+        QDir saveDir(saveDirPath);
+        QString saveFilePath = saveDir.absoluteFilePath(QStringLiteral("QGCConsole.log"));
 
-            _logFile.setFileName(saveFilePath);
-            if (!_logFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
-                qgcApp()->showAppMessage(tr("Open console log output file failed %1 : %2").arg(_logFile.fileName()).arg(_logFile.errorString()));
-            }
+        _logFile.setFileName(saveFilePath);
+        if (!_logFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+            qgcApp()->showAppMessage(tr("Open console log output file failed %1 : %2").arg(_logFile.fileName()).arg(_logFile.errorString()));
         }
     }
 

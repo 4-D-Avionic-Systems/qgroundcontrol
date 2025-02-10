@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,12 +8,8 @@
  ****************************************************************************/
 
 #include "SyslinkComponentController.h"
-#include "QGCApplication.h"
-#include "UAS.h"
-#include "ParameterManager.h"
-
-#include <QHostAddress>
-#include <QtEndian>
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
 QGC_LOGGING_CATEGORY(SyslinkComponentControllerLog, "SyslinkComponentControllerLog")
 

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,12 +9,11 @@
 
 #pragma once
 
-#include "FactSystem.h"
 #include "QmlObjectListModel.h"
-#include "QGCApplication.h"
+#include "QGCMAVLink.h"
 
-#include <QGridLayout>
-#include <QSettings>
+#include <QtCore/QSettings>
+#include <QtQuick/QQuickItem>
 
 class InstrumentValueData;
 
@@ -108,23 +107,23 @@ private:
     static       QStringList _iconNames;
     static const QStringList _fontSizeNames;
 
-    static const char* _versionKey;
-    static const char* _columnsKey;
-    static const char* _rowsKey;
-    static const char* _rowCountKey;
-    static const char* _fontSizeKey;
-    static const char* _factGroupNameKey;
-    static const char* _factNameKey;
-    static const char* _textKey;
-    static const char* _showUnitsKey;
-    static const char* _iconKey;
-    static const char* _rangeTypeKey;
-    static const char* _rangeValuesKey;
-    static const char* _rangeColorsKey;
-    static const char* _rangeIconsKey;
-    static const char* _rangeOpacitiesKey;
+    static constexpr const char* _columnsKey          = "columns";
+    static constexpr const char* _rowsKey             = "rows";
+    static constexpr const char* _rowCountKey         = "rowCount";
+    static constexpr const char* _fontSizeKey         = "fontSize";
+    static constexpr const char* _versionKey          = "version";
+    static constexpr const char* _factGroupNameKey    = "factGroupName";
+    static constexpr const char* _factNameKey         = "factName";
+    static constexpr const char* _textKey             = "text";
+    static constexpr const char* _showUnitsKey        = "showUnits";
+    static constexpr const char* _iconKey             = "icon";
+    static constexpr const char* _rangeTypeKey        = "rangeType";
+    static constexpr const char* _rangeValuesKey      = "rangeValues";
+    static constexpr const char* _rangeColorsKey      = "rangeColors";
+    static constexpr const char* _rangeIconsKey       = "rangeIcons";
+    static constexpr const char* _rangeOpacitiesKey   = "rangeOpacities";
 
-    static const char* _deprecatedGroupKey;
+    static constexpr const char* _deprecatedGroupKey =  "ValuesWidget";
 };
 
 QML_DECLARE_TYPE(FactValueGrid)

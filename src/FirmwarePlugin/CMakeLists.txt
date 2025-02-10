@@ -1,33 +1,46 @@
-add_subdirectory(APM)
+if(NOT QGC_DISABLE_APM_PLUGIN)
+    add_subdirectory(APM)
+endif()
+if(NOT QGC_DISABLE_PX4_PLUGIN)
+    add_subdirectory(PX4)
+endif()
 
-add_library(FirmwarePlugin
-	CameraMetaData.cc
-	FirmwarePlugin.cc
-	FirmwarePluginManager.cc
+find_package(Qt6 REQUIRED COMPONENTS Core Positioning)
 
-	APM/APMFirmwarePlugin.cc
-	APM/APMFirmwarePluginFactory.cc
-	APM/APMParameterMetaData.cc
-	APM/ArduCopterFirmwarePlugin.cc
-	APM/ArduPlaneFirmwarePlugin.cc
-	APM/ArduRoverFirmwarePlugin.cc
-	APM/ArduSubFirmwarePlugin.cc
-	APM/APMResources.qrc
-
-	PX4/PX4FirmwarePlugin.cc
-	PX4/PX4FirmwarePluginFactory.cc
-	PX4/PX4ParameterMetaData.cc
-	PX4/PX4Resources.qrc
+qt_add_library(FirmwarePlugin STATIC
+    FirmwarePlugin.cc
+    FirmwarePlugin.h
+    FirmwarePluginFactory.cc
+    FirmwarePluginFactory.h
+    FirmwarePluginManager.cc
+    FirmwarePluginManager.h
+    $<$<NOT:$<BOOL:${QGC_DISABLE_APM_PLUGIN_FACTORY}>>:APM/APMFirmwarePluginFactory.cc>
+    $<$<NOT:$<BOOL:${QGC_DISABLE_APM_PLUGIN_FACTORY}>>:APM/APMFirmwarePluginFactory.h>
+    $<$<NOT:$<BOOL:${QGC_DISABLE_PX4_PLUGIN_FACTORY}>>:PX4/PX4FirmwarePluginFactory.cc>
+    $<$<NOT:$<BOOL:${QGC_DISABLE_PX4_PLUGIN_FACTORY}>>:PX4/PX4FirmwarePluginFactory.h>
 )
 
 target_link_libraries(FirmwarePlugin
-	PRIVATE
-		qgc
+    PRIVATE
+        AutoPilotPlugins
+        Camera
+        CommonAutoPilotPlugin
+        MissionManager
+        QGC
+        Utilities
+        VehicleSetup
+        $<$<NOT:$<BOOL:${QGC_DISABLE_APM_PLUGIN}>>:APMFirmwarePlugin>
+        $<$<NOT:$<BOOL:${QGC_DISABLE_PX4_PLUGIN}>>:PX4FirmwarePlugin>
+    PUBLIC
+        Qt6::Core
+        Qt6::Positioning
+        FactSystem
+        FollowMe
+        MAVLink
 )
 
-target_include_directories(FirmwarePlugin
-	INTERFACE
-		${CMAKE_CURRENT_SOURCE_DIR}
-                APM
-	)
+target_include_directories(FirmwarePlugin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+# if(QGC_DISABLE_APM_MAVLINK)
+#     target_compile_definitions(FirmwarePlugin PUBLIC QGC_NO_ARDUPILOT_DIALECT)
+# endif()

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,13 +9,12 @@
 
 #include "Bootloader.h"
 #include "QGCLoggingCategory.h"
-
-#include <QFile>
-#include <QSerialPortInfo>
-#include <QDebug>
-#include <QElapsedTimer>
-
+#include "FirmwareImage.h"
 #include "QGC.h"
+
+#include <QtCore/QElapsedTimer>
+#include <QtCore/QFile>
+#include <QtCore/QThread>
 
 /// This class manages interactions with the bootloader
 Bootloader::Bootloader(bool sikRadio, QObject *parent)
@@ -43,7 +42,7 @@ bool Bootloader::open(const QString portName)
 
     if (_sikRadio) {
         // Radios are slow to start up
-        QGC::SLEEP::msleep(1000);
+        QThread::msleep(1000);
     }
     return true;
 }
@@ -207,7 +206,7 @@ bool Bootloader::reboot(void)
     }
     _port.flush();
     if (success) {
-        QGC::SLEEP::msleep(1000);
+        QThread::msleep(1000);
     }
     return success;
 }
@@ -422,7 +421,7 @@ bool Bootloader::_ihxProgram(const FirmwareImage* image)
             return false;
         }
         
-        qCDebug(FirmwareUpgradeVerboseLog) << QString("Bootloader::_ihxProgram - address:0x%1 size:%2 block:%3").arg(flashAddress, 8, 16, QLatin1Char('0')).arg(bytes.count()).arg(index);
+        qCDebug(FirmwareUpgradeVerboseLog) << QString("Bootloader::_ihxProgram - address:0x%1 size:%2 block:%3").arg(flashAddress, 8, 16, QLatin1Char('0')).arg(bytes.length()).arg(index);
         
         // Set flash address
         
@@ -445,7 +444,7 @@ bool Bootloader::_ihxProgram(const FirmwareImage* image)
         // Flash
         
         int bytesIndex = 0;
-        uint16_t bytesLeftToWrite = bytes.count();
+        uint16_t bytesLeftToWrite = bytes.length();
         
         while (bytesLeftToWrite > 0) {
             uint8_t bytesToWrite;
@@ -594,7 +593,7 @@ bool Bootloader::_ihxVerifyBytes(const FirmwareImage* image)
             return false;
         }
         
-        qCDebug(FirmwareUpgradeLog) << QString("Bootloader::_ihxVerifyBytes - address:0x%1 size:%2 block:%3").arg(readAddress, 8, 16, QLatin1Char('0')).arg(imageBytes.count()).arg(index);
+        qCDebug(FirmwareUpgradeLog) << QString("Bootloader::_ihxVerifyBytes - address:0x%1 size:%2 block:%3").arg(readAddress, 8, 16, QLatin1Char('0')).arg(imageBytes.length()).arg(index);
         
         // Set read address
         
@@ -617,7 +616,7 @@ bool Bootloader::_ihxVerifyBytes(const FirmwareImage* image)
         // Read back
         
         int         bytesIndex = 0;
-        uint16_t    bytesLeftToRead = imageBytes.count();
+        uint16_t    bytesLeftToRead = imageBytes.length();
         
         while (bytesLeftToRead > 0) {
             uint8_t bytesToRead;

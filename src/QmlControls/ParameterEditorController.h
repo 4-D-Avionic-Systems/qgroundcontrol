@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,14 +9,17 @@
 
 #pragma once
 
-#include <QObject>
-#include <QList>
-
-#include "AutoPilotPlugin.h"
-#include "UASInterface.h"
 #include "FactPanelController.h"
 #include "QmlObjectListModel.h"
-#include "ParameterManager.h"
+#include "FactMetaData.h"
+
+#include <QtCore/QLoggingCategory>
+#include <QtCore/QObject>
+#include <QtQmlIntegration/QtQmlIntegration>
+
+Q_DECLARE_LOGGING_CATEGORY(ParameterEditorControllerLog)
+
+class ParameterManager;
 
 class ParameterEditorGroup : public QObject
 {
@@ -84,22 +87,22 @@ signals:
 class ParameterEditorController : public FactPanelController
 {
     Q_OBJECT
-
-public:
-    ParameterEditorController(void);
-    ~ParameterEditorController();
-
-    Q_PROPERTY(QString              searchText          MEMBER _searchText                                          NOTIFY searchTextChanged)
-    Q_PROPERTY(QmlObjectListModel*  categories          READ categories                                             CONSTANT)
-    Q_PROPERTY(QObject*             currentCategory     READ currentCategory        WRITE setCurrentCategory        NOTIFY currentCategoryChanged)
-    Q_PROPERTY(QObject*             currentGroup        READ currentGroup           WRITE setCurrentGroup           NOTIFY currentGroupChanged)
-    Q_PROPERTY(QmlObjectListModel*  parameters          MEMBER _parameters                                          NOTIFY parametersChanged)
-    Q_PROPERTY(bool                 showModifiedOnly    MEMBER _showModifiedOnly                                    NOTIFY showModifiedOnlyChanged)
+    QML_ELEMENT
+    Q_PROPERTY(QString              searchText              MEMBER _searchText                                          NOTIFY searchTextChanged)
+    Q_PROPERTY(QmlObjectListModel*  categories              READ categories                                             CONSTANT)
+    Q_PROPERTY(QObject*             currentCategory         READ currentCategory            WRITE setCurrentCategory    NOTIFY currentCategoryChanged)
+    Q_PROPERTY(QObject*             currentGroup            READ currentGroup               WRITE setCurrentGroup       NOTIFY currentGroupChanged)
+    Q_PROPERTY(QmlObjectListModel*  parameters              MEMBER _parameters                                          NOTIFY parametersChanged)
+    Q_PROPERTY(bool                 showModifiedOnly        MEMBER _showModifiedOnly                                    NOTIFY showModifiedOnlyChanged)
 
     // These property are related to the diff associated with a load from file
-    Q_PROPERTY(bool                 diffOtherVehicle        MEMBER _diffOtherVehicle        NOTIFY diffOtherVehicleChanged)
-    Q_PROPERTY(bool                 diffMultipleComponents  MEMBER _diffMultipleComponents  NOTIFY diffMultipleComponentsChanged)
-    Q_PROPERTY(QmlObjectListModel*  diffList                READ diffList                   CONSTANT)
+    Q_PROPERTY(bool                 diffOtherVehicle        MEMBER _diffOtherVehicle                                    NOTIFY diffOtherVehicleChanged)
+    Q_PROPERTY(bool                 diffMultipleComponents  MEMBER _diffMultipleComponents                              NOTIFY diffMultipleComponentsChanged)
+    Q_PROPERTY(QmlObjectListModel*  diffList                READ diffList                                               CONSTANT)
+
+public:
+    explicit ParameterEditorController(QObject *parent = nullptr);
+    ~ParameterEditorController();
 
     Q_INVOKABLE QStringList searchParameters(const QString& searchText, bool searchInName=true, bool searchInDescriptions=true);
 

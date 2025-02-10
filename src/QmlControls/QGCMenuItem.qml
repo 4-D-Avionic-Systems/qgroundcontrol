@@ -1,8 +1,7 @@
-// QtQuick.Control 1.x Menu
-
-import QtQuick          2.6
-import QtQuick.Controls 1.4
+import QtQuick
+import QtQuick.Controls
 
 MenuItem {
-
+    // MenuItem doesn't support !visible so we have to hack it in
+    height: visible ? implicitHeight : 0
 }

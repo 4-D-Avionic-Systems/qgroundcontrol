@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,21 +13,25 @@
 /// @file
 ///     @author Don Gagne <don@thegagnes.com>
 
-#include <QObject>
-#include <QQuickItem>
-
-#include "UASInterface.h"
-#include "AutoPilotPlugin.h"
-#include "QGCLoggingCategory.h"
+#include <QtCore/QObject>
+#include <QtCore/QStringList>
+#include <QtCore/QTimer>
+#include <QtCore/QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(FactPanelControllerLog)
+
+class AutoPilotPlugin;
+class Vehicle;
+class Fact;
 
 /// FactPanelController is used for handling missing Facts from C++ code.
 class FactPanelController : public QObject
 {
     Q_OBJECT
+    Q_MOC_INCLUDE("Vehicle.h")
+    Q_MOC_INCLUDE("Fact.h")
 public:
-    FactPanelController();
+    FactPanelController(QObject *parent = nullptr);
 
     Q_PROPERTY(Vehicle* vehicle MEMBER _vehicle CONSTANT)
 
@@ -50,7 +54,6 @@ protected:
     void _reportMissingParameter(int componentId, const QString& name);
 
     Vehicle*            _vehicle    = nullptr;
-    UASInterface*       _uas        = nullptr;
     AutoPilotPlugin*    _autopilot  = nullptr;
 
 private slots:

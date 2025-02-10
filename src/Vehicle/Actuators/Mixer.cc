@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,10 +8,7 @@
  ****************************************************************************/
 
 #include "Mixer.h"
-
-#include <QDebug>
-
-#include <cmath>
+#include "ParameterManager.h"
 
 using namespace Mixer;
 
@@ -42,8 +39,8 @@ ChannelConfigInstance* ChannelConfig::instantiate(int paramIndex, int actuatorTy
         fact = new Fact("", metaData, this);
         fact->setRawValue(value);
 
-    } else if (parameterManager->parameterExists(FactSystem::defaultComponentId, param)) {
-        fact = parameterManager->getParameter(FactSystem::defaultComponentId, param);
+    } else if (parameterManager->parameterExists(ParameterManager::defaultComponentId, param)) {
+        fact = parameterManager->getParameter(ParameterManager::defaultComponentId, param);
         if (displayOption() == Parameter::DisplayOption::Bitset) {
             fact = new FactBitset(this, fact, usedParamIndex);
         } else if (displayOption() == Parameter::DisplayOption::BoolTrueIfPositive) {
@@ -81,8 +78,10 @@ void ChannelConfig::instanceVisibleChanged()
     }
 }
 
-ChannelConfigInstance* ChannelConfigVirtualAxis::instantiate(int paramIndex, int actuatorTypeIndex,
-        ParameterManager* parameterManager, std::function<void(Function, Fact*)> factAddedCb)
+ChannelConfigInstance *ChannelConfigVirtualAxis::instantiate(
+    [[maybe_unused]] int paramIndex, [[maybe_unused]] int actuatorTypeIndex,
+    [[maybe_unused]] ParameterManager *parameterManager,
+    [[maybe_unused]] std::function<void(Function, Fact *)> factAddedCb)
 {
     ChannelConfigInstance* instance = new ChannelConfigInstanceVirtualAxis(this, *this);
     channelInstanceCreated(instance);
@@ -366,7 +365,7 @@ bool MixerChannel::getGeometry(const ActuatorTypes& actuatorTypes, const MixerOp
     return numPositionAxis == 3;
 }
 
-Fact* MixerChannel::getFact(Function function) const
+Fact* MixerChannel::getFact([[maybe_unused]] Function function) const
 {
     for (int i = 0; i < _configInstances->count(); ++i) {
         ChannelConfigInstance* configInstance = _configInstances->value<ChannelConfigInstance*>(i);
@@ -632,11 +631,11 @@ QString Mixers::helpUrl() const
 
 Fact* Mixers::getFact(const QString& paramName)
 {
-    if (!_parameterManager->parameterExists(FactSystem::defaultComponentId, paramName)) {
+    if (!_parameterManager->parameterExists(ParameterManager::defaultComponentId, paramName)) {
         qCDebug(ActuatorsConfigLog) << "Mixers: Param does not exist:" << paramName;
         return nullptr;
     }
-    Fact* fact = _parameterManager->getParameter(FactSystem::defaultComponentId, paramName);
+    Fact* fact = _parameterManager->getParameter(ParameterManager::defaultComponentId, paramName);
 	subscribeFact(fact);
 	return fact;
 }

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,18 +9,17 @@
 
 #pragma once
 
+#include "Fact.h"
 
-#include <QString>
-#include <QRegularExpressionMatch>
-#include <QVector3D>
-#include <QJsonValue>
+#include <QtCore/QString>
+#include <QtCore/QJsonValue>
+#include <QtCore/QLoggingCategory>
+#include <QtGui/QVector3D>
 
-#include <stdint.h>
-
-#include "ParameterManager.h"
 
 Q_DECLARE_LOGGING_CATEGORY(ActuatorsConfigLog)
 
+class ParameterManager;
 
 /**
  * Represents a per-channel or per-item vehicle configuration parameter

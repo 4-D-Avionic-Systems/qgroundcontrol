@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,13 +11,8 @@
 /// @file
 ///     @author Don Gagne <don@thegagnes.com>
 
-#ifndef PowerComponentController_H
-#define PowerComponentController_H
+#pragma once
 
-#include <QObject>
-#include <QQuickItem>
-
-#include "UASInterface.h"
 #include "FactPanelController.h"
 
 /// Power Component MVC Controller for PowerComponent.qml.
@@ -52,5 +47,3 @@ private:
     QStringList _warningMessages;
     static const int _neededFirmwareRev = 1;
 };
-
-#endif

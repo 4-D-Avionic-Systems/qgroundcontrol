@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,39 +13,29 @@
 
 #include "GeoFenceController.h"
 #include "Vehicle.h"
-#include "FirmwarePlugin.h"
-#include "MAVLinkProtocol.h"
-#include "QGCApplication.h"
 #include "ParameterManager.h"
 #include "JsonHelper.h"
-#include "QGCQGeoCoordinate.h"
-#include "AppSettings.h"
 #include "PlanMasterController.h"
 #include "SettingsManager.h"
 #include "AppSettings.h"
+#include "GeoFenceManager.h"
+#include "QGCFenceCircle.h"
+#include "QGCFencePolygon.h"
+#include "QGCLoggingCategory.h"
 
-#include <QJsonDocument>
-#include <QJsonArray>
+#include <QtCore/QJsonArray>
+#include <QtCore/QJsonDocument>
 
 QGC_LOGGING_CATEGORY(GeoFenceControllerLog, "GeoFenceControllerLog")
 
 QMap<QString, FactMetaData*> GeoFenceController::_metaDataMap;
-
-const char* GeoFenceController::_jsonFileTypeValue =        "GeoFence";
-const char* GeoFenceController::_jsonBreachReturnKey =      "breachReturn";
-const char* GeoFenceController::_jsonPolygonsKey =          "polygons";
-const char* GeoFenceController::_jsonCirclesKey =           "circles";
-
-const char* GeoFenceController::_breachReturnAltitudeFactName = "Altitude";
-
-const char* GeoFenceController::_px4ParamCircularFence =    "GF_MAX_HOR_DIST";
 
 GeoFenceController::GeoFenceController(PlanMasterController* masterController, QObject* parent)
     : PlanElementController         (masterController, parent)
     , _managerVehicle               (masterController->managerVehicle())
     , _geoFenceManager              (masterController->managerVehicle()->geoFenceManager())
     , _breachReturnAltitudeFact     (0, _breachReturnAltitudeFactName, FactMetaData::valueTypeDouble)
-    , _breachReturnDefaultAltitude  (qgcApp()->toolbox()->settingsManager()->appSettings()->defaultMissionItemAltitude()->rawValue().toDouble())
+    , _breachReturnDefaultAltitude  (SettingsManager::instance()->appSettings()->defaultMissionItemAltitude()->rawValue().toDouble())
 {
     if (_metaDataMap.isEmpty()) {
         _metaDataMap = FactMetaData::createMapFromJsonFile(QStringLiteral(":/json/BreachReturn.FactMetaData.json"), nullptr /* metaDataParent */);
@@ -495,30 +485,102 @@ bool GeoFenceController::supported(void) const
     return (_managerVehicle->capabilityBits() & MAV_PROTOCOL_CAPABILITY_MISSION_FENCE) && (_managerVehicle->maxProtoVersion() >= 200);
 }
 
-// Hack for PX4
+/* Returns the radius of the "paramCircularFence"
+ * which is called the "Geofence Failsafe" in PX4 and the "Circular Geofence" on Ardupilot
+ * this code should ideally live in the firmware plugin since it is specific to apm and px4 firmwares */
 double GeoFenceController::paramCircularFence(void)
 {
-    if (_managerVehicle->isOfflineEditingVehicle() || !_managerVehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, _px4ParamCircularFence)) {
+    if(_managerVehicle->isOfflineEditingVehicle()){
         return 0;
     }
 
-    return _managerVehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, _px4ParamCircularFence)->rawValue().toDouble();
+    if(_managerVehicle->px4Firmware()){
+        if(!_managerVehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, _px4ParamCircularFence)){
+            return 0;
+        }
+
+        return _managerVehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, _px4ParamCircularFence)->rawValue().toDouble();
+    }
+
+    if(_managerVehicle->apmFirmware())
+    {
+        if (!_managerVehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceRadius) ||
+            !_managerVehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceEnabled) ||
+            !_managerVehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceType)){
+            return 0;
+        }
+
+        bool apm_fence_enabled = _managerVehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceEnabled)->rawValue().toBool();
+        bool apm_fence_type_circle = (1 << 1) & _managerVehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceType)->rawValue().toUInt();
+
+        if(!apm_fence_enabled || !apm_fence_type_circle)
+            return 0;
+
+        return _managerVehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceRadius)->rawValue().toDouble();
+    }
+
+    return 0;
 }
 
 void GeoFenceController::_parametersReady(void)
 {
+    /* When parameters are ready we setup notifications of param changes
+     * so that if a param changes we can emit paramCircularFenceChanged
+     * and trigger an update to the UI */
+
+    // First disconnect from any existing facts
     if (_px4ParamCircularFenceFact) {
         _px4ParamCircularFenceFact->disconnect(this);
         _px4ParamCircularFenceFact = nullptr;
     }
+    if (_apmParamCircularFenceRadiusFact) {
+        _apmParamCircularFenceRadiusFact->disconnect(this);
+        _apmParamCircularFenceRadiusFact = nullptr;
+    }
+    if (_apmParamCircularFenceEnabledFact) {
+        _apmParamCircularFenceEnabledFact->disconnect(this);
+        _apmParamCircularFenceEnabledFact = nullptr;
+    }
+    if (_apmParamCircularFenceTypeFact) {
+        _apmParamCircularFenceTypeFact->disconnect(this);
+        _apmParamCircularFenceTypeFact = nullptr;
+    }
 
-    if (_managerVehicle->isOfflineEditingVehicle() || !_managerVehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, _px4ParamCircularFence)) {
+    // then connect to needed paremters
+    // While checking they exist to avoid errors
+    ParameterManager* _paramManager = _managerVehicle->parameterManager();
+
+    if(_managerVehicle->isOfflineEditingVehicle()){
         emit paramCircularFenceChanged();
         return;
     }
 
-    _px4ParamCircularFenceFact = _managerVehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, _px4ParamCircularFence);
-    connect(_px4ParamCircularFenceFact, &Fact::rawValueChanged, this, &GeoFenceController::paramCircularFenceChanged);
+    if(_managerVehicle->px4Firmware()){
+        if(!_paramManager->parameterExists(ParameterManager::defaultComponentId, _px4ParamCircularFence)){
+            emit paramCircularFenceChanged();
+            return;
+        }
+
+        _px4ParamCircularFenceFact = _paramManager->getParameter(ParameterManager::defaultComponentId, _px4ParamCircularFence);
+        connect(_px4ParamCircularFenceFact, &Fact::rawValueChanged, this, &GeoFenceController::paramCircularFenceChanged);
+    }
+    else if(_managerVehicle->apmFirmware())
+    {
+        if (!_paramManager->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceRadius) ||
+            !_paramManager->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceEnabled) ||
+            !_paramManager->parameterExists(ParameterManager::defaultComponentId, _apmParamCircularFenceType)){
+            emit paramCircularFenceChanged();
+            return;
+        }
+
+        _apmParamCircularFenceRadiusFact = _paramManager->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceRadius);
+        _apmParamCircularFenceEnabledFact = _paramManager->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceEnabled);
+        _apmParamCircularFenceTypeFact = _paramManager->getParameter(ParameterManager::defaultComponentId, _apmParamCircularFenceType);
+        connect(_apmParamCircularFenceRadiusFact, &Fact::rawValueChanged, this, &GeoFenceController::paramCircularFenceChanged);
+        connect(_apmParamCircularFenceEnabledFact, &Fact::rawValueChanged, this, &GeoFenceController::paramCircularFenceChanged);
+        connect(_apmParamCircularFenceTypeFact, &Fact::rawValueChanged, this, &GeoFenceController::paramCircularFenceChanged);
+    }
+
     emit paramCircularFenceChanged();
 }
 
@@ -527,3 +589,36 @@ bool GeoFenceController::isEmpty(void) const
     return _polygons.count() == 0 && _circles.count() == 0 && !_breachReturnPoint.isValid();
 
 }
+
+#ifdef QGC_UTM_ADAPTER
+void GeoFenceController::loadFlightPlanData()
+{
+    QJsonArray jsonPolygonArray;
+    QList<QGeoCoordinate> geoCoordinates ;
+
+    for (int i = 0; i < _polygons.count(); i++) {
+        QJsonObject jsonPolygon;
+        QGCFencePolygon* fencePolygon = _polygons.value<QGCFencePolygon*>(i);
+        fencePolygon->saveToJson(jsonPolygon);
+        jsonPolygonArray.append(jsonPolygon);
+    }
+    QJsonArray jsonArray = QJsonDocument::fromJson(QJsonDocument(jsonPolygonArray).toJson()).array();
+    QJsonObject jsonObject = jsonArray.at(0).toObject();
+    QJsonArray polygonArray = jsonObject.value("polygon").toArray();
+
+    for (int i = 0; i < polygonArray.size(); ++i) {
+        QJsonArray pointArray = polygonArray.at(i).toArray();
+        double latitude = pointArray.at(0).toDouble();
+        double longitude = pointArray.at(1).toDouble();
+        QGeoCoordinate geoCoordinate(latitude, longitude);
+        geoCoordinates.append(geoCoordinate);
+    }
+
+    // Append the first coordinate again to the end of the list
+    if (!geoCoordinates.isEmpty()) {
+        geoCoordinates.append(geoCoordinates.first());
+    }
+
+    emit polygonBoundarySent(geoCoordinates);
+}
+#endif

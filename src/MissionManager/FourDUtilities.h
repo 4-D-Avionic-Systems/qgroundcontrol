@@ -16,7 +16,7 @@ class FourDUtilities : public QObject
     Q_OBJECT
 
 public:
-    FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr, QGCToolbox* toolboxRef = nullptr);
+    FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr);
     ~FourDUtilities();
 
     void setUrl(QString);
@@ -45,7 +45,7 @@ private:
 
     Vehicle* _vehicle;
     FactGroup*   _localPositionFactGroup;
-    QGCToolbox* _toolbox;
+    // QGCToolbox* _toolbox;
 
     std::vector<std::vector<float>> _formatModel;
 

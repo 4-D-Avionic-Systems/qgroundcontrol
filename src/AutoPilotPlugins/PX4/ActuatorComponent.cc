@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,8 +8,11 @@
  ****************************************************************************/
 
 #include "ActuatorComponent.h"
-
 #include "QGCApplication.h"
+#include "GeometryImage.h"
+#include "Actuators/Actuators.h"
+
+#include <QtQml/QQmlApplicationEngine>
 
 static bool imageProviderAdded{false};
 
@@ -18,6 +21,7 @@ ActuatorComponent::ActuatorComponent(Vehicle* vehicle, AutoPilotPlugin* autopilo
     _name(tr("Actuators")), _actuators(*vehicle->actuators())
 {
     if (!imageProviderAdded) {
+        // TODO: qmlAppEngine should not be accessed inside app
         qgcApp()->qmlAppEngine()->addImageProvider(QLatin1String("actuators"), GeometryImage::VehicleGeometryImageProvider::instance());
         imageProviderAdded = true;
     }

@@ -9,12 +9,12 @@
  *   @author Gus Grubba <gus@auterion.com>
  */
 
-import QtQuick                      2.11
-import QtQuick.Controls             2.4
+import QtQuick
+import QtQuick.Controls
 
-import QGroundControl.Controls      1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl.Controls
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
 
 Button {
     id:                             button
@@ -70,7 +70,7 @@ Button {
             spacing:                ScreenTools.defaultFontPixelHeight * 0.25
             QGCLabel {
                 text:               qsTr("Vehicle ") + (vehicle ? vehicle.id : qsTr("None"))
-                font.family:        ScreenTools.demiboldFontFamily
+                font.bold:          true
                 color:              button.checked ? qgcPal.buttonHighlightText : qgcPal.buttonText
             }
             Row {

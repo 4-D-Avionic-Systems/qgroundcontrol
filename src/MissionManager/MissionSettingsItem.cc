@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,20 +8,15 @@
  ****************************************************************************/
 
 #include "MissionSettingsItem.h"
-#include "JsonHelper.h"
-#include "MissionController.h"
-#include "QGCGeo.h"
-#include "SimpleMissionItem.h"
-#include "SettingsManager.h"
-#include "AppSettings.h"
-#include "MissionCommandUIInfo.h"
 #include "PlanMasterController.h"
+#include "MissionItem.h"
+#include "QGC.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-#include <QPolygonF>
+#include <QtCore/QJsonArray>
 
 QGC_LOGGING_CATEGORY(MissionSettingsItemLog, "MissionSettingsItemLog")
-
-const char* MissionSettingsItem::_plannedHomePositionAltitudeName = "PlannedHomePositionAltitude";
 
 QMap<QString, FactMetaData*> MissionSettingsItem::_metaDataMap;
 

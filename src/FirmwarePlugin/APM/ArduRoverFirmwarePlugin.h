@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -11,30 +11,29 @@
 /// @file
 ///     @author Pritam Ghanghas <pritam.ghanghas@gmail.com>
 
-#ifndef ArduRoverFirmwarePlugin_H
-#define ArduRoverFirmwarePlugin_H
+#pragma once
 
 #include "APMFirmwarePlugin.h"
 
-class APMRoverMode : public APMCustomMode
+struct APMRoverMode
 {
-public:
-    enum Mode {
+    enum Mode : uint32_t{
         MANUAL          = 0,
         ACRO            = 1,
+        LEARNING        = 2, // Deprecated
         STEERING        = 3,
         HOLD            = 4,
         LOITER          = 5,
         FOLLOW          = 6,
         SIMPLE          = 7,
+        DOCK            = 8,
+        CIRCLE          = 9,
         AUTO            = 10,
         RTL             = 11,
         SMART_RTL       = 12,
         GUIDED          = 15,
-        INITIALIZING    = 16,
+        INITIALIZING    = 16
     };
-
-    APMRoverMode(uint32_t mode, bool settable);
 };
 
 class ArduRoverFirmwarePlugin : public APMFirmwarePlugin
@@ -53,11 +52,31 @@ public:
     bool    supportsNegativeThrust                  (Vehicle *) final;
     bool    supportsSmartRTL                        (void) const override { return true; }
     QString offlineEditingParamFile                 (Vehicle* vehicle) override { Q_UNUSED(vehicle); return QStringLiteral(":/FirmwarePlugin/APM/Rover.OfflineEditing.params"); }
-    void    sendGCSMotionReport                     (Vehicle* vehicle, FollowMe::GCSMotionReport& motionReport, uint8_t estimatationCapabilities) override;
+
+    QString stabilizedFlightMode                    (void) const override;
+    void    updateAvailableFlightModes              (FlightModeList modeList) override;
+
+protected:
+    uint32_t    _convertToCustomFlightModeEnum(uint32_t val) const override;
+
+
+    QString     _manualFlightMode       ;
+    QString     _acroFlightMode         ;
+    QString     _learningFlightMode     ;
+    QString     _steeringFlightMode     ;
+    QString     _holdFlightMode         ;
+    QString     _loiterFlightMode       ;
+    QString     _followFlightMode       ;
+    QString     _simpleFlightMode       ;
+    QString     _dockFlightMode         ;
+    QString     _circleFlightMode       ;
+    QString     _autoFlightMode         ;
+    QString     _rtlFlightMode          ;
+    QString     _smartRtlFlightMode     ;
+    QString     _guidedFlightMode       ;
+    QString     _initializingFlightMode ;
 
 private:
     static bool _remapParamNameIntialized;
     static FirmwarePlugin::remapParamNameMajorVersionMap_t  _remapParamName;
 };
-
-#endif

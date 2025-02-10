@@ -1,10 +1,10 @@
-import QtQuick 2.3
-import QtQuick.Controls 1.2
+import QtQuick
+import QtQuick.Controls
 
-import QGroundControl.FactSystem 1.0
-import QGroundControl.FactControls 1.0
-import QGroundControl.Controls 1.0
-import QGroundControl.Palette 1.0
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.Controls
+import QGroundControl.Palette
 
 Item {
     anchors.fill:   parent
@@ -18,7 +18,13 @@ Item {
     property Fact _failsafeThrValue:    controller.getParameterFact(-1, "THR_FS_VALUE")
     property Fact _failsafeGCSEnable:   controller.getParameterFact(-1, "FS_GCS_ENABL")
 
-    property Fact _rtlAltFact: controller.getParameterFact(-1, "ALT_HOLD_RTL")
+    property Fact _rtlAltFact: {
+        if (controller.firmwareMajorVersion < 4 || (controller.firmwareMajorVersion === 4 && controller.firmwareMinorVersion < 5)) {
+            return controller.getParameterFact(-1, "ALT_HOLD_RTL")
+        } else {
+            return controller.getParameterFact(-1, "RTL_ALTITUDE")
+        }
+    }
 
     Column {
         anchors.fill:       parent

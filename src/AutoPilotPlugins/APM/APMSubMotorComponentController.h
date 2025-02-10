@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *   (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,12 +8,9 @@
  ****************************************************************************/
 
 
-#ifndef APMSubMotorComponentController_H
-#define APMSubMotorComponentController_H
+#pragma once
 
-#include <QObject>
 #include "FactPanelController.h"
-#include "Vehicle.h"
 
 /// MVC Controller for APMSubMotorComponent.qml.
 class APMSubMotorComponentController : public FactPanelController
@@ -34,5 +31,3 @@ private slots:
 private:
     QString _motorDetectionMessages;
 };
-
-#endif

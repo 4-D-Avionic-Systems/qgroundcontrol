@@ -1,24 +1,21 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-#include <QStringList>
-#include <QDebug>
-
 #include "TakeoffMissionItem.h"
-#include "FirmwarePluginManager.h"
-#include "QGCApplication.h"
-#include "JsonHelper.h"
 #include "MissionCommandTree.h"
-#include "MissionCommandUIInfo.h"
 #include "QGroundControlQmlGlobal.h"
 #include "SettingsManager.h"
+#include "PlanViewSettings.h"
 #include "PlanMasterController.h"
+#include "MissionSettingsItem.h"
+#include "MultiVehicleManager.h"
+#include "Vehicle.h"
 
 TakeoffMissionItem::TakeoffMissionItem(PlanMasterController* masterController, bool flyView, MissionSettingsItem* settingsItem, bool forLoad)
     : SimpleMissionItem (masterController, flyView, forLoad)
@@ -60,7 +57,7 @@ void TakeoffMissionItem::_init(bool forLoad)
 
     QGeoCoordinate homePosition = _settingsItem->coordinate();
     if (!homePosition.isValid()) {
-        Vehicle* activeVehicle = qgcApp()->toolbox()->multiVehicleManager()->activeVehicle();
+        Vehicle* activeVehicle = MultiVehicleManager::instance()->activeVehicle();
         if (activeVehicle) {
             homePosition = activeVehicle->homePosition();
             if (homePosition.isValid()) {
@@ -101,6 +98,11 @@ void TakeoffMissionItem::setLaunchTakeoffAtSameLocation(bool launchTakeoffAtSame
     }
 }
 
+QGeoCoordinate TakeoffMissionItem::launchCoordinate(void) const
+{
+    return _settingsItem->coordinate();
+}
+
 void TakeoffMissionItem::setCoordinate(const QGeoCoordinate& coordinate)
 {
     if (coordinate != this->coordinate()) {
@@ -113,7 +115,7 @@ void TakeoffMissionItem::setCoordinate(const QGeoCoordinate& coordinate)
 
 bool TakeoffMissionItem::isTakeoffCommand(MAV_CMD command)
 {
-    return qgcApp()->toolbox()->missionCommandTree()->isTakeoffCommand(command);
+    return MissionCommandTree::instance()->isTakeoffCommand(command);
 }
 
 void TakeoffMissionItem::_initLaunchTakeoffAtSameLocation(void)
@@ -170,7 +172,7 @@ void TakeoffMissionItem::setLaunchCoordinate(const QGeoCoordinate& launchCoordin
         if (_launchTakeoffAtSameLocation) {
             takeoffCoordinate = launchCoordinate;
         } else {
-            double distance = qgcApp()->toolbox()->settingsManager()->planViewSettings()->vtolTransitionDistance()->rawValue().toDouble(); // Default distance is VTOL transition to takeoff point distance
+            double distance = SettingsManager::instance()->planViewSettings()->vtolTransitionDistance()->rawValue().toDouble(); // Default distance is VTOL transition to takeoff point distance
             if (_controllerVehicle->fixedWing()) {
                 double altitude = this->altitude()->rawValue().toDouble();
 

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,16 +9,18 @@
 
 #pragma once
 
-#include <QObject>
-
-#include "UASInterface.h"
 #include "FactPanelController.h"
-#include "QGCLoggingCategory.h"
-#include "APMSensorsComponent.h"
-#include "APMCompassCal.h"
+#include "QGCMAVLink.h"
+
+#include <QtQuick/QQuickItem>
+#include <QtCore/QObject>
+#include <QtCore/QLoggingCategory>
 
 Q_DECLARE_LOGGING_CATEGORY(APMSensorsComponentControllerLog)
 Q_DECLARE_LOGGING_CATEGORY(APMSensorsComponentControllerVerboseLog)
+
+class APMSensorsComponent;
+class LinkInterface;
 
 /// Sensors Component MVC Controller for SensorsComponent.qml.
 class APMSensorsComponentController : public FactPanelController
@@ -93,19 +95,6 @@ public:
     bool compassSetupNeeded (void) const;
     bool accelSetupNeeded   (void) const;
 
-    typedef enum {
-        CalTypeAccel,
-        CalTypeGyro,
-        CalTypeOnboardCompass,
-        CalTypeOffboardCompass,
-        CalTypeLevelHorizon,
-        CalTypeCompassMot,
-        CalTypePressure,
-        CalTypeAccelFast,
-        CalTypeNone
-    } CalType_t;
-    Q_ENUM(CalType_t)
-
     bool compass1CalSucceeded(void) const { return _rgCompassCalSucceeded[0]; }
     bool compass2CalSucceeded(void) const { return _rgCompassCalSucceeded[1]; }
     bool compass3CalSucceeded(void) const { return _rgCompassCalSucceeded[2]; }
@@ -124,7 +113,7 @@ signals:
     void resetStatusTextArea                    (void);
     void waitingForCancelChanged                (void);
     void setupNeededChanged                     (void);
-    void calibrationComplete                    (CalType_t calType);
+    void calibrationComplete                    (QGCMAVLink::CalibrationType calType);
     void compass1CalSucceededChanged            (bool compass1CalSucceeded);
     void compass2CalSucceededChanged            (bool compass2CalSucceeded);
     void compass3CalSucceededChanged            (bool compass3CalSucceeded);
@@ -161,7 +150,6 @@ private:
     
     void _updateAndEmitShowOrientationCalArea(bool show);
 
-    APMCompassCal           _compassCal;
     APMSensorsComponent*    _sensorsComponent;
 
     QQuickItem* _statusLog;
@@ -172,7 +160,7 @@ private:
     
     bool _showOrientationCalArea;
     
-    CalType_t _calTypeInProgress;
+    QGCMAVLink::CalibrationType _calTypeInProgress;
 
     uint8_t _rgCompassCalProgress[3];
     bool    _rgCompassCalComplete[3];
@@ -211,7 +199,7 @@ private:
 
     bool _restoreCompassCalFitness;
     float _previousCompassCalFitness;
-    static const char* _compassCalFitnessParam;
+    static constexpr const char* _compassCalFitnessParam = "COMPASS_CAL_FIT";
     
     static const int _supportedFirmwareCalVersion = 2;
 };

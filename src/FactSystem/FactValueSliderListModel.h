@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,9 +9,12 @@
 
 #pragma once
 
-#include <QAbstractListModel>
+#include <QtCore/QAbstractListModel>
+#include <QtCore/QByteArray>
+#include <QtCore/QHash>
+#include <QtCore/QObject>
 
-#include "Fact.h"
+class Fact;
 
 /// Provides a list model of values for incrementing/decrementing the value of a Fact
 class FactValueSliderListModel : public QAbstractListModel
@@ -53,6 +56,6 @@ private:
     double  _initialValueAtPrecision;
     double  _increment;
 
-    static const int _valueRole;
-    static const int _valueIndexRole;
+    static constexpr int _valueRole =        Qt::UserRole;
+    static constexpr int _valueIndexRole =   Qt::UserRole + 1;
 };

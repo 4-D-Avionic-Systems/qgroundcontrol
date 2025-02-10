@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,18 +8,12 @@
  ****************************************************************************/
 
 
-#ifndef PX4SimpleFlightModesController_H
-#define PX4SimpleFlightModesController_H
+#pragma once
 
-#include <QObject>
-#include <QQuickItem>
-#include <QList>
-#include <QStringList>
+#include <QtCore/QVariantList>
 
-#include "UASInterface.h"
-#include "AutoPilotPlugin.h"
 #include "FactPanelController.h"
-#include "Vehicle.h"
+#include "QGCMAVLink.h"
 
 /// MVC Controller for PX4SimpleFlightModes.qml
 class PX4SimpleFlightModesController : public FactPanelController
@@ -41,12 +35,10 @@ signals:
     void rcChannelValuesChanged(void);
     
 private slots:
-    void _rcChannelsChanged(int channelCount, int pwmValues[Vehicle::cMaxRcChannels]);
+    void _rcChannelsChanged(int channelCount, int pwmValues[QGCMAVLink::maxRcChannels]);
     
 private:
     int             _activeFlightMode;
     int             _channelCount;
     QVariantList    _rcChannelValues;
 };
-
-#endif

@@ -1,50 +1,33 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
  *
  ****************************************************************************/
 
-
 #pragma once
 
-#include "GPSProvider.h"
-#include "RTCM/RTCMMavlink.h"
-#include <QGCToolbox.h>
+#include <QtCore/QLoggingCategory>
+#include <QtCore/QObject>
 
-#include <QString>
-#include <QObject>
+Q_DECLARE_LOGGING_CATEGORY(GPSManagerLog)
 
-/**
- ** class GPSManager
- * handles a GPS provider and RTK
- */
-class GPSManager : public QGCTool
+class GPSRtk;
+
+class GPSManager : public QObject
 {
     Q_OBJECT
+
 public:
-    GPSManager(QGCApplication* app, QGCToolbox* toolbox);
+    GPSManager(QObject *parent = nullptr);
     ~GPSManager();
 
-    void connectGPS     (const QString& device, const QString& gps_type);
-    void disconnectGPS  (void);
-    bool connected      (void) const { return _gpsProvider && _gpsProvider->isRunning(); }
+    static GPSManager *instance();
 
-signals:
-    void onConnect();
-    void onDisconnect();
-    void surveyInStatus(float duration, float accuracyMM,  double latitude, double longitude, float altitude, bool valid, bool active);
-    void satelliteUpdate(int numSats);
-
-private slots:
-    void GPSPositionUpdate(GPSPositionMessage msg);
-    void GPSSatelliteUpdate(GPSSatelliteMessage msg);
+    GPSRtk *gpsRtk() { return _gpsRtk; }
 
 private:
-    GPSProvider* _gpsProvider = nullptr;
-    RTCMMavlink* _rtcmMavlink = nullptr;
-
-    std::atomic_bool _requestGpsStop; ///< signals the thread to quit
+    GPSRtk *_gpsRtk = nullptr;
 };

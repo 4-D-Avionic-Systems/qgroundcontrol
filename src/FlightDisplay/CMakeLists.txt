@@ -1,54 +1,32 @@
+find_package(Qt6 REQUIRED COMPONENTS Core Qml)
 
-add_custom_target(FligthDisplayQml
-	SOURCES
-		DefaultChecklist.qml
-		FixedWingChecklist.qml
-		FlightDisplayViewDummy.qml
-		FlightDisplayViewUVC.qml
-		FlightDisplayViewVideo.qml
-		FlightDisplayViewWidgets.qml
-		FlyViewCustomLayer.qml
-		FlyViewInstrumentPanel.qml
-		FlyViewMap.qml
-		FlyViewMissionCompleteDialog.qml
-		FlyViewPreFlightChecklistPopup.qml
-		FlyView.qml
-		FlyViewToolStripActionList.qml
-		FlyViewToolStrip.qml
-		FlyViewVideo.qml
-		FlyViewWidgetLayer.qml
-		GuidedActionActionList.qml
-		GuidedActionConfirm.qml
-		GuidedActionLand.qml
-		GuidedActionList.qml
-		GuidedActionPause.qml
-		GuidedActionRTL.qml
-		GuidedActionsController.qml
-		GuidedActionTakeoff.qml
-		GuidedActionGripper.qml
-		GripperMenu.qml
-		GuidedValueSlider.qml
-		GuidedToolStripAction.qml
-		MultiRotorChecklist.qml
-		MultiVehicleList.qml
-		PreFlightBatteryCheck.qml
-		PreFlightCheckList.qml
-		PreFlightCheckListShowAction.qml
-		PreFlightGPSCheck.qml
-		PreFlightRCCheck.qml
-		PreFlightSensorsHealthCheck.qml
-		PreFlightSoundCheck.qml
-		ProximityRadarValues.qml
-		ProximityRadarVideoView.qml
-		RoverChecklist.qml
-		SubChecklist.qml
-		TelemetryValuesBar.qml
-		TerrainProgress.qml
-		VehicleWarnings.qml
-		VirtualJoystick.qml
-		VTOLChecklist.qml
-		ObstacleDistanceOverlay.qml
-		ObstacleDistanceOverlayMap.qml
-		ObstacleDistanceOverlayVideo.qml
+qt_add_library(FlightDisplay STATIC)
+
+file(GLOB QML_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/*.qml)
+qt_add_qml_module(FlightDisplay
+    URI QGroundControl.FlightDisplay
+    VERSION 1.0
+    QML_FILES ${QML_SOURCES}
+    OUTPUT_TARGETS FlightDisplay_targets
+    IMPORT_PATH ${QT_QML_OUTPUT_DIRECTORY}
+    IMPORTS
+        QtQuick
+        QtQuick.Controls
+        QtQuick.Dialogs
+        QtQuick.Layouts
+
+        QtLocation
+        QtPositioning
+        QtQuick.Window
+        QtQml.Models
+
+        QGroundControl
+        QGroundControl.Controllers
+        QGroundControl.Controls
+        QGroundControl.FactSystem
+        QGroundControl.FlightDisplay
+        QGroundControl.FlightMap
+        QGroundControl.Palette
+        QGroundControl.ScreenTools
+        QGroundControl.Vehicle
 )
-

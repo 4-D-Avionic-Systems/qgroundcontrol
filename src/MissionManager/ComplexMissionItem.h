@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,17 +10,12 @@
 #pragma once
 
 #include "VisualMissionItem.h"
-#include "QGCGeo.h"
-#include "QGCToolbox.h"
-#include "SettingsManager.h"
-#include "KMLPlanDomDocument.h"
 #include "QmlObjectListModel.h"
 #include "FlightPathSegment.h"
 
-#include <QSettings>
-
 class PlanMasterController;
 class MissionController;
+class KMLPlanDomDocument;
 
 class ComplexMissionItem : public VisualMissionItem
 {
@@ -100,7 +95,7 @@ public:
     bool isIncomplete       (void) const { return _isIncomplete; }
 
     /// This mission item attribute specifies the type of the complex item.
-    static const char* jsonComplexItemTypeKey;
+    static constexpr const char* jsonComplexItemTypeKey = "complexItemType";
 
 signals:
     void complexDistanceChanged     (void);
@@ -126,10 +121,5 @@ protected:
 
     QMap<QString, FactMetaData*> _metaDataMap;
 
-    static const char* _presetSettingsKey;
-
-    QGCToolbox* _toolbox;
-    SettingsManager* _settingsManager;
-
-private:
+    static constexpr const char* _presetSettingsKey =        "_presets";
 };

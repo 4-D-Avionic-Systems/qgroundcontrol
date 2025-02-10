@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,14 +9,8 @@
 
 
 #include "FactGroup.h"
-#include "JsonHelper.h"
 
-#include <QJsonDocument>
-#include <QJsonParseError>
-#include <QJsonArray>
-#include <QDebug>
-#include <QFile>
-#include <QQmlEngine>
+#include <QtQml/QQmlEngine>
 
 FactGroup::FactGroup(int updateRateMsecs, const QString& metaDataFile, QObject* parent, bool ignoreCamelCase)
     : QObject(parent)

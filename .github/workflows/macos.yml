@@ -1,0 +1,121 @@
+name: MacOS
+
+on:
+  push:
+    branches:
+      - master
+      - 'Stable*'
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - '.github/workflows/macos.yml'
+      - 'deploy/macos/**'
+      - 'src/**'
+      - 'CMakeLists.txt'
+
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    strategy:
+      matrix:
+        BuildType: [Release]
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      ARTIFACT: QGroundControl.dmg
+      PACKAGE: QGroundControl
+      QT_VERSION: 6.8.1
+      GST_VERSION: 1.22.12
+      CPM_SOURCE_CACHE: ${{ github.workspace }}/cpm_modules
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-tags: true
+
+      - name: Initial Setup
+        uses: ./.github/actions/common
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install Dependencies
+        working-directory: ${{ github.workspace }}/tools/setup
+        run: sh macos-dependencies.sh
+
+      - name: Install GStreamer
+        run: |
+          wget --quiet https://gstreamer.freedesktop.org/data/pkg/osx/${{ env.GST_VERSION }}/gstreamer-1.0-devel-${{ env.GST_VERSION }}-universal.pkg
+          wget --quiet https://gstreamer.freedesktop.org/data/pkg/osx/${{ env.GST_VERSION }}/gstreamer-1.0-${{ env.GST_VERSION }}-universal.pkg
+          for package in *.pkg ;
+            do sudo installer -verbose -pkg "$package" -target /
+          done
+          echo "PKG_CONFIG_PATH=/Library/Frameworks/GStreamer.framework/lib/pkgconfig:/Library/Frameworks/GStreamer.framework/lib/gstreamer-1.0/pkgconfig:${{ env.PKG_CONFIG_PATH }}" >> "$GITHUB_ENV"
+
+      - name: Setup Caching
+        uses: ./.github/actions/cache
+        with:
+          host: mac
+          target: clang_64
+          build-type: ${{ matrix.BuildType }}
+          cpm-modules: ${{ env.CPM_SOURCE_CACHE }}
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: ${{ env.QT_VERSION }}
+          host: mac
+          target: desktop
+          arch: clang_64
+          dir: ${{ runner.temp }}
+          modules: qtcharts qtlocation qtpositioning qtspeech qt5compat qtmultimedia qtserialport qtimageformats qtshadertools qtconnectivity qtquick3d qtsensors
+
+      - name: Import Code Signing Certificate
+        if: github.event_name != 'pull_request'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.MACOS_SIGNING_CERTS_P12 }}
+          p12-password: ${{ secrets.MACOS_SIGNING_CERTS_PASS }}
+
+      - name: Configure
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: ${{ env.QT_ROOT_DIR }}/bin/qt-cmake -S ${{ github.workspace }} -B . -G Ninja
+              -DCMAKE_BUILD_TYPE=${{ matrix.BuildType }}
+              -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+              -DQGC_STABLE_BUILD=${{ github.ref_type == 'tag' || contains(github.ref, 'Stable') && 'ON' || 'OFF' }}
+
+      - name: Build
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: cmake --build . --target all --config ${{ matrix.BuildType }}
+
+      - name: Sanity check release excecutable
+        if: matrix.BuildType == 'Release'
+        working-directory: ${{ runner.temp }}/shadow_build_dir/Release/QGroundControl.app/Contents/MacOS
+        run: ./QGroundControl --simple-boot-test
+
+      - name: Create DMG
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: cmake --install . --config ${{ matrix.BuildType }}
+
+      - name: Upload Build File
+        if: matrix.BuildType == 'Release'
+        uses: ./.github/actions/upload
+        with:
+          artifact_name: ${{ env.ARTIFACT }}
+          package_name: ${{ env.PACKAGE }}
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}

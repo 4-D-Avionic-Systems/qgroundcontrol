@@ -1,3 +1,12 @@
+/****************************************************************************
+ *
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
+
 /*=====================================================================
 
  QGroundControl Open Source Ground Control Station
@@ -25,41 +34,52 @@
 ///     @author Rustom Jehangir <rusty@bluerobotics.com>
 
 #include "ArduSubFirmwarePlugin.h"
+#include "Vehicle.h"
 
 bool ArduSubFirmwarePlugin::_remapParamNameIntialized = false;
 FirmwarePlugin::remapParamNameMajorVersionMap_t ArduSubFirmwarePlugin::_remapParamName;
 
-APMSubMode::APMSubMode(uint32_t mode, bool settable) :
-    APMCustomMode(mode, settable)
+ArduSubFirmwarePlugin::ArduSubFirmwarePlugin(void)
+    : _infoFactGroup(this)
+    , _manualFlightMode         (tr("Manual"))
+    , _stabilizeFlightMode      (tr("Stabilize"))
+    , _acroFlightMode           (tr("Acro"))
+    , _altHoldFlightMode        (tr("Depth Hold"))
+    , _autoFlightMode           (tr("Auto"))
+    , _guidedFlightMode         (tr("Guided"))
+    , _circleFlightMode         (tr("Circle"))
+    , _surfaceFlightMode        (tr("Surface"))
+    , _posHoldFlightMode        (tr("Position Hold"))
+    , _motorDetectionFlightMode (tr("Motor Detection"))
+    , _surftrakFlightMode       (tr("Surftrak"))
 {
-    setEnumToStringMapping({
-        {MANUAL, "Manual"},
-        {STABILIZE, "Stabilize"},
-        {ACRO, "Acro"},
-        {ALT_HOLD,  "Depth Hold"},
-        {AUTO, "Auto"},
-        {GUIDED, "Guided"},
-        {CIRCLE, "Circle"},
-        {SURFACE, "Surface"},
-        {POSHOLD, "Position Hold"},
-        {MOTORDETECTION, "Motor Detection"},
+    _setModeEnumToModeStringMapping({
+        { APMSubMode::MANUAL            , _manualFlightMode        },
+        { APMSubMode::STABILIZE         , _stabilizeFlightMode     },
+        { APMSubMode::ACRO              , _acroFlightMode          },
+        { APMSubMode::ALT_HOLD          , _altHoldFlightMode       },
+        { APMSubMode::AUTO              , _autoFlightMode          },
+        { APMSubMode::GUIDED            , _guidedFlightMode        },
+        { APMSubMode::CIRCLE            , _circleFlightMode        },
+        { APMSubMode::SURFACE           , _surfaceFlightMode       },
+        { APMSubMode::POSHOLD           , _posHoldFlightMode       },
+        { APMSubMode::MOTORDETECTION    , _motorDetectionFlightMode},
+        { APMSubMode::SURFTRAK          , _surftrakFlightMode      },
     });
-}
 
-ArduSubFirmwarePlugin::ArduSubFirmwarePlugin(void):
-    _infoFactGroup(this)
-{
-    setSupportedModes({
-        APMSubMode(APMSubMode::MANUAL ,true),
-        APMSubMode(APMSubMode::STABILIZE ,true),
-        APMSubMode(APMSubMode::ACRO ,true),
-        APMSubMode(APMSubMode::ALT_HOLD  ,true),
-        APMSubMode(APMSubMode::AUTO ,true),
-        APMSubMode(APMSubMode::GUIDED ,true),
-        APMSubMode(APMSubMode::CIRCLE ,true),
-        APMSubMode(APMSubMode::SURFACE ,false),
-        APMSubMode(APMSubMode::POSHOLD ,true),
-        APMSubMode(APMSubMode::MOTORDETECTION, false),
+    updateAvailableFlightModes({
+        // Mode Name                , Custom Mode                  CanBeSet  adv
+        { _manualFlightMode         , APMSubMode::MANUAL            , true , true },
+        { _stabilizeFlightMode      , APMSubMode::STABILIZE         , true , true },
+        { _acroFlightMode           , APMSubMode::ACRO              , true , true },
+        { _altHoldFlightMode        , APMSubMode::ALT_HOLD          , true , true },
+        { _autoFlightMode           , APMSubMode::AUTO              , true , true },
+        { _guidedFlightMode         , APMSubMode::GUIDED            , true , true },
+        { _circleFlightMode         , APMSubMode::CIRCLE            , true , true },
+        { _surfaceFlightMode        , APMSubMode::SURFACE           , true , true },
+        { _posHoldFlightMode        , APMSubMode::POSHOLD           , true , true },
+        { _motorDetectionFlightMode , APMSubMode::MOTORDETECTION    , true , true },
+        { _surftrakFlightMode       , APMSubMode::SURFTRAK          , true , true },
     });
 
     if (!_remapParamNameIntialized) {
@@ -236,6 +256,8 @@ void ArduSubFirmwarePlugin::_handleNamedValueFloat(mavlink_message_t* message)
         _infoFactGroup.getFact("inputHold")->setRawValue(value.value);
     } else if (name == "RollPitch") {
         _infoFactGroup.getFact("rollPitchToggle")->setRawValue(value.value);
+    } else if (name == "RFTarget") {
+      _infoFactGroup.getFact("rangefinderTarget")->setRawValue(value.value);
     }
 }
 
@@ -273,6 +295,7 @@ const char* APMSubmarineFactGroup::_pilotGainFactName           = "pilotGain";
 const char* APMSubmarineFactGroup::_inputHoldFactName           = "inputHold";
 const char* APMSubmarineFactGroup::_rollPitchToggleFactName     = "rollPitchToggle";
 const char* APMSubmarineFactGroup::_rangefinderDistanceFactName = "rangefinderDistance";
+const char* APMSubmarineFactGroup::_rangefinderTargetFactName   = "rangefinderTarget";
 
 APMSubmarineFactGroup::APMSubmarineFactGroup(QObject* parent)
     : FactGroup(300, ":/json/Vehicle/SubmarineFact.json", parent)
@@ -284,6 +307,7 @@ APMSubmarineFactGroup::APMSubmarineFactGroup(QObject* parent)
     , _inputHoldFact           (0, _inputHoldFactName,           FactMetaData::valueTypeDouble)
     , _rollPitchToggleFact     (0, _rollPitchToggleFactName,     FactMetaData::valueTypeDouble)
     , _rangefinderDistanceFact (0, _rangefinderDistanceFactName, FactMetaData::valueTypeDouble)
+    , _rangefinderTargetFact   (0, _rangefinderTargetFactName,   FactMetaData::valueTypeDouble)
 {
     _addFact(&_camTiltFact,             _camTiltFactName);
     _addFact(&_tetherTurnsFact,         _tetherTurnsFactName);
@@ -293,6 +317,7 @@ APMSubmarineFactGroup::APMSubmarineFactGroup(QObject* parent)
     _addFact(&_inputHoldFact,           _inputHoldFactName);
     _addFact(&_rollPitchToggleFact    , _rollPitchToggleFactName);
     _addFact(&_rangefinderDistanceFact, _rangefinderDistanceFactName);
+    _addFact(&_rangefinderTargetFact,   _rangefinderTargetFactName);
 
     // Start out as not available "--.--"
     _camTiltFact.setRawValue             (std::numeric_limits<float>::quiet_NaN());
@@ -303,6 +328,7 @@ APMSubmarineFactGroup::APMSubmarineFactGroup(QObject* parent)
     _inputHoldFact.setRawValue           (std::numeric_limits<float>::quiet_NaN());
     _rollPitchToggleFact.setRawValue     (2); // 2 shows "Unavailable" in older firmwares
     _rangefinderDistanceFact.setRawValue (std::numeric_limits<float>::quiet_NaN());
+    _rangefinderTargetFact.setRawValue   (std::numeric_limits<float>::quiet_NaN());
 
 }
 
@@ -326,4 +352,35 @@ void ArduSubFirmwarePlugin::adjustMetaData(MAV_TYPE vehicleType, FactMetaData* m
     if (_factRenameMap.contains(metaData->name())) {
         metaData->setShortDescription(QString(_factRenameMap[metaData->name()]));
     }
+}
+
+QString ArduSubFirmwarePlugin::stabilizedFlightMode() const
+{
+    return _modeEnumToString.value(APMSubMode::STABILIZE, _stabilizeFlightMode);
+}
+
+QString ArduSubFirmwarePlugin::motorDetectionFlightMode() const
+{
+    return _modeEnumToString.value(APMSubMode::MOTORDETECTION, _motorDetectionFlightMode);
+}
+
+void ArduSubFirmwarePlugin::updateAvailableFlightModes(FlightModeList modeList)
+{
+    for(auto &mode: modeList){
+        mode.fixedWing = false;
+        mode.multiRotor = true;
+    }
+
+    _updateModeMappings(modeList);
+}
+
+uint32_t ArduSubFirmwarePlugin::_convertToCustomFlightModeEnum(uint32_t val) const
+{
+    switch (val) {
+    case APMCustomMode::AUTO:
+        return APMSubMode::AUTO;
+    case APMCustomMode::GUIDED:
+        return APMSubMode::GUIDED;
+    }
+    return UINT32_MAX;
 }

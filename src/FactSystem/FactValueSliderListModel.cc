@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -8,15 +8,10 @@
  ****************************************************************************/
 
 #include "FactValueSliderListModel.h"
+#include "Fact.h"
 
-#include <QDebug>
-#include <QQmlEngine>
-#include <QtMath>
-
-#include <math.h>
-
-const int FactValueSliderListModel::_valueRole =        Qt::UserRole;
-const int FactValueSliderListModel::_valueIndexRole =   Qt::UserRole + 1;
+#include <QtQml/QQmlEngine>
+#include <QtCore/QtMath>
 
 FactValueSliderListModel::FactValueSliderListModel(Fact& fact, QObject* parent)
     : QAbstractListModel        (parent)

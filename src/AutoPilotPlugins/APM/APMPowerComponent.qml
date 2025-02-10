@@ -8,16 +8,16 @@
  ****************************************************************************/
 
 
-import QtQuick          2.3
-import QtQuick.Controls 1.2
-import QtQuick.Dialogs  1.2
-import QtQuick.Layouts  1.2
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Dialogs
+import QtQuick.Layouts
 
-import QGroundControl.FactSystem    1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.Palette
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
 
 SetupPage {
     id:             powerPage
@@ -58,7 +58,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery 1")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -108,7 +108,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery 1")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -145,7 +145,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery 2")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -195,7 +195,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Battery 2")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -231,7 +231,7 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("ESC Calibration")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
@@ -308,7 +308,7 @@ SetupPage {
                 sensorCombo.currentIndex = sensorModel.count - 1
             }
 
-            QGCPalette { id: palette; colorGroupEnabled: true }
+            QGCPalette { id: qgcPal; colorGroupEnabled: true }
 
             ListModel {
                 id: sensorModel
@@ -414,7 +414,7 @@ SetupPage {
                     model:                  sensorModel
                     textRole:               "text"
 
-                    onActivated: {
+                    onActivated: (index) => {
                         if (index < sensorModel.count - 1) {
                             battVoltPin.value = sensorModel.get(index).voltPin
                             battCurrPin.value = sensorModel.get(index).currPin
@@ -540,7 +540,7 @@ SetupPage {
 
         QGCPopupDialog {
             title:      qsTr("Calculate Voltage Multiplier")
-            buttons:    StandardButton.Close
+            buttons:    Dialog.Close
 
             property Fact vehicleVoltageFact
             property Fact battVoltMultFact
@@ -593,7 +593,7 @@ SetupPage {
 
         QGCPopupDialog {
             title:      qsTr("Calculate Amps per Volt")
-            buttons:    StandardButton.Close
+            buttons:    Dialog.Close
 
             property Fact vehicleCurrentFact
             property Fact battAmpPerVoltFact

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,38 +10,20 @@
 #include "TransectStyleComplexItem.h"
 #include "JsonHelper.h"
 #include "MissionController.h"
-#include "QGCGeo.h"
-#include "QGCQGeoCoordinate.h"
-#include "SettingsManager.h"
-#include "AppSettings.h"
-#include "QGCQGeoCoordinate.h"
 #include "QGCApplication.h"
 #include "PlanMasterController.h"
 #include "FlightPathSegment.h"
 #include "MissionCommandTree.h"
 #include "MissionCommandUIInfo.h"
+#include "QGC.h"
+#include "FirmwarePlugin.h"
+#include "KMLPlanDomDocument.h"
+#include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-#include <QPolygonF>
+#include <QtCore/QJsonArray>
 
 QGC_LOGGING_CATEGORY(TransectStyleComplexItemLog, "TransectStyleComplexItemLog")
-
-const char* TransectStyleComplexItem::turnAroundDistanceName                = "TurnAroundDistance";
-const char* TransectStyleComplexItem::turnAroundDistanceMultiRotorName      = "TurnAroundDistanceMultiRotor";
-const char* TransectStyleComplexItem::cameraTriggerInTurnAroundName         = "CameraTriggerInTurnAround";
-const char* TransectStyleComplexItem::hoverAndCaptureName                   = "HoverAndCapture";
-const char* TransectStyleComplexItem::refly90DegreesName                    = "Refly90Degrees";
-const char* TransectStyleComplexItem::terrainAdjustToleranceName            = "TerrainAdjustTolerance";
-const char* TransectStyleComplexItem::terrainAdjustMaxClimbRateName         = "TerrainAdjustMaxClimbRate";
-const char* TransectStyleComplexItem::terrainAdjustMaxDescentRateName       = "TerrainAdjustMaxDescentRate";
-
-const char* TransectStyleComplexItem::_jsonTransectStyleComplexItemKey      = "TransectStyleComplexItem";
-const char* TransectStyleComplexItem::_jsonCameraCalcKey                    = "CameraCalc";
-const char* TransectStyleComplexItem::_jsonVisualTransectPointsKey          = "VisualTransectPoints";
-const char* TransectStyleComplexItem::_jsonItemsKey                         = "Items";
-const char* TransectStyleComplexItem::_jsonTerrainFlightSpeed               = "TerrainFlightSpeed";
-const char* TransectStyleComplexItem::_jsonCameraShotsKey                   = "CameraShots";
-
-const char* TransectStyleComplexItem::_jsonTerrainFollowKeyDeprecated       = "FollowTerrain";
 
 TransectStyleComplexItem::TransectStyleComplexItem(PlanMasterController* masterController, bool flyView, QString settingsGroup)
     : ComplexMissionItem                (masterController, flyView)
@@ -311,9 +293,8 @@ bool TransectStyleComplexItem::_load(const QJsonObject& complexObject, bool forP
             // We have to grovel through mission items to determine min/max alt
             _minAMSLAltitude = qQNaN();
             _maxAMSLAltitude = qQNaN();
-            MissionCommandTree* commandTree = qgcApp()->toolbox()->missionCommandTree();
             for (const MissionItem* missionItem: _loadedMissionItems) {
-                const MissionCommandUIInfo* uiInfo = commandTree->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, missionItem->command());
+                const MissionCommandUIInfo* uiInfo = MissionCommandTree::instance()->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, missionItem->command());
                 if (uiInfo && uiInfo->specifiesCoordinate() && !uiInfo->isStandaloneCoordinate()) {
                     _minAMSLAltitude = std::fmin(_minAMSLAltitude, missionItem->param7());
                     _maxAMSLAltitude = std::fmax(_maxAMSLAltitude, missionItem->param7());
@@ -623,10 +604,9 @@ void TransectStyleComplexItem::_queryMissionItemCoordHeights(void)
     }
 
     // We need terrain heights below each mission item we fly through which is terrain frame
-    MissionCommandTree* commandTree = qgcApp()->toolbox()->missionCommandTree();
     for (const MissionItem* missionItem: _loadedMissionItems) {
         if (missionItem->frame() == MAV_FRAME_GLOBAL_TERRAIN_ALT) {
-            const MissionCommandUIInfo* uiInfo = commandTree->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, missionItem->command());
+            const MissionCommandUIInfo* uiInfo = MissionCommandTree::instance()->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, missionItem->command());
             if (uiInfo && uiInfo->specifiesCoordinate() && !uiInfo->isStandaloneCoordinate()) {
                 _rgFlyThroughMissionItemCoords.append(missionItem->coordinate());
             }
@@ -1364,10 +1344,9 @@ double TransectStyleComplexItem::amslEntryAlt(void) const
     case QGroundControlQmlGlobal::AltitudeModeTerrainFrame:
         if (_loadedMissionItems.count()) {
             // The first item might not be a waypoint we have to find it.
-            MissionCommandTree* commandTree = qgcApp()->toolbox()->missionCommandTree();
             for (int i=0; i<_loadedMissionItems.count(); i++) {
                 MissionItem* item = _loadedMissionItems[i];
-                const MissionCommandUIInfo* uiInfo = commandTree->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, item->command());
+                const MissionCommandUIInfo* uiInfo = MissionCommandTree::instance()->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, item->command());
                 if (uiInfo && uiInfo->specifiesCoordinate() && !uiInfo->isStandaloneCoordinate()) {
                     if (_cameraCalc.distanceMode() == QGroundControlQmlGlobal::AltitudeModeCalcAboveTerrain) {
                         // AltitudeModeCalcAboveTerrain has AMSL alt in param 7
@@ -1409,10 +1388,9 @@ double TransectStyleComplexItem::amslExitAlt(void) const
     case QGroundControlQmlGlobal::AltitudeModeTerrainFrame:
         if (_loadedMissionItems.count()) {
             // The last item might not be a waypoint we have to find it.
-            MissionCommandTree* commandTree = qgcApp()->toolbox()->missionCommandTree();
             for (int i=_loadedMissionItems.count()-1; i>0; i--) {
                 MissionItem* item = _loadedMissionItems[i];
-                const MissionCommandUIInfo* uiInfo = commandTree->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, item->command());
+                const MissionCommandUIInfo* uiInfo = MissionCommandTree::instance()->getUIInfo(_controllerVehicle, QGCMAVLink::VehicleClassGeneric, item->command());
                 if (uiInfo && uiInfo->specifiesCoordinate() && !uiInfo->isStandaloneCoordinate()) {
                     if (_cameraCalc.distanceMode() == QGroundControlQmlGlobal::AltitudeModeCalcAboveTerrain) {
                         // AltitudeModeCalcAboveTerrain has AMSL alt in param 7

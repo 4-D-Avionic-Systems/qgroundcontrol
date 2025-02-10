@@ -8,15 +8,14 @@
  ****************************************************************************/
 
 
-import QtQuick              2.3
-import QtQuick.Controls     1.2
-import QtGraphicalEffects   1.0
+import QtQuick
+import QtQuick.Controls
 
-import QGroundControl.FactSystem    1.0
-import QGroundControl.FactControls  1.0
-import QGroundControl.Palette       1.0
-import QGroundControl.Controls      1.0
-import QGroundControl.ScreenTools   1.0
+import QGroundControl.FactSystem
+import QGroundControl.FactControls
+import QGroundControl.Palette
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
 
 SetupPage {
     id:             safetyPage
@@ -32,7 +31,7 @@ SetupPage {
 
             FactPanelController { id: controller; factPanel: safetyPage.viewPanel }
 
-            QGCPalette { id: palette; colorGroupEnabled: true }
+            QGCPalette { id: qgcPal; colorGroupEnabled: true }
 
             property Fact _failsafeBattMah:     controller.getParameterFact(-1, "r.BATT_LOW_MAH")
             property Fact _failsafeBattVoltage: controller.getParameterFact(-1, "r.BATT_LOW_VOLT")
@@ -40,7 +39,13 @@ SetupPage {
             property Fact _failsafeThrValue:    controller.getParameterFact(-1, "THR_FS_VALUE")
             property Fact _failsafeGCSEnable:   controller.getParameterFact(-1, "FS_GCS_ENABL")
 
-            property Fact _rtlAltFact: controller.getParameterFact(-1, "ALT_HOLD_RTL")
+            property Fact _rtlAltFact: {
+                if (controller.firmwareMajorVersion < 4 || (controller.firmwareMajorVersion === 4 && controller.firmwareMinorVersion < 5)) {
+                    return controller.getParameterFact(-1, "ALT_HOLD_RTL")
+                } else {
+                    return controller.getParameterFact(-1, "RTL_ALTITUDE")
+                }
+            }
 
             property real _margins: ScreenTools.defaultFontPixelHeight
 
@@ -51,13 +56,13 @@ SetupPage {
 
                 QGCLabel {
                     text:       qsTr("Failsafe Triggers")
-                    font.family: ScreenTools.demiboldFontFamily
+                    font.bold:   true
                 }
 
                 Rectangle {
                     width:  throttlePWMField.x + throttlePWMField.width + _margins
                     height: gcsCheckbox.y + gcsCheckbox.height + _margins
-                    color:  palette.windowShade
+                    color:  qgcPal.windowShade
 
                     QGCCheckBox {
                         id:                 throttleEnableCheckBox
@@ -140,13 +145,13 @@ SetupPage {
 
                 QGCLabel {
                     text:           qsTr("Return to Launch")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:      true
                 }
 
                 Rectangle {
                     width:  rltAltField.x + rltAltField.width + _margins
                     height: rltAltField.y + rltAltField.height + _margins
-                    color:  palette.windowShade
+                    color:  qgcPal.windowShade
 
                     QGCRadioButton {
                         id:                 returnAtCurrentRadio
