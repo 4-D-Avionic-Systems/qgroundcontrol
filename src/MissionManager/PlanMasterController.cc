@@ -710,4 +710,17 @@ void PlanMasterController::fourDNewMI(void)
         qCInfo(PlanMasterControllerLog) << "empty MI list";
     }
 }
+
+void PlanMasterController::micromarshall(void)
+{
+
+    QNetworkReply* reply;
+
+    reply = _fourDUtilities->micromarshall();
+
+    return;
+
+}
+
+
 //----------------------------------------------
