@@ -718,8 +718,6 @@ void PlanMasterController::micromarshall(void)
 
     reply = _fourDUtilities->micromarshall();
 
-    return;
-
 }
 
 

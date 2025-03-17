@@ -34,7 +34,6 @@ void FourDUtilities::setUrl(QString set_url)
 {
     _apiUrl = QUrl(set_url);
     qCInfo(FourDUtilitiesLog) << "setURL() - " << _apiUrl;
-    return;
 }
 
 void FourDUtilities::setParams(QJsonDocument planParams)
@@ -140,10 +139,10 @@ void FourDUtilities::postTelemData(void)
         _reply = _apiManager.post(request, telemDoc.toJson());
     }
 
-    return;
+
 }
 
-void FourDUtilities::micromarshall(void)
+QNetworkReply* FourDUtilities::micromarshall(void)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/micromarshall"));
     QNetworkRequest request(post_url);
@@ -153,7 +152,9 @@ void FourDUtilities::micromarshall(void)
 
     QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::_callback4DWayPoints);
 
-    return;
+    return _reply;
+
+
 }
 
 void FourDUtilities::_callback4DWayPoints(void)
@@ -230,7 +231,7 @@ void FourDUtilities::_callback4DWayPoints(void)
         _timer->start(100);
     }
 
-    return;
+
 }
 
 void FourDUtilities::_write4DWayPoints(void)
@@ -260,7 +261,8 @@ void FourDUtilities::_write4DWayPoints(void)
             }
         }
 
-        mavlink_msg_four_d_model_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
+        // Toolbox does not exist in this version of QGC
+        mavlink_msg_four_d_mission_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
                                             qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
                                             sharedLink->mavlinkChannel(),
                                             &message,
