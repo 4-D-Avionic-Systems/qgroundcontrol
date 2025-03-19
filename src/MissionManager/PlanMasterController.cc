@@ -709,14 +709,17 @@ void PlanMasterController::fourDNewMI(void)
     {
         qCInfo(PlanMasterControllerLog) << "empty MI list";
     }
+
+    micromarshal();
+
 }
 
-void PlanMasterController::micromarshall(void)
+void PlanMasterController::micromarshal(void)
 {
 
     QNetworkReply* reply;
 
-    reply = _fourDUtilities->micromarshall();
+    reply = _fourDUtilities->micromarshal();
 
 }
 

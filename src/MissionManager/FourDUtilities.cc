@@ -3,6 +3,7 @@
 #include "SettingsManager.h"
 #include "PlanMasterController.h"
 #include "QGCCorePlugin.h"
+#include "MAVLinkProtocol.h"
 
 
 
@@ -142,9 +143,9 @@ void FourDUtilities::postTelemData(void)
 
 }
 
-QNetworkReply* FourDUtilities::micromarshall(void)
+QNetworkReply* FourDUtilities::micromarshal(void)
 {
-    QUrl post_url = _apiUrl.resolved(QUrl("/micromarshall"));
+    QUrl post_url = _apiUrl.resolved(QUrl("/micromarshal"));
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");
@@ -220,7 +221,9 @@ void FourDUtilities::_callback4DWayPoints(void)
 
     _numberOfWayPoints = _formatModel.size();
     _messageNumber = 0;
-    _numberOfMessages = std::ceil( ((float)_numberOfWayPoints) / 5.0);
+    // _numberOfMessages = std::ceil( ((float)_numberOfWayPoints) / 5.0);
+    _numberOfMessages = div(_numberOfWayPoints, 5).quot + 1;
+
 
     qCInfo(FourDUtilitiesLog) << "#wpts, #messages = " << _numberOfWayPoints << " " << _numberOfMessages;
     qCInfo(FourDUtilitiesLog) << "Send 4D WayPoints over MavLink";
@@ -230,8 +233,6 @@ void FourDUtilities::_callback4DWayPoints(void)
         QObject::connect(_timer, &QTimer::timeout, this, &FourDUtilities::_write4DWayPoints);
         _timer->start(100);
     }
-
-
 }
 
 void FourDUtilities::_write4DWayPoints(void)
@@ -261,15 +262,49 @@ void FourDUtilities::_write4DWayPoints(void)
             }
         }
 
-        // Toolbox does not exist in this version of QGC
-        mavlink_msg_four_d_mission_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
-                                            qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
-                                            sharedLink->mavlinkChannel(),
-                                            &message,
-                                            _vehicle->id(),
-                                            _numberOfWayPoints,
-                                            _messageNumber,
-                                            flight_segment);
+        // Send MAVLink message using vehicle's MAVLink protocol
+        mavlink_msg_four_d_mission_pack_chan(
+            MAVLinkProtocol::instance()->getSystemId(),
+            MAVLinkProtocol::getComponentId(),
+            sharedLink->mavlinkChannel(),
+            &message,
+            _vehicle->id(),
+            _numberOfWayPoints,
+            _messageNumber,
+            flight_segment);
+
+        // mavlink_msg_four_d_mission_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
+        // qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
+        // sharedLink->mavlinkChannel(),
+        // &message,
+        // _vehicle->id(),
+        // _numberOfWayPoints,
+        // _messageNumber,
+        // flight_segment);
+
+        // mavlink_msg_mission_count_pack_chan(
+        //     MAVLinkProtocol::instance()->getSystemId(),
+        //     MAVLinkProtocol::getComponentId(),
+        //     sharedLink->mavlinkChannel(),
+        //     &message,
+        //     _vehicle->id(),
+        //     MAV_COMP_ID_AUTOPILOT1,
+        //     _writeMissionItems.count(),
+        //     _planType,
+        //     0
+        // );
+
+
+        //  **********************************************************************************************************
+            // else {
+
+            // qWarning() << "info.main_mode setFlightMode" << info.main_mode;
+            // qWarning() << "px4_mode.main_mode setFlightMode" << px4_mode.main_mode;
+            // qWarning() << "info.sub_mode setFlightMode" << info.sub_mode;
+            // qWarning() << "px4_mode.sub_mode setFlightMode" << px4_mode.sub_mode;
+
+            // qWarning() << "flightMode.compare(info.name, Qt::CaseInsensitive)" << flightMode.compare(info.name, Qt::CaseInsensitive);
+        //  **********************************************************************************************************
 
         _vehicle->sendMessageOnLinkThreadSafe(sharedLink.get(), message);
 

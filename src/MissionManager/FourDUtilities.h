@@ -31,7 +31,7 @@ public:
 
     void postTelemData(void);
 
-    QNetworkReply* micromarshall(void);
+    QNetworkReply* micromarshal(void);
     void _callback4DWayPoints(void);
     void _write4DWayPoints(void); // Do these all need to be public?
 

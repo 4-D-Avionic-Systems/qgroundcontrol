@@ -123,7 +123,7 @@ public:
     Q_INVOKABLE void postNewPath(void);
     Q_INVOKABLE void get4DWayPoints(void);
     Q_INVOKABLE void fourDNewMI(void);
-    Q_INVOKABLE void micromarshall(void);
+    Q_INVOKABLE void micromarshal(void);
     //-----------------------------------------------------------
 
 

@@ -39,9 +39,6 @@ PX4FirmwarePlugin::PX4FirmwarePlugin()
     , _altCtlFlightMode     (tr("Altitude"))
     , _posCtlFlightMode     (tr("Position"))
     , _offboardFlightMode   (tr("Offboard"))
-    //**********************************************************************************************************
-    , _fourdflightFlightMode (tr("4D Flight"))
-    //**********************************************************************************************************
     , _readyFlightMode      (tr("Ready"))
     , _takeoffFlightMode    (tr("Takeoff"))
     , _holdFlightMode       (tr("Hold"))
@@ -175,25 +172,6 @@ bool PX4FirmwarePlugin::setFlightMode(const QString& flightMode, uint8_t* base_m
             found = true;
             break;
         }
-
-
-        //  **********************************************************************************************************
-        // else {
-
-            // qWarning() << "info.main_mode setFlightMode" << info.main_mode;
-            // qWarning() << "px4_mode.main_mode setFlightMode" << px4_mode.main_mode;
-            // qWarning() << "info.sub_mode setFlightMode" << info.sub_mode;
-            // qWarning() << "px4_mode.sub_mode setFlightMode" << px4_mode.sub_mode;
-
-            // qWarning() << "flightMode.compare(info.name, Qt::CaseInsensitive)" << flightMode.compare(info.name, Qt::CaseInsensitive);
-
-            // qWarning() << "info.name" << *info.name;
-
-            // qWarning() << "flightMode" << flightMode;
-
-        // }
-        //  **********************************************************************************************************
-
     }
 
     if (!found) {
