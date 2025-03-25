@@ -126,7 +126,7 @@ Item {
         //4DAVSYS Changes ---------------------------------------------------------------------------------
         QGCButton {
             id:          fourDConvertButton
-            text:        _controllerDirty ? qsTr("Convert to 4D") : qsTr("Converted")
+            text:        _controllerDirty ? qsTr("Convert to 4D waypoints and upload") : qsTr("Convert to 4D waypoints and upload")
             enabled:     !_controllerSyncInProgress
             visible:     !_controllerOffline && !_controllerSyncInProgress
             primary:     _controllerDirty
