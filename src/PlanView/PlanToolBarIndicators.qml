@@ -126,11 +126,19 @@ Item {
         //4DAVSYS Changes ---------------------------------------------------------------------------------
         QGCButton {
             id:          fourDConvertButton
-            text:        _controllerDirty ? qsTr("Convert to 4D waypoints and upload") : qsTr("Convert to 4D waypoints and upload")
+            text:        _controllerDirty ? qsTr("Upload 4D Flightpath Required") : qsTr("Upload 4D Flightpath")
             enabled:     !_controllerSyncInProgress
             visible:     !_controllerOffline && !_controllerSyncInProgress
             primary:     _controllerDirty
             onClicked: {
+
+                if (_utmspEnabled) {
+                    QGroundControl.utmspManager.utmspVehicle.triggerActivationStatusBar(true);
+                    UTMSPStateStorage.removeFlightPlanState = true
+                    UTMSPStateStorage.indicatorDisplayStatus = true
+                }
+                _planMasterController.upload();
+
                 _planMasterController.convertTo4D()
             }
 
