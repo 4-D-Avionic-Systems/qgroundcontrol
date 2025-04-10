@@ -26,7 +26,7 @@ option(QGC_ENABLE_QT_VIDEOSTREAMING "Enable QtMultimedia Video Backend" OFF) # Q
 # set(QGC_MAVLINK_GIT_TAG "b71f061a53941637cbcfc5bcf860f96bc82e0892" CACHE STRING "Tag of MAVLink Git Repo")
 
 set(QGC_MAVLINK_GIT_REPO "git@github.com:4-D-Avionic-Systems/c_library_v2.git" CACHE STRING "URL to 4D Avionic Systems MAVLink Git Repo")
-set(QGC_MAVLINK_GIT_TAG "31f44274837dbcee5c7fbe3daec92458336347b3" CACHE STRING "Tag of MAVLink Git Repo")
+set(QGC_MAVLINK_GIT_TAG "4cd9943ecc1ec41275bade1f85740973efeda4eb" CACHE STRING "Tag of MAVLink Git Repo")
 
 # Android
 set(QGC_QT_ANDROID_MIN_SDK_VERSION "28" CACHE STRING "Android Min SDK Version")
