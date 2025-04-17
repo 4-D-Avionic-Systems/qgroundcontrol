@@ -53,7 +53,7 @@ QNetworkReply* FourDUtilities::postParams(void)
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.post(request, _vehicleParams.toJson());
+    _reply = _apiManager.post(request, _vehicleParams.toJson() );
 
     // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::postNewPath);
 
@@ -67,8 +67,13 @@ QNetworkReply* FourDUtilities::postNewPath(void)
     QUrl post_url = _apiUrl.resolved(QUrl("/flight"));
     QNetworkRequest request(post_url);
 
+    QJsonObject param_object = _vehicleParams.object();
+    QJsonObject object_with_id = _vehiclePlan.object();
+    object_with_id.insert("MAV_SYS_ID", param_object["MAV_SYS_ID"] );
+    QJsonDocument output_doc(object_with_id);
+
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.post(request, _vehiclePlan.toJson());
+    _reply = _apiManager.post(request, output_doc.toJson());
 
     // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::get4DWayPoints);
 
@@ -83,7 +88,7 @@ QNetworkReply* FourDUtilities::get4DWayPoints(void)
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.get(request);
+    _reply = _apiManager.get(request, _vehicleParams.toJson());
 
     // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::_callback4DWayPoints);
 
@@ -124,6 +129,8 @@ void FourDUtilities::postTelemData(void)
         QUrl post_url = _apiUrl.resolved(QUrl("/telem"));
         QNetworkRequest request(post_url);
 
+        QJsonObject param_object = _vehicleParams.object();
+
         QJsonDocument telemDoc;
         QJsonArray    telemArray;
 
@@ -133,6 +140,7 @@ void FourDUtilities::postTelemData(void)
         telemArray.prepend(_localPositionFactGroup->getFact("z")->rawValue().toDouble());
         telemArray.prepend(_localPositionFactGroup->getFact("y")->rawValue().toDouble());
         telemArray.prepend(_localPositionFactGroup->getFact("x")->rawValue().toDouble());
+        telemArray.prepend(param_object["MAV_SYS_ID"]);
 
         telemDoc.setArray(telemArray);
 
