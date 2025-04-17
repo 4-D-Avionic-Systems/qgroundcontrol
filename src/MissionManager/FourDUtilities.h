@@ -31,6 +31,10 @@ public:
 
     void postTelemData(void);
 
+    void micromarshall(void);
+    void _callback4DWayPoints(void);
+    void _write4DWayPoints(void); // Do these all need to be public?
+
 private:
     void _commonInit(void);
 
