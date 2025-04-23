@@ -640,7 +640,11 @@ Item {
                         }
                     },
                     ToolStripAction {
-                        text:       _planMasterController.controllerVehicle.multiRotor ? qsTr("Return") : qsTr("Land")
+                        text:       _planMasterController.controllerVehicle.multiRotor
+                                    ? qsTr("Return")
+                                    : _missionController.isInsertLandValid && _missionController.hasLandItem
+                                      ? qsTr("Alt Land")
+                                      : qsTr("Land")
                         iconSource: "/res/rtl.svg"
                         enabled:    _missionController.isInsertLandValid
                         visible:    toolStrip._isMissionLayer || toolStrip._isUtmspLayer
@@ -918,7 +922,7 @@ Item {
                                                       UTMSPStateStorage.currentStateIndex = 0}})
     }
 
-    //- ToolStrip DropPanel Components
+    //- ToolStrip ToolStripDropPanel Components
 
     Component {
         id: centerMapDropPanel

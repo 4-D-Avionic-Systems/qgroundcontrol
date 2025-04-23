@@ -155,7 +155,6 @@ QNetworkReply* FourDUtilities::micromarshal(void)
 
     return _reply;
 
-
 }
 
 void FourDUtilities::_callback4DWayPoints(void)

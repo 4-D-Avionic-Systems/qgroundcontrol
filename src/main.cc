@@ -7,7 +7,6 @@
  *
  ****************************************************************************/
 
-#include <QtCore/QtPlugin>
 #include <QtQuick/QQuickWindow>
 #include <QtWidgets/QApplication>
 
@@ -26,6 +25,12 @@
 
 #ifdef Q_OS_ANDROID
     #include "AndroidInterface.h"
+#endif
+
+#ifdef Q_OS_LINUX
+#ifndef Q_OS_ANDROID
+    #include "SignalHandler.h"
+#endif
 #endif
 
 #ifdef QT_DEBUG
@@ -53,24 +58,6 @@ int WindowsCrtReportHook(int reportType, char* message, int* returnValue)
 #endif // Q_OS_WIN
 
 #endif // QT_DEBUG
-
-#ifdef Q_OS_LINUX
-#ifndef Q_OS_ANDROID
-
-#include <csignal>
-
-void sigHandler(int s)
-{
-    std::signal(s, SIG_DFL);
-    if(qgcApp()) {
-        qgcApp()->mainRootWindow()->close();
-        QEvent event{QEvent::Quit};
-        qgcApp()->event(&event);
-    }
-}
-
-#endif /* Q_OS_ANDROID */
-#endif /* Q_OS_LINUX */
 
 //-----------------------------------------------------------------------------
 /**
@@ -145,9 +132,6 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    // We statically link our own QtLocation plugin
-    Q_IMPORT_PLUGIN(QGeoServiceProviderFactoryQGC)
-
     bool runUnitTests = false;
     bool simpleBootTest = false;
 
@@ -194,8 +178,8 @@ int main(int argc, char *argv[])
 
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
-    std::signal(SIGINT, sigHandler);
-    std::signal(SIGTERM, sigHandler);
+    SignalHandler::instance();
+    (void) SignalHandler::setupSignalHandlers();
 #endif
 #endif
 
