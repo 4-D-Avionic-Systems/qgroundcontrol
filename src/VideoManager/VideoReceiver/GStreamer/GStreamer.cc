@@ -8,11 +8,11 @@
  ****************************************************************************/
 
 #include "GStreamer.h"
-#include "GstVideoReceiver.h"
-#include "SettingsManager.h"
 #include "AppSettings.h"
-#include "VideoSettings.h"
+#include "GstVideoReceiver.h"
 #include "QGCLoggingCategory.h"
+#include "SettingsManager.h"
+#include "VideoSettings.h"
 #ifdef Q_OS_IOS
 #include "gst_ios_init.h"
 #endif
@@ -41,9 +41,6 @@ GST_PLUGIN_STATIC_DECLARE(mpegtsdemux);
 GST_PLUGIN_STATIC_DECLARE(opengl);
 GST_PLUGIN_STATIC_DECLARE(tcp);
 GST_PLUGIN_STATIC_DECLARE(app);
-// #ifndef Q_OS_ANDROID
-// GST_PLUGIN_STATIC_DECLARE(va);
-// #endif
 #ifdef Q_OS_ANDROID
 GST_PLUGIN_STATIC_DECLARE(androidmedia);
 #elif defined(Q_OS_IOS)
@@ -101,7 +98,7 @@ static void _qgcputenv(const QString &key, const QString &root, const QString &p
 {
     const QByteArray keyArray = key.toLocal8Bit();
     const QByteArray valueArray = (root + path).toLocal8Bit();
-    (void) qputenv(keyArray, valueArray);
+    (void) qputenv(keyArray.constData(), valueArray);
 }
 
 static void _setGstEnvVars()
@@ -149,9 +146,6 @@ static void _registerPlugins()
     GST_PLUGIN_STATIC_REGISTER(opengl);
     GST_PLUGIN_STATIC_REGISTER(tcp);
     GST_PLUGIN_STATIC_REGISTER(app);
-// #ifndef Q_OS_ANDROID
-//     GST_PLUGIN_STATIC_REGISTER(va);
-// #endif
 #ifdef Q_OS_ANDROID
     GST_PLUGIN_STATIC_REGISTER(androidmedia);
 #elif defined(Q_OS_IOS)
@@ -160,63 +154,41 @@ static void _registerPlugins()
 #endif
 }
 
-namespace GStreamer
+static void _checkPlugin(gpointer data, gpointer user_data)
 {
-
-void initialize()
-{
-    (void) qRegisterMetaType<VideoReceiver::STATUS>("STATUS");
-
-    _setGstEnvVars();
-
-    if (qEnvironmentVariableIsEmpty("GST_DEBUG")) {
-        int gstDebugLevel = 0;
-        QSettings settings;
-        if (settings.contains(AppSettings::gstDebugLevelName)) {
-            gstDebugLevel = settings.value(AppSettings::gstDebugLevelName).toInt();
-        }
-        gst_debug_set_default_threshold(static_cast<GstDebugLevel>(gstDebugLevel));
-        gst_debug_remove_log_function(gst_debug_log_default);
-        gst_debug_add_log_function(qt_gst_log, nullptr, nullptr);
+    GstPlugin *plugin = static_cast<GstPlugin*>(data);
+    if (!plugin) {
+        return;
     }
 
-#ifdef Q_OS_IOS
-    gst_ios_pre_init();
-#endif
-
-    const QStringList args = QCoreApplication::arguments();
-    int argc = args.size();
-    QList<QByteArray> argList;
-    argList.reserve(argc);
-
-    char **argv = new char*[argc];
-    for (int i = 0; i < argc; i++) {
-        (void) argList.append(args[i].toUtf8());
-        argv[i] = argList[i].data();
-    }
-
-    GError *error = nullptr;
-    if (!gst_init_check(&argc, &argv, &error)) {
-        qCCritical(GStreamerLog) << Q_FUNC_INFO << error->message;
-        g_error_free(error);
-    }
-    delete[] argv;
-
-    _registerPlugins();
-
-#ifdef Q_OS_IOS
-    gst_ios_post_init();
-#endif
-
-    GST_PLUGIN_STATIC_REGISTER(qml6);
-    GST_PLUGIN_STATIC_REGISTER(qgc);
-
-    blacklist(static_cast<GStreamer::VideoDecoderOptions>(SettingsManager::instance()->videoSettings()->forceVideoDecoder()->rawValue().toInt()));
+    const gchar *name = gst_plugin_get_name(plugin);
+    const gchar *version = gst_plugin_get_version(plugin);
+    qCDebug(GStreamerLog) << QString("Plugin %1: (Version %2)").arg(name, version);
 }
 
-void blacklist(VideoDecoderOptions option)
+static bool _verifyPlugins()
 {
-    GstRegistry *const registry = gst_registry_get();
+    GstRegistry *registry = gst_registry_get();
+
+    GList *plugins = gst_registry_get_plugin_list(registry);
+    g_list_foreach(plugins, _checkPlugin, NULL);
+    g_list_free(plugins);
+
+    GstPlugin *plugin = gst_registry_find_plugin(registry, "coreelements");
+    if (!plugin) {
+        qCCritical(GStreamerLog) << "coreelements plugin NOT found. "
+                                 << "Please ensure that the GStreamer installation includes the 'coreelements' plugin. "
+                                 << "Check your GStreamer setup or reinstall GStreamer";
+        return false;
+    }
+    gst_object_unref(plugin);
+
+    return true;
+}
+
+static void _blacklist(GStreamer::VideoDecoderOptions option)
+{
+    GstRegistry *registry = gst_registry_get();
 
     if (!registry) {
         qCCritical(GStreamerLog) << "Failed to get gstreamer registry.";
@@ -239,35 +211,100 @@ void blacklist(VideoDecoderOptions option)
     changeRank("bcmdec", GST_RANK_NONE);
 
     switch (option) {
-    case ForceVideoDecoderDefault:
-        break;
-    case ForceVideoDecoderSoftware:
-        for (const char *name : {"avdec_h264", "avdec_h265"}) {
-            changeRank(name, GST_RANK_PRIMARY + 1);
-        }
-        break;
-    case ForceVideoDecoderVAAPI:
-        for (const char *name : {"vaapimpeg2dec", "vaapimpeg4dec", "vaapih263dec", "vaapih264dec", "vaapih265dec", "vaapivc1dec"}) {
-            changeRank(name, GST_RANK_PRIMARY + 1);
-        }
-        break;
-    case ForceVideoDecoderNVIDIA:
-        for (const char *name : {"nvh265dec", "nvh265sldec", "nvh264dec", "nvh264sldec"}) {
-            changeRank(name, GST_RANK_PRIMARY + 1);
-        }
-        break;
-    case ForceVideoDecoderDirectX3D:
-        for (const char *name : {"d3d11vp9dec", "d3d11h265dec", "d3d11h264dec"}) {
-            changeRank(name, GST_RANK_PRIMARY + 1);
-        }
-        break;
-    case ForceVideoDecoderVideoToolbox:
-        changeRank("vtdec", GST_RANK_PRIMARY + 1);
-        break;
-    default:
-        qCWarning(GStreamerLog) << "Can't handle decode option:" << option;
-        break;
+        case GStreamer::ForceVideoDecoderDefault:
+            break;
+        case GStreamer::ForceVideoDecoderSoftware:
+            for (const char *name : {"avdec_h264", "avdec_h265"}) {
+                changeRank(name, GST_RANK_PRIMARY + 1);
+            }
+            break;
+        case GStreamer::ForceVideoDecoderVAAPI:
+            for (const char *name : {"vaapimpeg2dec", "vaapimpeg4dec", "vaapih263dec", "vaapih264dec", "vaapih265dec", "vaapivc1dec"}) {
+                changeRank(name, GST_RANK_PRIMARY + 1);
+            }
+            break;
+        case GStreamer::ForceVideoDecoderNVIDIA:
+            for (const char *name : {"nvh265dec", "nvh265sldec", "nvh264dec", "nvh264sldec"}) {
+                changeRank(name, GST_RANK_PRIMARY + 1);
+            }
+            break;
+        case GStreamer::ForceVideoDecoderDirectX3D:
+            for (const char *name : {"d3d11vp9dec", "d3d11h265dec", "d3d11h264dec"}) {
+                changeRank(name, GST_RANK_PRIMARY + 1);
+            }
+            break;
+        case GStreamer::ForceVideoDecoderVideoToolbox:
+            changeRank("vtdec", GST_RANK_PRIMARY + 1);
+            break;
+        default:
+            qCWarning(GStreamerLog) << "Can't handle decode option:" << option;
+            break;
     }
+}
+
+namespace GStreamer
+{
+
+bool initialize()
+{
+    (void) qRegisterMetaType<VideoReceiver::STATUS>("STATUS");
+
+    _setGstEnvVars();
+
+    if (qEnvironmentVariableIsEmpty("GST_DEBUG")) {
+        int gstDebugLevel = 0;
+        QSettings settings;
+        if (settings.contains(AppSettings::gstDebugLevelName)) {
+            gstDebugLevel = settings.value(AppSettings::gstDebugLevelName).toInt();
+        }
+        gst_debug_set_default_threshold(static_cast<GstDebugLevel>(gstDebugLevel));
+        gst_debug_remove_log_function(gst_debug_log_default);
+        gst_debug_add_log_function(qt_gst_log, nullptr, nullptr);
+    }
+
+#ifdef Q_OS_IOS
+    gst_ios_pre_init();
+#endif
+
+    const QStringList args = QCoreApplication::arguments();
+    int argc = args.size();
+    QByteArrayList argList;
+    argList.reserve(argc);
+
+    char **argv = new char*[argc];
+    for (int i = 0; i < argc; i++) {
+        argList.append(args[i].toUtf8());
+        argv[i] = argList[i].data();
+    }
+
+    GError *error = nullptr;
+    const gboolean initialized = gst_init_check(&argc, &argv, &error);
+    delete[] argv;
+    if (!initialized) {
+        qCCritical(GStreamerLog) << Q_FUNC_INFO << error->message;
+        g_error_free(error);
+        return false;
+    }
+
+    const gchar *const version = gst_version_string();
+    qCDebug(GStreamerLog) << QString("GStreamer Initialized (Version: %1)").arg(version);
+
+    _registerPlugins();
+
+#ifdef Q_OS_IOS
+    gst_ios_post_init();
+#endif
+
+    GST_PLUGIN_STATIC_REGISTER(qml6);
+    GST_PLUGIN_STATIC_REGISTER(qgc);
+
+    if (!_verifyPlugins()) {
+        qCCritical(GStreamerLog) << "Failed to Init GStreamer Plugins";
+        return false;
+    }
+
+    _blacklist(static_cast<GStreamer::VideoDecoderOptions>(SettingsManager::instance()->videoSettings()->forceVideoDecoder()->rawValue().toInt()));
+    return true;
 }
 
 void *createVideoSink(QObject *parent, QQuickItem *widget)

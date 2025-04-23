@@ -7,6 +7,8 @@ on:
       - 'Stable*'
     tags:
       - 'v*'
+    paths-ignore:
+      - 'docs/**' # Do not trigger for any changes under docs
   pull_request:
     paths:
       - '.github/workflows/docker-linux.yml'
@@ -14,6 +16,7 @@ on:
       - 'deploy/linux/**'
       - 'src/**'
       - 'CMakeLists.txt'
+      - 'cmake/**'
 
 # concurrency:
 #   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,7 +36,6 @@ jobs:
         with:
           submodules: recursive
           fetch-tags: true
-          fetch-depth: 0
 
       - run: chmod a+x ./deploy/docker/run-docker-ubuntu.sh
 

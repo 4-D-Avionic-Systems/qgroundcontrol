@@ -12,6 +12,7 @@
 #include "QGCApplication.h"
 #include "ParameterManager.h"
 #include "SettingsManager.h"
+#include "MavlinkSettings.h"
 #include "FirmwareUpgradeSettings.h"
 #include "QGCCorePlugin.h"
 #include "QGCOptions.h"
@@ -24,8 +25,10 @@
 #include "VehicleObjectAvoidance.h"
 #include "TrajectoryPoints.h"
 #include "QmlObjectListModel.h"
-#if defined (Q_OS_IOS) || defined(Q_OS_ANDROID)
+#ifdef Q_OS_IOS
 #include "MobileScreenMgr.h"
+#elif defined(Q_OS_ANDROID)
+#include "AndroidInterface.h"
 #endif
 #include "QGCLoggingCategory.h"
 
@@ -80,12 +83,7 @@ void MultiVehicleManager::init()
     _gcsHeartbeatTimer->setInterval(kGCSHeartbeatRateMSecs);
     _gcsHeartbeatTimer->setSingleShot(false);
     (void) connect(_gcsHeartbeatTimer, &QTimer::timeout, this, &MultiVehicleManager::_sendGCSHeartbeat);
-
-    QSettings settings;
-    _gcsHeartbeatEnabled = settings.value(kGCSHeartbeatEnabledKey, true).toBool();
-    if (_gcsHeartbeatEnabled) {
-        _gcsHeartbeatTimer->start();
-    }
+    _gcsHeartbeatTimer->start();
 
     _initialized = true;
 }
@@ -162,10 +160,14 @@ void MultiVehicleManager::_vehicleHeartbeatInfo(LinkInterface* link, int vehicle
         setActiveVehicle(vehicle);
     }
 
-#if defined (Q_OS_IOS) || defined(Q_OS_ANDROID)
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
     if (_vehicles->count() == 1) {
-        qCDebug(MultiVehicleManagerLog) << "QAndroidJniObject::keepScreenOn";
-        MobileScreenMgr::setKeepScreenOn(true);
+        qCDebug(MultiVehicleManagerLog) << "keepScreenOn";
+        #if defined(Q_OS_ANDROID)
+            AndroidInterface::setKeepScreenOn(true);
+        #elif defined(Q_OS_IOS)
+            MobileScreenMgr::setKeepScreenOn(true);
+        #endif
     }
 #endif
 }
@@ -214,10 +216,14 @@ void MultiVehicleManager::_deleteVehiclePhase1(Vehicle *vehicle)
     emit vehicleRemoved(vehicle);
     vehicle->prepareDelete();
 
-#if defined (Q_OS_IOS) || defined(Q_OS_ANDROID)
+#if defined(Q_OS_ANDROID) || defined (Q_OS_IOS)
     if (_vehicles->count() == 0) {
-        qCDebug(MultiVehicleManagerLog) << "QAndroidJniObject::restoreScreenOn";
-        MobileScreenMgr::setKeepScreenOn(false);
+        qCDebug(MultiVehicleManagerLog) << "restoreScreenOn";
+        #if defined(Q_OS_ANDROID)
+            AndroidInterface::setKeepScreenOn(false);
+        #elif defined(Q_OS_IOS)
+            MobileScreenMgr::setKeepScreenOn(false);
+        #endif
     }
 #endif
 
@@ -306,6 +312,10 @@ void MultiVehicleManager::_vehicleParametersReadyChanged(bool parametersReady)
 
 void MultiVehicleManager::_sendGCSHeartbeat()
 {
+    if (!SettingsManager::instance()->mavlinkSettings()->sendGCSHeartbeat()->rawValue().toBool()) {
+        return;
+    }
+
     const QList<SharedLinkInterfacePtr> sharedLinks = LinkManager::instance()->links();
     for (const SharedLinkInterfacePtr link: sharedLinks) {
         if (!link->isConnected()) {
@@ -382,23 +392,6 @@ Vehicle *MultiVehicleManager::getVehicleById(int vehicleId) const
     }
 
     return nullptr;
-}
-
-void MultiVehicleManager::_setGcsHeartbeatEnabled(bool gcsHeartBeatEnabled)
-{
-    if (gcsHeartBeatEnabled != _gcsHeartbeatEnabled) {
-        _gcsHeartbeatEnabled = gcsHeartBeatEnabled;
-        emit gcsHeartBeatEnabledChanged(gcsHeartBeatEnabled);
-
-        QSettings settings;
-        settings.setValue(kGCSHeartbeatEnabledKey, gcsHeartBeatEnabled);
-
-        if (gcsHeartBeatEnabled) {
-            _gcsHeartbeatTimer->start();
-        } else {
-            _gcsHeartbeatTimer->stop();
-        }
-    }
 }
 
 void MultiVehicleManager::_setActiveVehicle(Vehicle *vehicle)

@@ -143,10 +143,20 @@ ApplicationWindow {
         showTool(qsTr("Analyze Tools"), "AnalyzeView.qml", "/qmlimages/Analyze.svg")
     }
 
-    function showVehicleSetupTool(setupPage = "") {
+    function showVehicleConfig() {
         showTool(qsTr("Vehicle Configuration"), "SetupView.qml", "/qmlimages/Gears.svg")
-        if (setupPage !== "") {
-            toolDrawerLoader.item.showNamedComponentPanel(setupPage)
+    }
+
+    function showVehicleConfigParametersPage() {
+        showVehicleConfig()
+        toolDrawerLoader.item.showParametersPanel()
+    }
+
+    function showKnownVehicleComponentConfigPage(knownVehicleComponent) {
+        showVehicleConfig()
+        let vehicleComponent = globals.activeVehicle.autopilotPlugin.findKnownVehicleComponent(knownVehicleComponent)
+        if (vehicleComponent) {
+            toolDrawerLoader.item.showVehicleComponentPanel(vehicleComponent)
         }
     }
 
@@ -280,6 +290,37 @@ ApplicationWindow {
         visible: QGroundControl.settingsManager.flyViewSettings.showLogReplayStatusBar.rawValue
     }
 
+    MessageDialog {
+        id:                 showTouchAreasNotification
+        title:              qsTr("Debug Touch Areas")
+        text:               qsTr("Touch Area display toggled")
+        buttons:            MessageDialog.Ok
+    }
+
+    MessageDialog {
+        id:                 advancedModeOnConfirmation
+        title:              qsTr("Advanced Mode")
+        text:               QGroundControl.corePlugin.showAdvancedUIMessage
+        buttons:            MessageDialog.Yes | MessageDialog.No
+        onButtonClicked: function (button, role) {
+            if (button === MessageDialog.Yes) {
+                QGroundControl.corePlugin.showAdvancedUI = true
+            }
+        }
+    }
+
+    MessageDialog {
+        id:                 advancedModeOffConfirmation
+        title:              qsTr("Advanced Mode")
+        text:               qsTr("Turn off Advanced Mode?")
+        buttons:            MessageDialog.Yes | MessageDialog.No
+        onButtonClicked: function (button, role) {
+            if (button === MessageDialog.Yes) {
+                QGroundControl.corePlugin.showAdvancedUI = false
+            }
+        }
+    }
+
     function showToolSelectDialog() {
         if (mainWindow.allowViewSwitch()) {
             mainWindow.showIndicatorDrawer(toolSelectComponent, null)
@@ -343,7 +384,7 @@ ApplicationWindow {
                             onClicked: {
                                 if (mainWindow.allowViewSwitch()) {
                                     mainWindow.closeIndicatorDrawer()
-                                    mainWindow.showVehicleSetupTool()
+                                    mainWindow.showVehicleConfig()
                                 }
                             }
                         }
@@ -405,11 +446,11 @@ ApplicationWindow {
                                     anchors.fill:       parent
 
                                     onClicked: (mouse) => {
-                                        console.log("clicked")
                                         if (mouse.modifiers & Qt.ControlModifier) {
                                             QGroundControl.corePlugin.showTouchAreas = !QGroundControl.corePlugin.showTouchAreas
                                             showTouchAreasNotification.open()
                                         } else if (ScreenTools.isMobile || mouse.modifiers & Qt.ShiftModifier) {
+                                            mainWindow.closeIndicatorDrawer()
                                             if(!QGroundControl.corePlugin.showAdvancedUI) {
                                                 advancedModeOnConfirmation.open()
                                             } else {
@@ -422,46 +463,6 @@ ApplicationWindow {
                                     onPressAndHold: {
                                         QGroundControl.corePlugin.showTouchAreas = !QGroundControl.corePlugin.showTouchAreas
                                         showTouchAreasNotification.open()
-                                    }
-
-                                    MessageDialog {
-                                        id:                 showTouchAreasNotification
-                                        title:              qsTr("Debug Touch Areas")
-                                        text:               qsTr("Touch Area display toggled")
-                                        buttons:            MessageDialog.Ok
-                                    }
-
-                                    MessageDialog {
-                                        id:                 advancedModeOnConfirmation
-                                        title:              qsTr("Advanced Mode")
-                                        text:               QGroundControl.corePlugin.showAdvancedUIMessage
-                                        buttons:            MessageDialog.Yes | MessageDialog.No
-                                        onButtonClicked: function (button, role) {
-                                            switch (button) {
-                                            case MessageDialog.Yes:
-                                                QGroundControl.corePlugin.showAdvancedUI = true
-                                                advancedModeOnConfirmation.close()
-                                                break;
-                                            }
-                                        }
-                                    }
-
-                                    MessageDialog {
-                                        id:                 advancedModeOffConfirmation
-                                        title:              qsTr("Advanced Mode")
-                                        text:               qsTr("Turn off Advanced Mode?")
-                                        buttons:            MessageDialog.Yes | MessageDialog.No
-                                        onButtonClicked: function (button, role) {
-                                            switch (button) {
-                                            case MessageDialog.Yes:
-                                                QGroundControl.corePlugin.showAdvancedUI = false
-                                                advancedModeOffConfirmation.close()
-                                                break;
-                                            case MessageDialog.No:
-                                                resetPrompt.close()
-                                                break;
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -551,28 +552,27 @@ ApplicationWindow {
     function showCriticalVehicleMessage(message) {
         closeIndicatorDrawer()
         if (criticalVehicleMessagePopup.visible || QGroundControl.videoManager.fullScreen) {
-            // We received additional wanring message while an older warning message was still displayed.
+            // We received additional warning message while an older warning message was still displayed.
             // When the user close the older one drop the message indicator tool so they can see the rest of them.
-            criticalVehicleMessagePopup.dropMessageIndicatorOnClose = true
+            criticalVehicleMessagePopup.additionalCriticalMessagesReceived = true
         } else {
             criticalVehicleMessagePopup.criticalVehicleMessage      = message
-            criticalVehicleMessagePopup.dropMessageIndicatorOnClose = false
+            criticalVehicleMessagePopup.additionalCriticalMessagesReceived = false
             criticalVehicleMessagePopup.open()
         }
     }
 
     Popup {
         id:                 criticalVehicleMessagePopup
-        y:                  ScreenTools.defaultFontPixelHeight
+        y:                  ScreenTools.toolbarHeight + ScreenTools.defaultFontPixelHeight
         x:                  Math.round((mainWindow.width - width) * 0.5)
         width:              mainWindow.width  * 0.55
         height:             criticalVehicleMessageText.contentHeight + ScreenTools.defaultFontPixelHeight * 2
         modal:              false
         focus:              true
-        closePolicy:        Popup.CloseOnEscape
 
-        property alias  criticalVehicleMessage:        criticalVehicleMessageText.text
-        property bool   dropMessageIndicatorOnClose:   false
+        property alias  criticalVehicleMessage:             criticalVehicleMessageText.text
+        property bool   additionalCriticalMessagesReceived: false
 
         background: Rectangle {
             anchors.fill:   parent
@@ -614,7 +614,7 @@ ApplicationWindow {
                 border.width:               1
                 width:                      additionalErrorsLabel.contentWidth + _margins
                 height:                     additionalErrorsLabel.contentHeight + _margins
-                visible:                    criticalVehicleMessagePopup.dropMessageIndicatorOnClose
+                visible:                    criticalVehicleMessagePopup.additionalCriticalMessagesReceived
 
                 property real _margins: ScreenTools.defaultFontPixelHeight * 0.25
 
@@ -641,10 +641,11 @@ ApplicationWindow {
             anchors.fill: parent
             onClicked: {
                 criticalVehicleMessagePopup.close()
-                if (criticalVehicleMessagePopup.dropMessageIndicatorOnClose) {
-                    criticalVehicleMessagePopup.dropMessageIndicatorOnClose = false;
+                if (criticalVehicleMessagePopup.additionalCriticalMessagesReceived) {
+                    criticalVehicleMessagePopup.additionalCriticalMessagesReceived = false;
+                    flyView.dropMainStatusIndicatorTool();
+                } else {
                     QGroundControl.multiVehicleManager.activeVehicle.resetErrorLevelMessages();
-                    flyView.dropMessageIndicatorTool();
                 }
             }
         }
@@ -676,6 +677,7 @@ ApplicationWindow {
         modal:          true
         focus:          true
         closePolicy:    Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        dim:            false
 
         property var sourceComponent
         property var indicatorItem
@@ -714,7 +716,7 @@ ApplicationWindow {
             Rectangle {
                 anchors.horizontalCenter:   backgroundRect.right
                 anchors.verticalCenter:     backgroundRect.top
-                width:                      ScreenTools.defaultFontPixelHeight
+                width:                      ScreenTools.largeFontPixelHeight
                 height:                     width
                 radius:                     width / 2
                 color:                      QGroundControl.globalPalette.button
