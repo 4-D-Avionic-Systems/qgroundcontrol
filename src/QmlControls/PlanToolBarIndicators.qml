@@ -184,7 +184,7 @@ Item {
             QGCLabel {
                 text:               qsTr("Total Mission")
                 Layout.columnSpan:  5
-                font.pointSize:     ScreenTools.smallFontPointSize
+                font.pointSize:     ScreenTools.smallFontPointSizeplantoolba
             }
 
             QGCLabel { text: qsTr("Distance:"); font.pointSize: _dataFontSize; }
@@ -230,6 +230,37 @@ Item {
                 Layout.minimumWidth:    _mediumValueWidth
             }
         }
+
+        //4DAVSYS Changes ---------------------------------------------------------------------------------
+        QGCButton {
+            id:          detectConflictButton
+            text:        qsTr("Detect Conflicts")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+            //onClicked:   _planMasterController.detectConflicts()
+        }
+
+        QGCButton {
+            id:          addGeoFenceButton
+            text:        qsTr("Add GeoFences")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+        }
+
+        QGCButton {
+            id:          overwriteGeoFenceButton
+            text:        qsTr("Overwrite GeoFences")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+        }
+
+        QGCButton {
+            id:          loadGeoFenceButton
+            text:        qsTr("Load GeoFences")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+        }
+        //-------------------------------------------------------------------------------------------------
     }
 }
 
