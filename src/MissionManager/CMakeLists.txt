@@ -14,6 +14,12 @@ target_sources(${CMAKE_PROJECT_NAME}
         CorridorScanComplexItem.h
         CorridorScanPlanCreator.cc
         CorridorScanPlanCreator.h
+
+        #4DAVSYS Changes ------
+	    FourDUtilities.cc
+	    FourDUtilities.h
+	    #---------------------
+
         FixedWingLandingComplexItem.cc
         FixedWingLandingComplexItem.h
         GeoFenceController.cc

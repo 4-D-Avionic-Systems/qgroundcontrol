@@ -237,7 +237,7 @@ Item {
             text:        qsTr("Detect Conflicts")
             enabled:     true
             visible:     !_controllerSyncInProgress
-            //onClicked:   _planMasterController.detectConflicts()
+            onClicked:   _planMasterController.detectConflicts()
         }
 
         QGCButton {

@@ -29,6 +29,10 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QFileInfo>
 
+//4DAVSYS Changes ------------------------------
+#include "ParameterManager.h"
+//----------------------------------------------
+
 QGC_LOGGING_CATEGORY(PlanMasterControllerLog, "PlanMasterControllerLog")
 
 PlanMasterController::PlanMasterController(QObject* parent)
@@ -653,3 +657,21 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
         _showPlanFromManagerVehicle();
     }
 }
+
+//4DAVSYS Changes ------------------------------
+void PlanMasterController::detectConflicts(void)
+{
+    //QNetworkReply* reply;
+
+    //todo create this where the rest of the managers are created
+    _fourDUtilities = new FourDUtilities(this, _managerVehicle, "http://127.0.0.1:7263");
+
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    QJsonDocument planJson = saveToJson();
+
+    //reply = 
+    _fourDUtilities->detectConflicts(paramsJson, planJson);
+
+    //QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::postNewPath);
+}
+//----------------------------------------------

@@ -16,6 +16,8 @@
 #include "GeoFenceController.h"
 #include "RallyPointController.h"
 
+#include "FourDUtilities.h"
+
 Q_DECLARE_LOGGING_CATEGORY(PlanMasterControllerLog)
 
 class QmlObjectListModel;
@@ -83,6 +85,10 @@ public:
     Q_INVOKABLE void saveToKml(const QString& filename);
     Q_INVOKABLE void removeAll(void);                       ///< Removes all from controller only, synce required to remove from vehicle
     Q_INVOKABLE void removeAllFromVehicle(void);            ///< Removes all from vehicle and controller
+
+    //4DAVSYS Changes -------------------------------------------
+    Q_INVOKABLE void detectConflicts(void);
+    //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }
     GeoFenceController*     geoFenceController(void)    { return &_geoFenceController; }
@@ -154,4 +160,8 @@ private:
     bool                    _deleteWhenSendCompleted =  false;
     bool                    _previousOverallDirty =     false;
     QmlObjectListModel*     _planCreators =             nullptr;
+
+    //4DAVSYS Changes -------------------------------------------
+    FourDUtilities*          _fourDUtilities =          nullptr;
+    //-----------------------------------------------------------
 };

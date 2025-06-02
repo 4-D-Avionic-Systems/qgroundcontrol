@@ -95,6 +95,10 @@ public:
     static MAV_PARAM_TYPE factTypeToMavType(FactMetaData::ValueType_t factType);
     static FactMetaData::ValueType_t mavTypeToFactType(MAV_PARAM_TYPE mavType);
 
+    //4DAVSYS Changes -------------------------------------------
+    QJsonDocument writeParametersToJson(void);
+    //-----------------------------------------------------------
+
     static constexpr int defaultComponentId = -1;
 
 signals:
