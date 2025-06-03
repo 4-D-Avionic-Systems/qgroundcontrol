@@ -57,6 +57,14 @@ QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
     return _reply;
 }
 
+QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
+    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Add"));
+    QNetworkRequest request(post_url);
+    request.setRawHeader("Content-Type", "application/json");
+    _reply = _apiManager.put(request, geoFences.toJson());
+    return _reply;
+}
+
 void FourDUtilities::postTelemData(void)
 {
     if (_vehicle->armed())

@@ -72,11 +72,12 @@ Item {
     // Properties of UTM adapter
     property bool   _utmspEnabled:                       QGroundControl.utmspSupported
     
-    function warnExlcusionAndCirclesOnly() {
+    //4DAVSYS Changes ---------------------------------------------------------------------------------
+    function addGeoFences() {
         showMessageDialog(qsTr("Warning"),
                           qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
-                          Dialog.Yes | Dialog.No,
-                          function() {})
+                          Dialog.Ok,
+                          function() {_planMasterController.addGeoFences()})
     }
 
     function overwriteGeoFences() {
@@ -94,6 +95,7 @@ Item {
                                                 })
                         })
     }
+    //-------------------------------------------------------------------------------------------------
     
 
     function getMissionTime() {
@@ -269,6 +271,7 @@ Item {
             text:        qsTr("Add GeoFences")
             enabled:     true
             visible:     !_controllerSyncInProgress
+            onClicked:   addGeoFences()
         }
 
         QGCButton {

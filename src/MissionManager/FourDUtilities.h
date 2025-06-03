@@ -19,6 +19,7 @@ public:
     ~FourDUtilities();
     QNetworkReply* detectConflicts(QJsonDocument planParams, QJsonDocument planJson);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
+    QNetworkReply* addGeoFences(QJsonDocument geoFences);
 
     void postTelemData(void);
 

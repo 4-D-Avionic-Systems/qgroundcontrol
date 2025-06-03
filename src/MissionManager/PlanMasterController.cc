@@ -665,9 +665,6 @@ void PlanMasterController::detectConflicts(void)
 {
     //QNetworkReply* reply;
 
-    //todo create this where the rest of the managers are created
-   
-
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
     QJsonDocument planJson = saveToJson();
 
@@ -681,5 +678,11 @@ void PlanMasterController::overwriteGeoFences(void)
 {
     QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
     _fourDUtilities->overwriteGeoFences(geoFenceJson);
+}
+
+void PlanMasterController::addGeoFences(void)
+{
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    _fourDUtilities->addGeoFences(geoFenceJson);
 }
 //----------------------------------------------
