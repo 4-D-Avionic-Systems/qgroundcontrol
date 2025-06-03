@@ -603,24 +603,25 @@ bool GeoFenceController::isEmpty(void) const
 
 //4DAVSYS Changes ------------------------------
 QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
-    QJsonArray jsonArray;
+    QJsonArray circleArray;
 
     for (int i = 0; i < _circles.count(); ++i) {
-        QObject* obj = _circles.get(i);
-        const QMetaObject* metaObj = obj->metaObject();
-        QJsonObject jsonObj;
-
-        for (int j = 0; j < metaObj->propertyCount(); ++j) {
-            QMetaProperty prop = metaObj->property(j);
-            const char* propName = prop.name();
-            QVariant value = obj->property(propName);
-            jsonObj[propName] = QJsonValue::fromVariant(value);
+        QGCFenceCircle* circle = qobject_cast<QGCFenceCircle*>(_circles.get(i));
+        if (circle && !circle->inclusion()) {
+            QJsonObject circleObj;
+            circle->saveToJson(circleObj);
+            circleArray.append(circleObj);
         }
-
-        jsonArray.append(jsonObj);
     }
-    return QJsonDocument(jsonArray);
+
+    QJsonObject root;
+    root["geoFenceCircles"] = circleArray;
+
+    return QJsonDocument(root);
 }
+
+
+
 //----------------------------------------------
 
 #ifdef QGC_UTM_ADAPTER

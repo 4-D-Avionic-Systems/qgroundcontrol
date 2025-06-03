@@ -71,6 +71,18 @@ Item {
 
     // Properties of UTM adapter
     property bool   _utmspEnabled:                       QGroundControl.utmspSupported
+    
+    function warnExlcusionAndCirclesOnly() {
+        showMessageDialog(qsTr("Warning"),
+                          qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                          Dialog.Yes | Dialog.No,
+                          function() {})
+    }
+
+    function overwriteGeoFences() {
+        warnExlcusionAndCirclesOnly()
+        _planMasterController.overwriteGeoFences()
+    }
 
     function getMissionTime() {
         if (!_missionTime) {
@@ -252,7 +264,7 @@ Item {
             text:        qsTr("Overwrite GeoFences")
             enabled:     true
             visible:     !_controllerSyncInProgress
-            onClicked:   _planMasterController.overwriteGeoFences()
+            onClicked:   overwriteGeoFences()
         }
 
         QGCButton {
@@ -261,6 +273,8 @@ Item {
             enabled:     true
             visible:     !_controllerSyncInProgress
         }
+
+
         //-------------------------------------------------------------------------------------------------
     }
 }
