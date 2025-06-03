@@ -22,9 +22,13 @@
 #include "QGCFenceCircle.h"
 #include "QGCFencePolygon.h"
 #include "QGCLoggingCategory.h"
+#include "QmlObjectListModel.h"
 
 #include <QtCore/QJsonArray>
 #include <QtCore/QJsonDocument>
+#include <QtCore/QJsonObject>
+#include <QtCore/QFile>
+#include <QtCore/QMetaProperty>
 
 QGC_LOGGING_CATEGORY(GeoFenceControllerLog, "GeoFenceControllerLog")
 
@@ -596,6 +600,28 @@ bool GeoFenceController::isEmpty(void) const
     return _polygons.count() == 0 && _circles.count() == 0 && !_breachReturnPoint.isValid();
 
 }
+
+//4DAVSYS Changes ------------------------------
+QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
+    QJsonArray jsonArray;
+
+    for (int i = 0; i < _circles.count(); ++i) {
+        QObject* obj = _circles.get(i);
+        const QMetaObject* metaObj = obj->metaObject();
+        QJsonObject jsonObj;
+
+        for (int j = 0; j < metaObj->propertyCount(); ++j) {
+            QMetaProperty prop = metaObj->property(j);
+            const char* propName = prop.name();
+            QVariant value = obj->property(propName);
+            jsonObj[propName] = QJsonValue::fromVariant(value);
+        }
+
+        jsonArray.append(jsonObj);
+    }
+    return QJsonDocument(jsonArray);
+}
+//----------------------------------------------
 
 #ifdef QGC_UTM_ADAPTER
 void GeoFenceController::loadFlightPlanData()

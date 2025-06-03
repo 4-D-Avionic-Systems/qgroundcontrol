@@ -88,6 +88,7 @@ public:
 
     //4DAVSYS Changes -------------------------------------------
     Q_INVOKABLE void detectConflicts(void);
+    Q_INVOKABLE void overwriteGeoFences(void);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }

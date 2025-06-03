@@ -252,6 +252,7 @@ Item {
             text:        qsTr("Overwrite GeoFences")
             enabled:     true
             visible:     !_controllerSyncInProgress
+            onClicked:   _planMasterController.overwriteGeoFences()
         }
 
         QGCButton {

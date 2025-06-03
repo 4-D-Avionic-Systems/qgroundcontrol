@@ -43,6 +43,7 @@ PlanMasterController::PlanMasterController(QObject* parent)
     , _missionController    (this)
     , _geoFenceController   (this)
     , _rallyPointController (this)
+    
 {
     _commonInit();
 }
@@ -78,6 +79,7 @@ void PlanMasterController::_commonInit(void)
 
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
+     _fourDUtilities = new FourDUtilities(this, _managerVehicle, "http://127.0.0.1:7263");
 }
 
 
@@ -664,7 +666,7 @@ void PlanMasterController::detectConflicts(void)
     //QNetworkReply* reply;
 
     //todo create this where the rest of the managers are created
-    _fourDUtilities = new FourDUtilities(this, _managerVehicle, "http://127.0.0.1:7263");
+   
 
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
     QJsonDocument planJson = saveToJson();
@@ -673,5 +675,11 @@ void PlanMasterController::detectConflicts(void)
     _fourDUtilities->detectConflicts(paramsJson, planJson);
 
     //QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::postNewPath);
+}
+
+void PlanMasterController::overwriteGeoFences(void)
+{
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    _fourDUtilities->overwriteGeoFences(geoFenceJson);
 }
 //----------------------------------------------
