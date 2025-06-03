@@ -80,9 +80,21 @@ Item {
     }
 
     function overwriteGeoFences() {
-        warnExlcusionAndCirclesOnly()
-        _planMasterController.overwriteGeoFences()
+        showMessageDialog(qsTr("Warning"),
+                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        Dialog.Ok,
+                        function() {
+                            // After user clicks OK, show confirmation dialog
+                            showMessageDialog(qsTr("Are You Sure?"),
+                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
+                                                Dialog.Yes | Dialog.No,
+                                                function() {
+                                                    _planMasterController.overwriteGeoFences()
+                                                    
+                                                })
+                        })
     }
+    
 
     function getMissionTime() {
         if (!_missionTime) {
