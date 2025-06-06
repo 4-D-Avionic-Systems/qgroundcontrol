@@ -90,6 +90,7 @@ public:
     Q_INVOKABLE void detectConflicts(void);
     Q_INVOKABLE void overwriteGeoFences(void);
     Q_INVOKABLE void addGeoFences();
+    Q_INVOKABLE void loadGeoFences();
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }

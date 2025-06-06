@@ -287,6 +287,7 @@ Item {
             text:        qsTr("Load GeoFences")
             enabled:     true
             visible:     !_controllerSyncInProgress
+            onClicked:   {_planMasterController.loadGeoFences()}
         }
 
 

@@ -119,6 +119,14 @@ Rectangle {
             fact:               QGroundControl.settingsManager.appSettings.defaultMissionItemAltitude
             Layout.fillWidth:   true
         }
+        
+        QGCLabel {
+            text:           qsTr("UTC Start Time")
+            font.pointSize: ScreenTools.smallFontPointSize
+        }
+        FactTextField {
+            Layout.fillWidth:   true
+        }
 
         GridLayout {
             Layout.fillWidth:   true

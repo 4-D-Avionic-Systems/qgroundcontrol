@@ -65,6 +65,44 @@ QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
     return _reply;
 }
 
+QJsonDocument FourDUtilities::loadGeoFences() {
+    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Load"));
+    QNetworkRequest request(post_url);
+    request.setRawHeader("Content-Type", "application/json");
+
+    QNetworkReply* reply = _apiManager.get(request);
+
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    QByteArray responseData = reply->readAll();
+    QJsonDocument results = parseJsonFromReply(reply, responseData);
+    reply->deleteLater();
+
+    return results;
+}
+
+QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData)
+{
+    if (reply->error() != QNetworkReply::NoError) {
+        qWarning() << "Network error:" << reply->errorString();
+        return QJsonDocument();
+    }
+
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Failed to parse JSON:" << parseError.errorString();
+        return QJsonDocument();
+    }
+
+    qCInfo(FourDUtilitiesLog) << jsonDoc.toJson();
+    return jsonDoc;
+}
+
+
 void FourDUtilities::postTelemData(void)
 {
     if (_vehicle->armed())

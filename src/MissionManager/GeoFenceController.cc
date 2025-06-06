@@ -621,6 +621,67 @@ QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
 }
 
 
+bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString)
+{
+    // Clear existing circles
+    _circles.clear();
+
+    if (!doc.isObject()) {
+        errorString = "Invalid JSON format: root is not an object.";
+        return false;
+    }
+
+    QJsonObject rootObj = doc.object();
+
+    if (!rootObj.contains("circles") || !rootObj["circles"].isArray()) {
+        errorString = "Missing or invalid 'geoFenceCircles' array in JSON.";
+        return false;
+    }
+
+    QJsonArray circleArray = rootObj["crcles"].toArray();
+
+    for (const QJsonValue& val : circleArray) {
+        if (!val.isObject()) {
+            qWarning() << "Invalid circle item (not an object)";
+            continue;
+        }
+
+        QJsonObject obj = val.toObject();
+
+        if (!obj.contains("circle") || !obj.contains("inclusion")) {
+            qWarning() << "Missing 'circle' or 'inclusion' field";
+            continue;
+        }
+
+        if (obj["inclusion"].toBool()) {
+            // Skip inclusion zones
+            continue;
+        }
+
+        QJsonObject circleObj = obj["circle"].toObject();
+
+        if (!circleObj.contains("center") || !circleObj.contains("radius")) {
+            qWarning() << "Circle object missing 'center' or 'radius'";
+            continue;
+        }
+
+        QJsonArray centerArray = circleObj["center"].toArray();
+        if (centerArray.size() != 2) {
+            qWarning() << "Center array should have 2 values (lat, lon)";
+            continue;
+        }
+
+        double lat = centerArray[0].toDouble();
+        double lon = centerArray[1].toDouble();
+        double radius = circleObj["radius"].toDouble();
+
+        QGeoCoordinate center(lat, lon);
+        QGCFenceCircle* circle = new QGCFenceCircle(center, radius, this);
+        _circles.append(circle);
+    }
+
+    return true;
+}
 
 //----------------------------------------------
 

@@ -20,6 +20,8 @@ public:
     QNetworkReply* detectConflicts(QJsonDocument planParams, QJsonDocument planJson);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
+    QJsonDocument loadGeoFences(void);
+    QJsonDocument parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData);
 
     void postTelemData(void);
 
