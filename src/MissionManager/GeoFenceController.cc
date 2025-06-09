@@ -621,8 +621,12 @@ QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
 }
 
 
-bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString)
+bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString, bool clearCircles)
 {
+    if (clearCircles){
+        _circles.clear();
+    }
+    
     if (!doc.isObject()) {
         errorString = "Invalid JSON format: root is not an object.";
         return false;

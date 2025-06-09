@@ -83,7 +83,7 @@ public:
     void setDirty                   (bool dirty) final;
     bool containsItems              (void) const final;
     bool showPlanFromManagerVehicle (void) final;
-    bool readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString);
+    bool readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString, bool clearCircles);
 
     QmlObjectListModel* polygons                (void) { return &_polygons; }
     QmlObjectListModel* circles                 (void) { return &_circles; }

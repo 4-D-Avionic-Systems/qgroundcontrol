@@ -83,6 +83,14 @@ QJsonDocument FourDUtilities::loadGeoFences() {
     return results;
 }
 
+QNetworkReply* FourDUtilities::deleteGeoFences(void){
+    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Delete"));
+    QNetworkRequest request(post_url);
+    request.setRawHeader("Content-Type", "application/json");
+    _reply = _apiManager.sendCustomRequest(request, "DELETE", "");
+    return _reply;
+}
+
 QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData)
 {
     if (reply->error() != QNetworkReply::NoError) {

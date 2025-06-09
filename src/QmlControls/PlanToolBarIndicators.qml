@@ -95,6 +95,24 @@ Item {
                                                 })
                         })
     }
+
+    function loadGeoFences() {
+    showMessageDialog(qsTr("Would you like to clear existing circles?"),
+                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        _planMasterController.loadGeoFences(true)
+                    })
+    }
+
+    function deleteGeoFences() {
+    showMessageDialog(qsTr("Are you Sure?)"),
+                        qsTr("This will delete all existing circles"),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        _planMasterController.deleteGeoFences()
+                    })
+    }
     //-------------------------------------------------------------------------------------------------
     
 
@@ -287,7 +305,15 @@ Item {
             text:        qsTr("Load GeoFences")
             enabled:     true
             visible:     !_controllerSyncInProgress
-            onClicked:   {_planMasterController.loadGeoFences()}
+            onClicked:   loadGeoFences()
+        }
+
+        QGCButton {
+            id:          deleteGeoFenceButton
+            text:        qsTr("Clear GeoFence DB")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+            onClicked:   deleteGeoFences()
         }
 
 

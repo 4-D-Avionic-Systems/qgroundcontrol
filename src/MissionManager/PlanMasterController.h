@@ -89,8 +89,9 @@ public:
     //4DAVSYS Changes -------------------------------------------
     Q_INVOKABLE void detectConflicts(void);
     Q_INVOKABLE void overwriteGeoFences(void);
-    Q_INVOKABLE void addGeoFences();
-    Q_INVOKABLE void loadGeoFences();
+    Q_INVOKABLE void addGeoFences(void);
+    Q_INVOKABLE void loadGeoFences(bool clearCircles);
+    Q_INVOKABLE void deleteGeoFences(void);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }

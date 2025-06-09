@@ -686,15 +686,21 @@ void PlanMasterController::addGeoFences(void)
     _fourDUtilities->addGeoFences(geoFenceJson);
 }
 
-void PlanMasterController::loadGeoFences(void)
+void PlanMasterController::loadGeoFences(bool clearCircles)
 {
     QString errorString;
     QJsonDocument loadedGeoFenceCircles = _fourDUtilities->loadGeoFences();
     //return loadedGeoFenceCircles;
     // Pass the dereferenced document (QJsonDocument&) to the function
-    bool success = _geoFenceController.readGeoFenceCirclesFromJson(loadedGeoFenceCircles, errorString);
+    bool success = _geoFenceController.readGeoFenceCirclesFromJson(loadedGeoFenceCircles, errorString, clearCircles);
     if (!success) {
         qWarning() << "Error reading GeoFence circles from JSON:" << errorString;
     }
 }
+
+void PlanMasterController::deleteGeoFences(void)
+{
+    _fourDUtilities->deleteGeoFences();
+}
+
 //----------------------------------------------
