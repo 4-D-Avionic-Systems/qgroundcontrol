@@ -638,7 +638,7 @@ bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, Q
         return false;
     }
 
-    QJsonArray circleArray = rootObj["crcles"].toArray();
+    QJsonArray circleArray = rootObj["circles"].toArray();
 
     for (const QJsonValue& val : circleArray) {
         if (!val.isObject()) {
