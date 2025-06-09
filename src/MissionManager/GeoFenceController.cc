@@ -615,7 +615,7 @@ QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
     }
 
     QJsonObject root;
-    root["geoFenceCircles"] = circleArray;
+    root["circles"] = circleArray;
 
     return QJsonDocument(root);
 }
@@ -623,9 +623,6 @@ QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
 
 bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString)
 {
-    // Clear existing circles
-    _circles.clear();
-
     if (!doc.isObject()) {
         errorString = "Invalid JSON format: root is not an object.";
         return false;
@@ -677,6 +674,7 @@ bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, Q
 
         QGeoCoordinate center(lat, lon);
         QGCFenceCircle* circle = new QGCFenceCircle(center, radius, this);
+        circle->setInclusion(false);
         _circles.append(circle);
     }
 
