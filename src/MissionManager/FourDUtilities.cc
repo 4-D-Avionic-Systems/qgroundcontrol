@@ -40,7 +40,7 @@ QNetworkReply* FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDo
      _vehicleParams = planParams;
      _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.post(request, "{\"{params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, "{\"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
 
     // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::postNewPath);
 
