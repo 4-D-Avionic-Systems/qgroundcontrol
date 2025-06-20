@@ -112,19 +112,41 @@ Rectangle {
         }
 
         QGCLabel {
-            text:           qsTr("Initial Waypoint Alt")
+            text:           qsTr("Drone Nickname")
             font.pointSize: ScreenTools.smallFontPointSize
         }
         FactTextField {
-            fact:               QGroundControl.settingsManager.appSettings.defaultMissionItemAltitude
             Layout.fillWidth:   true
         }
-        
+
+        QGCLabel {
+            text:           qsTr("Faa Registration Number")
+            font.pointSize: ScreenTools.smallFontPointSize
+        }
+        FactTextField {
+            Layout.fillWidth:   true
+        }
+
         QGCLabel {
             text:           qsTr("UTC Start Time")
             font.pointSize: ScreenTools.smallFontPointSize
         }
         FactTextField {
+            Layout.fillWidth:   true
+        }
+
+
+        QGCCheckBox {
+                id:         lidarAvailableBox
+                text:       qsTr("Lidar Available?")
+        }
+
+        QGCLabel {
+            text:           qsTr("Initial Waypoint Alt")
+            font.pointSize: ScreenTools.smallFontPointSize
+        }
+        FactTextField {
+            fact:               QGroundControl.settingsManager.appSettings.defaultMissionItemAltitude
             Layout.fillWidth:   true
         }
 
