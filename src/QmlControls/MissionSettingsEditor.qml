@@ -135,6 +135,89 @@ Rectangle {
             Layout.fillWidth:   true
         }
 
+QGCLabel {
+    text: qsTr("Start Date and Time")
+    font.pointSize: ScreenTools.smallFontPointSize
+}
+
+function updateDayModel() {
+    var month = monthCombo.currentIndex
+    var year = 2024
+    var daysInMonth = 31
+
+    if (month === 1) { // February
+        daysInMonth = ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)) ? 29 : 28
+    } else if ([3, 5, 8, 10].includes(month)) { // April, June, September, November
+        daysInMonth = 30
+    }
+
+    let currentDay = dayCombo.currentIndex + 1
+    dayCombo.model = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+
+    if (currentDay <= daysInMonth) {
+        dayCombo.currentIndex = currentDay - 1
+    } else {
+        dayCombo.currentIndex = daysInMonth - 1
+    }
+}
+
+RowLayout {
+    Layout.fillWidth: true
+
+    ComboBox {
+        id: monthCombo
+        model: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        currentIndex: 0
+        onCurrentIndexChanged: updateDayModel()
+    }
+
+    ComboBox {
+        id: dayCombo
+        model: 31
+        currentIndex : 1
+        delegate: ItemDelegate {
+            text: index
+            width: parent.width
+        }
+    }
+
+    Component.onCompleted: updateDayModel()
+}
+
+
+QGCLabel {
+    text: qsTr("Hour:Minute")
+    font.pointSize: ScreenTools.smallFontPointSize
+}
+
+RowLayout {
+    Layout.fillWidth: true
+
+    ComboBox {
+        id: hourCombo
+        model: 24
+        currentIndex: 0
+        delegate: ItemDelegate {
+            text: index
+            width: parent.width
+        }
+    }
+
+    QGCLabel {
+        text: qsTr(":")
+        font.pointSize: ScreenTools.smallFontPointSize
+    }
+
+    ComboBox {
+        id: minuteCombo
+        model: 60
+        currentIndex: 0
+        delegate: ItemDelegate {
+            text: index
+            width: parent.width
+        }
+    }
+}
 
         QGCCheckBox {
                 id:         lidarAvailableBox
