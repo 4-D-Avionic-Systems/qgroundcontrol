@@ -32,21 +32,45 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
-QNetworkReply* FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDocument planJson)
+QString FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDocument planJson)
 {
-    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor"));
+    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
     QNetworkRequest request(post_url);
 
-     _vehicleParams = planParams;
-     _vehiclePlan = planJson;
+    _vehicleParams = planParams;
+    _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
+
     _reply = _apiManager.post(request, "{\"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
 
-    // QObject::connect(_reply, &QNetworkReply::finished, this, &FourDUtilities::postNewPath);
+    // Wait for the request to finish
+    QEventLoop loop;
+    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
 
-    qCInfo(FourDUtilitiesLog) << "Detect Conflicts";
+    // Get status code
+    int statusCode = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = _reply->readAll();
+    if (statusCode == 400) {
+        QJsonParseError parseError;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
 
-    return _reply;
+        if (parseError.error == QJsonParseError::NoError && jsonDoc.isObject()) {
+            QJsonObject obj = jsonDoc.object();
+            QString message = obj.value("message").toString();
+            QString details = obj.value("details").toString();
+
+            return message + "\n" + details;
+        } else {
+            qCWarning(FourDUtilitiesLog) << "Failed to parse JSON response:" << parseError.errorString();
+            return "Error occurred, but response could not be parsed.";
+        }
+    } else if (statusCode == 200) {
+        return QString();  // Return empty string
+    } else {
+        qCWarning(FourDUtilitiesLog) << "Unexpected status code:" << statusCode;
+        return "Unexpected error (" + QString::number(statusCode) + ")";
+    }
 }
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){

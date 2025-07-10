@@ -661,7 +661,7 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 }
 
 //4DAVSYS Changes ------------------------------
-void PlanMasterController::detectConflicts(void)
+QString PlanMasterController::detectConflicts(void)
 {
     //QNetworkReply* reply;
 
@@ -669,8 +669,8 @@ void PlanMasterController::detectConflicts(void)
     QJsonDocument planJson = saveToJson();
 
     //reply = 
-    _fourDUtilities->detectConflicts(paramsJson, planJson);
-
+    return _fourDUtilities->detectConflicts(paramsJson, planJson);
+    
     //QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::postNewPath);
 }
 

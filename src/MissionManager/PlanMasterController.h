@@ -87,7 +87,7 @@ public:
     Q_INVOKABLE void removeAllFromVehicle(void);            ///< Removes all from vehicle and controller
 
     //4DAVSYS Changes -------------------------------------------
-    Q_INVOKABLE void detectConflicts(void);
+    Q_INVOKABLE QString detectConflicts(void);
     Q_INVOKABLE void overwriteGeoFences(void);
     Q_INVOKABLE void addGeoFences(void);
     Q_INVOKABLE void loadGeoFences(bool clearCircles);

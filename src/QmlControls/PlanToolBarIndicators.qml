@@ -73,6 +73,14 @@ Item {
     property bool   _utmspEnabled:                       QGroundControl.utmspSupported
     
     //4DAVSYS Changes ---------------------------------------------------------------------------------
+    function detectConflicts(){
+        let msg = _planMasterController.detectConflicts()
+        showMessageDialog(qsTr("Error"),
+                    msg,
+                    Dialog.Ok)
+        
+    }
+    
     function addGeoFences() {
         showMessageDialog(qsTr("Warning"),
                           qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
@@ -281,7 +289,7 @@ Item {
             text:        qsTr("Detect Conflicts")
             enabled:     true
             visible:     !_controllerSyncInProgress
-            onClicked:   _planMasterController.detectConflicts()
+            onClicked:   detectConflicts()
         }
 
         QGCButton {
