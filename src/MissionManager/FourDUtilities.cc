@@ -32,7 +32,7 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
-QString FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDocument planJson)
+QNetworkReply*  FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDocument planJson)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
     QNetworkRequest request(post_url);
@@ -47,30 +47,7 @@ QString FourDUtilities::detectConflicts(QJsonDocument planParams, QJsonDocument 
     QEventLoop loop;
     QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
     loop.exec();
-
-    // Get status code
-    int statusCode = _reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    QByteArray responseData = _reply->readAll();
-    if (statusCode == 400) {
-        QJsonParseError parseError;
-        QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
-
-        if (parseError.error == QJsonParseError::NoError && jsonDoc.isObject()) {
-            QJsonObject obj = jsonDoc.object();
-            QString message = obj.value("message").toString();
-            QString details = obj.value("details").toString();
-
-            return message + "\n" + details;
-        } else {
-            qCWarning(FourDUtilitiesLog) << "Failed to parse JSON response:" << parseError.errorString();
-            return "Error occurred, but response could not be parsed.";
-        }
-    } else if (statusCode == 200) {
-        return QString();  // Return empty string
-    } else {
-        qCWarning(FourDUtilitiesLog) << "Unexpected status code:" << statusCode;
-        return "Unexpected error (" + QString::number(statusCode) + ")";
-    }
+    return _reply;
 }
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){

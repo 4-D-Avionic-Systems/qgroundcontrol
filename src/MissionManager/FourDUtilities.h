@@ -17,7 +17,7 @@ class FourDUtilities : public QObject
 public:
     FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr, QString urlStr = "");
     ~FourDUtilities();
-    QString detectConflicts(QJsonDocument planParams, QJsonDocument planJson);
+    QNetworkReply* detectConflicts(QJsonDocument planParams, QJsonDocument planJson);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
     QJsonDocument loadGeoFences(void);

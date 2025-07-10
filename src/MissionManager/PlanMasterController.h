@@ -147,6 +147,9 @@ private slots:
 private:
     void _commonInit                (void);
     void _showPlanFromManagerVehicle(void);
+    QString handle200Response(const QByteArray& responseData);
+    QString handle400Response(const QByteArray& responseData);
+    QString handleUnexpectedStatus(int statusCode);
 
     MultiVehicleManager*    _multiVehicleMgr =          nullptr;
     Vehicle*                _controllerVehicle =        nullptr;    ///< Offline controller vehicle

@@ -661,17 +661,75 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 }
 
 //4DAVSYS Changes ------------------------------
-QString PlanMasterController::detectConflicts(void)
+QString PlanMasterController::detectConflicts()
 {
-    //QNetworkReply* reply;
-
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
     QJsonDocument planJson = saveToJson();
 
-    //reply = 
-    return _fourDUtilities->detectConflicts(paramsJson, planJson);
-    
-    //QObject::connect(reply, &QNetworkReply::finished, this, &PlanMasterController::postNewPath);
+    QNetworkReply* reply = _fourDUtilities->detectConflicts(paramsJson, planJson);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200Response(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::handle200Response(const QByteArray& responseData)
+{
+    qDebug() << "Status 200";
+    QString errorString;
+
+    QJsonParseError parseError;
+    QJsonDocument wptJsonDoc = QJsonDocument::fromJson(responseData, &parseError);
+
+    if (parseError.error != QJsonParseError::NoError) {
+        qDebug() << "Parse Error at" << parseError.offset << ":" << parseError.errorString();
+        return "Failed to parse waypoint response.";
+    }
+
+    QJsonObject wptJsonObj = wptJsonDoc.object();
+    if (!wptJsonObj.isEmpty()) {
+        if (!_missionController.load(wptJsonObj, errorString)) {
+            qDebug() << "Error loading new mission items";
+            qDebug() << errorString;
+            qCInfo(PlanMasterControllerLog) << "Error loading mission items:" << errorString;
+        } else {
+            qDebug() << "Loaded new mission items";
+            qCInfo(PlanMasterControllerLog) << "Loaded new mission items.";
+        }
+    } else {
+        qCInfo(PlanMasterControllerLog) << "Empty mission item list.";
+    }
+
+    return QString();  // Success
+}
+
+QString PlanMasterController::handle400Response(const QByteArray& responseData)
+{
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
+
+    if (parseError.error == QJsonParseError::NoError && jsonDoc.isObject()) {
+        QJsonObject obj = jsonDoc.object();
+        QString message = obj.value("message").toString();
+        QString details = obj.value("details").toString();
+        return message + "\n" + details;
+    }
+
+    qCWarning(FourDUtilitiesLog) << "Failed to parse JSON response:" << parseError.errorString();
+    return "Error occurred, but response could not be parsed.";
+}
+
+QString PlanMasterController::handleUnexpectedStatus(int statusCode)
+{
+    qCWarning(FourDUtilitiesLog) << "Unexpected status code:" << statusCode;
+    return "Unexpected error (" + QString::number(statusCode) + ")";
 }
 
 void PlanMasterController::overwriteGeoFences(void)
