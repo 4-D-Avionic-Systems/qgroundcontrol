@@ -75,9 +75,11 @@ Item {
     //4DAVSYS Changes ---------------------------------------------------------------------------------
     function detectConflicts(){
         let msg = _planMasterController.detectConflicts()
-        showMessageDialog(qsTr("Error"),
+        if(msg != ""){
+            showMessageDialog(qsTr("Error"),
                     msg,
                     Dialog.Ok)
+        }
         
     }
     
