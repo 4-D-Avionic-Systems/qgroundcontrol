@@ -123,6 +123,10 @@ Item {
                         _planMasterController.deleteGeoFences()
                     })
     }
+
+    function undoResolution() {
+        _planMasterController.undoResolution()
+    }
     //-------------------------------------------------------------------------------------------------
     
 
@@ -288,10 +292,18 @@ Item {
         //4DAVSYS Changes ---------------------------------------------------------------------------------
         QGCButton {
             id:          detectConflictButton
-            text:        qsTr("Detect Conflicts")
+            text:        qsTr("Detect & Resolve Conflicts")
             enabled:     true
             visible:     !_controllerSyncInProgress
             onClicked:   detectConflicts()
+        }
+
+        QGCButton {
+            id:          undoResolutionButton
+            text:        qsTr("Undo Resolution")
+            enabled:     true
+            visible:     !_controllerSyncInProgress
+            onClicked:   undoResolution()
         }
 
         QGCButton {

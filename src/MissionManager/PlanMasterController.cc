@@ -436,6 +436,7 @@ QJsonDocument PlanMasterController::saveToJson()
     planJson[kJsonGeoFenceObjectKey] = fenceJson;
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     QGCCorePlugin::instance()->postSaveToJson(this, planJson);
+    _lastMissionJson = QJsonDocument(missionJson);
     return QJsonDocument(planJson);
 }
 
@@ -707,7 +708,7 @@ QString PlanMasterController::handle200Response(const QByteArray& responseData)
         qCInfo(PlanMasterControllerLog) << "Empty mission item list.";
     }
 
-    return QString();  // Success
+    return QString();
 }
 
 QString PlanMasterController::handle400Response(const QByteArray& responseData)
@@ -724,6 +725,25 @@ QString PlanMasterController::handle400Response(const QByteArray& responseData)
 
     qCWarning(FourDUtilitiesLog) << "Failed to parse JSON response:" << parseError.errorString();
     return "Error occurred, but response could not be parsed.";
+}
+
+void PlanMasterController::undoResolution()
+{
+    QString errorString;
+    QJsonObject wptJsonObj = _lastMissionJson.object();
+    qDebug()  << "PlanMasterController::undoResolution - wptJsonObj:" << wptJsonObj;
+    if (!wptJsonObj.isEmpty()) {
+        if (!_missionController.load(wptJsonObj, errorString)) {
+            qDebug() << "Error loading new mission items";
+            qDebug() << errorString;
+            qCInfo(PlanMasterControllerLog) << "Error loading mission items:" << errorString;
+        } else {
+            qDebug() << "Loaded new mission items";
+            qCInfo(PlanMasterControllerLog) << "Loaded new mission items.";
+        }
+    } else {
+        qCInfo(PlanMasterControllerLog) << "Empty mission item list.";
+    }
 }
 
 QString PlanMasterController::handleUnexpectedStatus(int statusCode)

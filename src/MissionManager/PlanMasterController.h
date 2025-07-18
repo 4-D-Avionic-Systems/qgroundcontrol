@@ -88,6 +88,7 @@ public:
 
     //4DAVSYS Changes -------------------------------------------
     Q_INVOKABLE QString detectConflicts(void);
+    Q_INVOKABLE void undoResolution(void);
     Q_INVOKABLE void overwriteGeoFences(void);
     Q_INVOKABLE void addGeoFences(void);
     Q_INVOKABLE void loadGeoFences(bool clearCircles);
@@ -167,6 +168,7 @@ private:
     bool                    _deleteWhenSendCompleted =  false;
     bool                    _previousOverallDirty =     false;
     QmlObjectListModel*     _planCreators =             nullptr;
+    QJsonDocument           _lastMissionJson;    
 
     //4DAVSYS Changes -------------------------------------------
     FourDUtilities*          _fourDUtilities =          nullptr;
