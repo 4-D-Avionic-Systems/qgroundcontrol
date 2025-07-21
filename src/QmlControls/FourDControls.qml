@@ -193,7 +193,9 @@ Rectangle {
                         text: "60"
                         validator: IntValidator {
                             bottom: 0
-                            top: 3600 // This validation isn't very good, it just limits to 4 digits, but it's better than nothing
+                            top: 9999
+                            //I wanted this to be 3600, but the validator really only works to number of digits
+                            //not the number given, so I set it to 9999 to avoid confusion.
                         }
                     }
                     QGCCheckBox {
