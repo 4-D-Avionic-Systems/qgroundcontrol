@@ -163,6 +163,7 @@ Rectangle {
                         id: droneNickname
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        text: "drone1"
                     }
 
                     QGCLabel {
@@ -175,6 +176,7 @@ Rectangle {
                         id: faaRegistrationNumber
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        text: "FAXXXXXXXX"
                     }
 
                     QGCLabel {
@@ -188,6 +190,7 @@ Rectangle {
                         id: secondsToMissionStart
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        text: "60"
                     }
                     QGCCheckBox {
                         id:         lidarAvailableBox
