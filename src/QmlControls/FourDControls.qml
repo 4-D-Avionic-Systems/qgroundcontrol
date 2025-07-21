@@ -32,12 +32,19 @@ Rectangle {
             "lidarAvailable": lidarAvailableBox.checked,
             "customerId": 1
         };
+        if(droneNickname.text.lenght > 50){
+            showMessageDialog(qsTr("Error"),
+                    qsTr("Drone Nickname must be 50 characters or less."),
+                    Dialog.Ok);
+            return;
+        }
         if (faaRegistrationNumber.text.length != 10){
             showMessageDialog(qsTr("Error"),
                     qsTr("FAA Registration Number must be 10 characters long."),
                     Dialog.Ok);
             return;
         }
+        
         for (let key in additionalDataObject) {
             let value = additionalDataObject[key];
             if (typeof value === 'string' && value.trim() === '') {
