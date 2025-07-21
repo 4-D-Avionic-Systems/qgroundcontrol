@@ -191,6 +191,10 @@ Rectangle {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         text: "60"
+                        validator: IntValidator {
+                            bottom: 0
+                            top: 3600 // This validation isn't very good, it just limits to 4 digits, but it's better than nothing
+                        }
                     }
                     QGCCheckBox {
                         id:         lidarAvailableBox
