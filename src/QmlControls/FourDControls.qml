@@ -32,7 +32,12 @@ Rectangle {
             "lidarAvailable": lidarAvailableBox.checked,
             "customerId": 1
         };
-
+        if (faaRegistrationNumber.text.length != 10){
+            showMessageDialog(qsTr("Error"),
+                    qsTr("FAA Registration Number must be 10 characters long."),
+                    Dialog.Ok);
+            return;
+        }
         for (let key in additionalDataObject) {
             let value = additionalDataObject[key];
             if (typeof value === 'string' && value.trim() === '') {
