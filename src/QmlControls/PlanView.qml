@@ -60,13 +60,14 @@ Item {
     property bool   _triggerSubmit
     property bool   _resetRegisterFlightPlan
 
-    readonly property var       _layers:                    [_layerMission, _layerGeoFence, _layerRallyPoints]
-    readonly property var       _layersUTMSP:               [_layerMission, _layerRallyPoints, _layerUTMSP] //Adds additional UTMSP layer
+    readonly property var       _layers:                    [_layerMission, _layerGeoFence, _layerRallyPoints, _layer4d]
+    readonly property var       _layersUTMSP:               [_layerMission, _layerRallyPoints,  _layer4d, _layerUTMSP] //Adds additional UTMSP layer
 
     readonly property int       _layerMission:              1
     readonly property int       _layerGeoFence:             2
     readonly property int       _layerRallyPoints:          3
-    readonly property int       _layerUTMSP:                4 // Additional Tab button when UTMSP is enabled
+    readonly property int       _layer4d:                   4
+    readonly property int       _layerUTMSP:                5 // Additional Tab button when UTMSP is enabled
     readonly property string    _armedVehicleUploadPrompt:  qsTr("Vehicle is currently armed. Do you want to upload the mission to the vehicle?")
 
 
@@ -715,6 +716,9 @@ Item {
                         text:       qsTr("Rally")
                         enabled:    _rallyPointController.supported
                     }
+                    QGCTabButton{
+                        text:       qsTr("4DAS")
+                    }
                 }
 
                 QGCTabBar {
@@ -727,6 +731,9 @@ Item {
                     QGCTabButton {
                         text:       qsTr("Rally")
                         enabled:    _rallyPointController.supported
+                    }
+                    QGCTabButton{
+                        text:       qsTr("4DAS")
                     }
                     QGCTabButton {
                         id: utmspbutton
@@ -808,6 +815,18 @@ Item {
                 rallyPoint:             _rallyPointController.currentRallyPoint
                 controller:             _rallyPointController
             }
+
+            // 4D Editor
+            RallyPointEditorHeader {
+                id:                     rallyPointHeader2
+                anchors.top:            rightControls.bottom
+                anchors.topMargin:      ScreenTools.defaultFontPixelHeight * 0.25
+                anchors.left:           parent.left
+                anchors.right:          parent.right
+                visible:                _editingLayer == _layer4d
+                controller:             _rallyPointController
+            }
+
             UTMSPAdapterEditor{
                 id: utmspEditor
                 enabled:                 _utmspEnabled

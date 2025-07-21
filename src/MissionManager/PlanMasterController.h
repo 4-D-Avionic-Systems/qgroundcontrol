@@ -168,9 +168,9 @@ private:
     bool                    _deleteWhenSendCompleted =  false;
     bool                    _previousOverallDirty =     false;
     QmlObjectListModel*     _planCreators =             nullptr;
-    QJsonDocument           _lastMissionJson;    
 
     //4DAVSYS Changes -------------------------------------------
+    QJsonDocument           _lastMissionJson;    
     FourDUtilities*          _fourDUtilities =          nullptr;
     //-----------------------------------------------------------
 };

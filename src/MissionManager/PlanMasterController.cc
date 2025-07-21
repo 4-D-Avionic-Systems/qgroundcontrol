@@ -436,7 +436,10 @@ QJsonDocument PlanMasterController::saveToJson()
     planJson[kJsonGeoFenceObjectKey] = fenceJson;
     planJson[kJsonRallyPointsObjectKey] = rallyJson;
     QGCCorePlugin::instance()->postSaveToJson(this, planJson);
+
+    //4DAVSYS Changes ------------------------------
     _lastMissionJson = QJsonDocument(missionJson);
+    //-----------------------------------------------
     return QJsonDocument(planJson);
 }
 
@@ -731,7 +734,6 @@ void PlanMasterController::undoResolution()
 {
     QString errorString;
     QJsonObject wptJsonObj = _lastMissionJson.object();
-    qDebug()  << "PlanMasterController::undoResolution - wptJsonObj:" << wptJsonObj;
     if (!wptJsonObj.isEmpty()) {
         if (!_missionController.load(wptJsonObj, errorString)) {
             qDebug() << "Error loading new mission items";
@@ -780,5 +782,4 @@ void PlanMasterController::deleteGeoFences(void)
 {
     _fourDUtilities->deleteGeoFences();
 }
-
 //----------------------------------------------
