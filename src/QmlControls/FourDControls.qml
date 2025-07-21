@@ -25,11 +25,34 @@ Rectangle {
     property var    planMasterController
 
     function detectConflicts(){
-        let msg = planMasterController.detectConflicts() // Use planMasterController directly
-        if(msg != ""){
+        let additionalDataObject = {
+            "droneNickname": droneNickname.text,
+            "faaRegistrationNumber": faaRegistrationNumber.text,
+            "secondsToMissionStart": parseInt(secondsToMissionStart.text, 10),
+            "lidarAvailable": lidarAvailableBox.checked,
+            "customerId": 1
+        };
+
+        for (let key in additionalDataObject) {
+            let value = additionalDataObject[key];
+            if (typeof value === 'string' && value.trim() === '') {
+                delete additionalDataObject[key];
+            } else if (typeof value === 'number' && isNaN(value)) {
+                delete additionalDataObject[key];
+            } else if (value === null) {
+                delete additionalDataObject[key];
+            }
+        }
+
+        let partialJSONToSend = JSON.stringify(additionalDataObject);
+        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+
+        let msg = planMasterController.detectConflicts(partialJSONToSend);
+
+        if(msg !== ""){
             showMessageDialog(qsTr("Error"),
                     msg,
-                    Dialog.Ok)
+                    Dialog.Ok);
         }
 
     }
@@ -38,7 +61,7 @@ Rectangle {
         showMessageDialog(qsTr("Warning"),
                         qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
                         Dialog.Ok,
-                        function() {planMasterController.addGeoFences()}) // Use planMasterController directly
+                        function() {planMasterController.addGeoFences()})
     }
 
     function overwriteGeoFences() {
@@ -50,7 +73,7 @@ Rectangle {
                                                 qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
                                                 Dialog.Yes | Dialog.No,
                                                 function() {
-                                                    planMasterController.overwriteGeoFences() // Use planMasterController directly
+                                                    planMasterController.overwriteGeoFences()
 
                                                 })
                         })
@@ -61,7 +84,7 @@ Rectangle {
                         qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
                         Dialog.Yes | Dialog.No,
                     function () {
-                        planMasterController.loadGeoFences(true) // Use planMasterController directly
+                        planMasterController.loadGeoFences(true)
                     })
     }
 
@@ -70,12 +93,12 @@ Rectangle {
                         qsTr("This will delete all existing circles"),
                         Dialog.Yes | Dialog.No,
                     function () {
-                        planMasterController.deleteGeoFences() // Use planMasterController directly
+                        planMasterController.deleteGeoFences()
                     })
     }
 
     function undoResolution() {
-        planMasterController.undoResolution() // Use planMasterController directly
+        planMasterController.undoResolution()
     }
 
 
@@ -83,9 +106,7 @@ Rectangle {
         id:                 valuesRect
         anchors.left:   parent.left
         anchors.right:  parent.right
-        // height property will need to adjust dynamically based on which sections are open.
-        // For simplicity, we can let it grow implicitly, or set a max height with Flickable if needed.
-        height:             fourDLabel.height + fourDControlItems.height + (_margin * 3) // This will now automatically adapt due to Column layout
+        height:             fourDLabel.height + fourDControlItems.height + (_margin * 3)
         color:              "#007dbc"
         radius:             _radius
 
@@ -106,9 +127,9 @@ Rectangle {
             anchors.top:        fourDLabel.bottom
             color:              qgcPal.windowShadeDark
             radius:             _radius
-            height:             mainContentColumn.height + (_margin * 2) // Height now depends on the new main column
+            height:             mainContentColumn.height + (_margin * 2)
 
-            Column { // This Column will hold all the SectionHeaders and their content
+            Column {
                 id:                 mainContentColumn
                 anchors.margins:    _margin
                 anchors.top:        parent.top
@@ -116,13 +137,12 @@ Rectangle {
                 anchors.right:      parent.right
                 spacing:            _margin
 
-                // --- Section 1: Drone Details ---
                 SectionHeader {
                     id:                 droneDetailsSection
                     anchors.left:       parent.left
                     anchors.right:      parent.right
                     text:               qsTr("Flight Plan Details")
-                    checked:            true // Start open
+                    checked:            true
                 }
 
                 Column {
@@ -130,8 +150,8 @@ Rectangle {
                     anchors.left:       parent.left
                     anchors.right:      parent.right
                     spacing:            _margin
-                    visible:            droneDetailsSection.checked // Controlled by SectionHeader
-                    height:             visible ? implicitHeight : 0 // Collapse height when not visible
+                    visible:            droneDetailsSection.checked
+                    height:             visible ? implicitHeight : 0
 
                     QGCLabel {
                         text:           qsTr("Drone Nickname")
@@ -174,15 +194,14 @@ Rectangle {
                         text:       qsTr("Lidar Available?")
                         anchors.left: parent.left
                     }
-                } // End droneDetailsContent Column
+                }
 
-                // --- Section 2: Conflict Resolution ---
                 SectionHeader {
                     id:                 conflictResolutionSection
                     anchors.left:       parent.left
                     anchors.right:      parent.right
                     text:               qsTr("Conflict Resolution")
-                    checked:            true // Start open
+                    checked:            true
                 }
 
                 Column {
@@ -190,8 +209,8 @@ Rectangle {
                     anchors.left:       parent.left
                     anchors.right:      parent.right
                     spacing:            _margin
-                    visible:            conflictResolutionSection.checked // Controlled by SectionHeader
-                    height:             visible ? implicitHeight : 0 // Collapse height when not visible
+                    visible:            conflictResolutionSection.checked
+                    height:             visible ? implicitHeight : 0
 
                     QGCButton {
                         id:          detectConflictButton
@@ -208,9 +227,8 @@ Rectangle {
                         onClicked:   root.undoResolution()
                         width: detectConflictButton.width
                     }
-                } // End conflictResolutionContent Column
+                }
 
-                // --- Section 3: GeoFence Management ---
                 SectionHeader {
                     id:                 geoFenceManagementSection
                     anchors.left:       parent.left
@@ -224,8 +242,8 @@ Rectangle {
                     anchors.left:       parent.left
                     anchors.right:      parent.right
                     spacing:            _margin
-                    visible:            geoFenceManagementSection.checked // Controlled by SectionHeader
-                    height:             visible ? implicitHeight : 0 // Collapse height when not visible
+                    visible:            geoFenceManagementSection.checked
+                    height:             visible ? implicitHeight : 0
 
                     QGCButton {
                         id:          addGeoFenceButton
@@ -258,9 +276,9 @@ Rectangle {
                         onClicked:   root.deleteGeoFences()
                         width: detectConflictButton.width
                     }
-                } // End geoFenceManagementContent Column
+                }
 
-            } // End mainContentColumn (Column)
-        } // End fourDControlItems (Rectangle)
-    } // End valuesRect (Rectangle)
-} // End root (Rectangle)
+            }
+        }
+    }
+}
