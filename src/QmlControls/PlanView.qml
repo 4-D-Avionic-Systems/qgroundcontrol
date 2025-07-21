@@ -824,6 +824,7 @@ Item {
                 anchors.left:           parent.left
                 anchors.right:          parent.right
                 visible:                _editingLayer == _layer4d
+                planMasterController:   _planMasterController
             }
 
             UTMSPAdapterEditor{

@@ -72,63 +72,7 @@ Item {
     // Properties of UTM adapter
     property bool   _utmspEnabled:                       QGroundControl.utmspSupported
     
-    //4DAVSYS Changes ---------------------------------------------------------------------------------
-    function detectConflicts(){
-        let msg = _planMasterController.detectConflicts()
-        if(msg != ""){
-            showMessageDialog(qsTr("Error"),
-                    msg,
-                    Dialog.Ok)
-        }
-        
-    }
-    
-    function addGeoFences() {
-        showMessageDialog(qsTr("Warning"),
-                          qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
-                          Dialog.Ok,
-                          function() {_planMasterController.addGeoFences()})
-    }
 
-    function overwriteGeoFences() {
-        showMessageDialog(qsTr("Warning"),
-                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
-                        Dialog.Ok,
-                        function() {
-                            // After user clicks OK, show confirmation dialog
-                            showMessageDialog(qsTr("Are You Sure?"),
-                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
-                                                Dialog.Yes | Dialog.No,
-                                                function() {
-                                                    _planMasterController.overwriteGeoFences()
-                                                    
-                                                })
-                        })
-    }
-
-    function loadGeoFences() {
-    showMessageDialog(qsTr("Would you like to clear existing circles?"),
-                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
-                        Dialog.Yes | Dialog.No,
-                    function () {
-                        _planMasterController.loadGeoFences(true)
-                    })
-    }
-
-    function deleteGeoFences() {
-    showMessageDialog(qsTr("Are you Sure?)"),
-                        qsTr("This will delete all existing circles"),
-                        Dialog.Yes | Dialog.No,
-                    function () {
-                        _planMasterController.deleteGeoFences()
-                    })
-    }
-
-    function undoResolution() {
-        _planMasterController.undoResolution()
-    }
-    //-------------------------------------------------------------------------------------------------
-    
 
     function getMissionTime() {
         if (!_missionTime) {
@@ -288,58 +232,6 @@ Item {
                 Layout.minimumWidth:    _mediumValueWidth
             }
         }
-
-        //4DAVSYS Changes ---------------------------------------------------------------------------------
-        QGCButton {
-            id:          detectConflictButton
-            text:        qsTr("Detect & Resolve Conflicts")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   detectConflicts()
-        }
-
-        QGCButton {
-            id:          undoResolutionButton
-            text:        qsTr("Undo Resolution")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   undoResolution()
-        }
-
-        QGCButton {
-            id:          addGeoFenceButton
-            text:        qsTr("Add GeoFences")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   addGeoFences()
-        }
-
-        QGCButton {
-            id:          overwriteGeoFenceButton
-            text:        qsTr("Overwrite GeoFences")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   overwriteGeoFences()
-        }
-
-        QGCButton {
-            id:          loadGeoFenceButton
-            text:        qsTr("Load GeoFences")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   loadGeoFences()
-        }
-
-        QGCButton {
-            id:          deleteGeoFenceButton
-            text:        qsTr("Clear GeoFence DB")
-            enabled:     true
-            visible:     !_controllerSyncInProgress
-            onClicked:   deleteGeoFences()
-        }
-
-
-        //-------------------------------------------------------------------------------------------------
     }
 }
 

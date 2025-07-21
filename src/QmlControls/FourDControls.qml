@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Controls
-// Removed QtQuick.Layouts since we're using Column and anchors
 import QtPositioning
 
 import QGroundControl
@@ -13,78 +12,118 @@ import QGroundControl.Palette
 import QGroundControl.SettingsManager
 import QGroundControl.Controllers
 
-// The outermost element is a Rectangle, consistent with your reference
-Rectangle {
-    id:                 root // Naming this 'root' is fine as per your reference
-    // The height will be dynamically set to encapsulate its content
-    height:             valuesRect.height // This is how the geoFence example handles root height
-    clip:               true // Same as reference
-    color:              qgcPal.missionItemEditor // Same as reference
 
-    // Define properties similar to your reference
-    // Ensure these properties are defined before use if they affect initial layout
+Rectangle {
+    id:                 root
+    height:             valuesRect.height
+    clip:               true
+    color:              qgcPal.missionItemEditor
+
     property real _margin: ScreenTools.defaultFontPixelWidth / 2
     property real _radius : ScreenTools.defaultFontPixelWidth / 2
 
-    // This is equivalent to geoFenceEditorRect in your reference
+    property var    planMasterController
+
+    function detectConflicts(){
+        let msg = planMasterController.detectConflicts() // Use planMasterController directly
+        if(msg != ""){
+            showMessageDialog(qsTr("Error"),
+                    msg,
+                    Dialog.Ok)
+        }
+
+    }
+
+    function addGeoFences() {
+        showMessageDialog(qsTr("Warning"),
+                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        Dialog.Ok,
+                        function() {planMasterController.addGeoFences()}) // Use planMasterController directly
+    }
+
+    function overwriteGeoFences() {
+        showMessageDialog(qsTr("Warning"),
+                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        Dialog.Ok,
+                        function() {
+                            showMessageDialog(qsTr("Are You Sure?"),
+                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
+                                                Dialog.Yes | Dialog.No,
+                                                function() {
+                                                    planMasterController.overwriteGeoFences() // Use planMasterController directly
+
+                                                })
+                        })
+    }
+
+    function loadGeoFences() {
+    showMessageDialog(qsTr("Would you like to clear existing circles?"),
+                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        planMasterController.loadGeoFences(true) // Use planMasterController directly
+                    })
+    }
+
+    function deleteGeoFences() {
+    showMessageDialog(qsTr("Are you Sure?)"),
+                        qsTr("This will delete all existing circles"),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        planMasterController.deleteGeoFences() // Use planMasterController directly
+                    })
+    }
+
+    function undoResolution() {
+        planMasterController.undoResolution() // Use planMasterController directly
+    }
+
+
     Rectangle {
         id:                 valuesRect
-        // Anchor to the parent of 'root' if 'root' is not fullscreen.
-        // If 'root' is intended to fill its parent, then valuesRect would typically
-        // also fill root, or be centered. For now, matching the reference's left/right.
         anchors.left:   parent.left
         anchors.right:  parent.right
-        // Height calculated based on its content, similar to geoFenceEditorRect
-        height:             fourDLabel.height + fourDControlItems.height + (_margin * 3) // Adjusted based on your elements
-        color:              qgcPal.missionItemEditor // Background color for this main section
+        height:             fourDLabel.height + fourDControlItems.height + (_margin * 3)
+        color:              qgcPal.missionItemEditor
         radius:             _radius
 
-        // This is the title label, equivalent to geoFenceLabel
         QGCLabel {
             id:                 fourDLabel
             anchors.margins:    _margin
             anchors.left:       parent.left
-            anchors.top:        parent.top // Anchored to the top of valuesRect
+            anchors.top:        parent.top
             text:               qsTr("4D Avionic Systems Tools")
             anchors.leftMargin: ScreenTools.defaultFontPixelWidth
         }
 
-        // This is the shaded background rectangle for your input controls,
-        // equivalent to geoFenceItems in your reference.
         Rectangle {
             id: fourDControlItems
             anchors.margins:    _margin
             anchors.left:       parent.left
             anchors.right:      parent.right
-            anchors.top:        fourDLabel.bottom // Crucial: Anchored below the title label
-            color:              qgcPal.windowShadeDark // Shaded background
+            anchors.top:        fourDLabel.bottom
+            color:              qgcPal.windowShadeDark
             radius:             _radius
-            // Height calculated based on its internal Column
-            height:             valuesColumn.height + (_margin * 2) // Account for Column's content + margins
+            height:             valuesColumn.height + (_margin * 2)
 
-            // This is the main Column that stacks all your labels and text fields vertically,
-            // equivalent to fenceColumn in your reference.
-            Column { // Using Column, not ColumnLayout
+            Column {
                 id:                 valuesColumn
-                anchors.margins:    _margin // Margins around the content inside this Column
-                anchors.top:        parent.top // Anchored to the top of fourDControlItems
+                anchors.margins:    _margin
+                anchors.top:        parent.top
                 anchors.left:       parent.left
                 anchors.right:      parent.right
-                spacing:            _margin // Spacing between items within this Column
+                spacing:            _margin
 
                 // --- Drone Nickname ---
                 QGCLabel {
                     text:           qsTr("Drone Nickname")
                     font.pointSize: ScreenTools.smallFontPointSize
-                    // In a Column, you might explicitly anchor left/right or rely on implicit sizing
                     anchors.left:   parent.left
                     anchors.right:  parent.right
                 }
                 FactTextField {
-                    // No Layout.fillWidth here, as we are not using Layouts for this Column
-                    // You might need to set an explicit width or anchor right
-                    anchors.left:   parent.left // Or anchors.right: parent.right, width: someWidth
-                    anchors.right:  parent.right // This makes it fill the parent width
+                    anchors.left:   parent.left
+                    anchors.right:  parent.right
                 }
 
                 // --- Faa Registration Number ---
@@ -111,27 +150,66 @@ Rectangle {
                     anchors.right:  parent.right
                 }
 
-                // --- Start Date and Time (from your original, was missing in some previous versions) ---
                 QGCLabel {
                     text: qsTr("Start Date and Time")
                     font.pointSize: ScreenTools.smallFontPointSize
                     anchors.left:   parent.left
                     anchors.right:  parent.right
                 }
-                // If this is just a label, you might have a FactTextField for it, or another control
-                // Based on previous snippets, it seems like it might be a missing input field.
-                // Assuming you'd add a FactTextField here:
-                // FactTextField {
-                //     anchors.left: parent.left
-                //     anchors.right: parent.right
-                // }
 
-                // --- Lidar Available CheckBox ---
+                 FactTextField {
+                     anchors.left: parent.left
+                     anchors.right: parent.right
+                 }
                 QGCCheckBox {
                     id:         lidarAvailableBox
                     text:       qsTr("Lidar Available?")
-                    anchors.left: parent.left // Align left within the column
+                    anchors.left: parent.left
                 }
+
+                QGCButton {
+                    id:          detectConflictButton
+                    text:        qsTr("Detect & Resolve Conflicts")
+                    enabled:     true
+                    onClicked:   root.detectConflicts() // Corrected: Call function on 'root'
+                }
+
+                QGCButton {
+                    id:          undoResolutionButton
+                    text:        qsTr("Undo Resolution")
+                    enabled:     true
+                    onClicked:   root.undoResolution() // Corrected: Call function on 'root'
+                }
+
+                QGCButton {
+                    id:          addGeoFenceButton
+                    text:        qsTr("Add GeoFences")
+                    enabled:     true
+                    onClicked:   root.addGeoFences() // Corrected: Call function on 'root'
+                }
+
+                QGCButton {
+                    id:          overwriteGeoFenceButton
+                    text:        qsTr("Overwrite GeoFences")
+                    enabled:     true
+                    onClicked:   root.overwriteGeoFences() // Corrected: Call function on 'root'
+                }
+
+                QGCButton {
+                    id:          loadGeoFenceButton
+                    text:        qsTr("Load GeoFences")
+                    enabled:     true
+                    onClicked:   root.loadGeoFences() // Corrected: Call function on 'root'
+                }
+
+                QGCButton {
+                    id:          deleteGeoFenceButton
+                    text:        qsTr("Clear GeoFence DB")
+                    enabled:     true
+                    onClicked:   root.deleteGeoFences() // Corrected: Call function on 'root'
+                }
+
+
             } // End valuesColumn (Column)
         } // End fourDControlItems (Rectangle)
     } // End valuesRect (Rectangle)
