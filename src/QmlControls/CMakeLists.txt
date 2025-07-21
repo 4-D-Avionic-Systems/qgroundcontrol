@@ -178,7 +178,7 @@ qt_add_qml_module(QGroundControlControlsModule
         CameraSection.qml
         CorridorScanEditor.qml
         CorridorScanMapVisual.qml
-        FourDSettings.qml
+        FourDControls.qml
         FWLandingPatternEditor.qml
         FWLandingPatternMapVisual.qml
         GeoFenceEditor.qml

@@ -817,14 +817,13 @@ Item {
             }
 
             // 4D Editor
-            RallyPointEditorHeader {
-                id:                     rallyPointHeader2
+            FourDControls {
+                id:                     fourDControls
                 anchors.top:            rightControls.bottom
                 anchors.topMargin:      ScreenTools.defaultFontPixelHeight * 0.25
                 anchors.left:           parent.left
                 anchors.right:          parent.right
                 visible:                _editingLayer == _layer4d
-                controller:             _rallyPointController
             }
 
             UTMSPAdapterEditor{
