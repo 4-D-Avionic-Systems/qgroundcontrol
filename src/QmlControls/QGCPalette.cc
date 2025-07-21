@@ -97,7 +97,9 @@ void QGCPalette::_buildMap()
     DECLARE_QGC_SINGLE_COLOR(mapMissionTrajectory,          "#be781c")
     DECLARE_QGC_SINGLE_COLOR(surveyPolygonInterior,         "green")
     DECLARE_QGC_SINGLE_COLOR(surveyPolygonTerrainCollision, "red")
+    //4DAVSYS Changes -------------------------------------------
     DECLARE_QGC_SINGLE_COLOR(fourDBlue, "#007dbc")
+    //-----------------------------------------------------------
 
 // Colors for UTM Adapter
 #ifdef QGC_UTM_ADAPTER

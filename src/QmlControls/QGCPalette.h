@@ -157,7 +157,9 @@ public:
     DEFINE_QGC_COLOR(toolStripFGColor,              setToolStripFGColor)
     DEFINE_QGC_COLOR(toolStripHoverColor,           setToolStripHoverColor)
     DEFINE_QGC_COLOR(groupBorder,                   setGroupBorder)
+    //4DAVSYS Changes -------------------------------------------
     DEFINE_QGC_COLOR(fourDBlue,                     setFourDBlue)
+    //-----------------------------------------------------------
 
 #ifdef QGC_UTM_ADAPTER
     DEFINE_QGC_COLOR(switchUTMSP,                    setSwitchUTMSP)
