@@ -41,7 +41,7 @@ QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocume
     _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8()+ ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8() + ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
 
     // Wait for the request to finish
     QEventLoop loop;

@@ -17,7 +17,7 @@ Rectangle {
     id:                 root
     height:             valuesRect.height
     clip:               true
-    color:              "#007dbc"
+    color:              qgcPal.fourDBlue
 
     property real _margin: ScreenTools.defaultFontPixelWidth / 2
     property real _radius : ScreenTools.defaultFontPixelWidth / 2
@@ -107,7 +107,7 @@ Rectangle {
         anchors.left:   parent.left
         anchors.right:  parent.right
         height:             fourDLabel.height + fourDControlItems.height + (_margin * 3)
-        color:              "#007dbc"
+        color:              qgcPal.fourDBlue
         radius:             _radius
 
         QGCLabel {
