@@ -28,6 +28,8 @@ Rectangle {
         let additionalDataObject = {
             "droneNickname": droneNickname.text,
             "faaRegistrationNumber": faaRegistrationNumber.text,
+            "horizontalLOSBound" : horizontalLOSBound.text,
+            "verticalLOSBound" : verticalLOSBound.text,
             "secondsToMissionStart": parseInt(secondsToMissionStart.text, 10),
             "lidarAvailable": lidarAvailableBox.checked,
             "customerId": 1
@@ -189,6 +191,42 @@ Rectangle {
                         anchors.left:   parent.left
                         anchors.right:  parent.right
                         text: "FAXXXXXXXX"
+                    }
+
+                    QGCLabel {
+                        text: qsTr("Horizontal LOS Bound")
+                        font.pointSize: ScreenTools.smallFontPointSize
+                        anchors.left:   parent.left
+                        anchors.right:  parent.right
+                    }
+
+                    FactTextField {
+                        id: horizontalLOSBound
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: "10"
+                        validator: IntValidator {
+                            bottom: 1
+                            top: 99
+                        }
+                    }
+
+                    QGCLabel {
+                        text: qsTr("Vertical LOS Bound")
+                        font.pointSize: ScreenTools.smallFontPointSize
+                        anchors.left:   parent.left
+                        anchors.right:  parent.right
+                    }
+
+                    FactTextField {
+                        id: verticalLOSBound
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: "10"
+                        validator: IntValidator {
+                            bottom: 1
+                            top: 99
+                        }
                     }
 
                     QGCLabel {
