@@ -34,7 +34,7 @@ Rectangle {
             "lidarAvailable": lidarAvailableBox.checked,
             "customerId": 1
         };
-        if(droneNickname.text.lenght > 50){
+        if(droneNickname.text.length > 50){
             showMessageDialog(qsTr("Error"),
                     qsTr("Drone Nickname must be 50 characters or less."),
                     Dialog.Ok);
