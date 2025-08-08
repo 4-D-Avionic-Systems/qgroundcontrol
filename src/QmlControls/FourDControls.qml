@@ -30,7 +30,7 @@ Rectangle {
             "faaRegistrationNumber": faaRegistrationNumber.text,
             "horizontalLOSBound" : horizontalLOSBound.text,
             "verticalLOSBound" : verticalLOSBound.text,
-            "secondsToMissionStart": parseInt(secondsToMissionStart.text, 10),
+            "secondsToMissionStart": (parseFloat(secondsToMissionStart.text, 10) + (parseFloat(takeoffDelay.text, 10)/1000)),
             "lidarAvailable": lidarAvailableBox.checked,
             "customerId": 1
         };
@@ -254,6 +254,41 @@ Rectangle {
                         anchors.left: parent.left
                     }
                 }
+
+                SectionHeader {
+                    id:                 tuningSection
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    text:               qsTr("Tuning")
+                    checked:            true
+                }
+                Column {
+                    id:                 tuningContent
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    spacing:            _margin
+                    visible:            tuningSection.checked
+                    height:             visible ? implicitHeight : 0
+
+                    QGCLabel {
+                        text: qsTr("Takeoff Delay (ms)")
+                        font.pointSize: ScreenTools.smallFontPointSize
+                        anchors.left:   parent.left
+                        anchors.right:  parent.right
+                    }
+
+                    FactTextField {
+                        id: takeoffDelay
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: "1000"
+                        validator: IntValidator {
+                            bottom: 0
+                            top: 999999
+                        }
+                    }
+                }
+
 
                 SectionHeader {
                     id:                 conflictResolutionSection
