@@ -685,6 +685,26 @@ QString PlanMasterController::detectConflicts(QString partialJSON)
     }
 }
 
+QString PlanMasterController::debugDetectConflicts(QString partialJSON)
+{
+    qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    QJsonDocument planJson = saveToJson();
+
+    QNetworkReply* reply = _fourDUtilities->debugDetectConflicts(partialJSON, paramsJson, planJson);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200Response(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
 QString PlanMasterController::handle200Response(const QByteArray& responseData)
 {
     qDebug() << "Status 200";

@@ -71,6 +71,54 @@ Rectangle {
 
     }
 
+    function debugDetectConflicts(){
+
+        let additionalDataObject = {
+            "droneNickname": droneNickname.text,
+            "faaRegistrationNumber": faaRegistrationNumber.text,
+            "horizontalLOSBound" : horizontalLOSBound.text,
+            "verticalLOSBound" : verticalLOSBound.text,
+            "secondsToMissionStart": (parseFloat(secondsToMissionStart.text, 10) + (parseFloat(takeoffDelay.text, 10)/1000)),
+            "lidarAvailable": lidarAvailableBox.checked,
+            "customerId": 1
+        };
+        if(droneNickname.text.length > 50){
+            showMessageDialog(qsTr("Error"),
+                    qsTr("Drone Nickname must be 50 characters or less."),
+                    Dialog.Ok);
+            return;
+        }
+        if (faaRegistrationNumber.text.length != 10){
+            showMessageDialog(qsTr("Error"),
+                    qsTr("FAA Registration Number must be 10 characters long."),
+                    Dialog.Ok);
+            return;
+        }
+        
+        for (let key in additionalDataObject) {
+            let value = additionalDataObject[key];
+            if (typeof value === 'string' && value.trim() === '') {
+                delete additionalDataObject[key];
+            } else if (typeof value === 'number' && isNaN(value)) {
+                delete additionalDataObject[key];
+            } else if (value === null) {
+                delete additionalDataObject[key];
+            }
+        }
+
+        let partialJSONToSend = JSON.stringify(additionalDataObject);
+        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+
+        let msg = planMasterController.debugDetectConflicts(partialJSONToSend);
+
+        if(msg !== ""){
+            showMessageDialog(qsTr("Error"),
+                    msg,
+                    Dialog.Ok);
+        }
+
+    }
+
     function addGeoFences() {
         showMessageDialog(qsTr("Warning"),
                         qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
@@ -320,6 +368,14 @@ Rectangle {
                         enabled:     true
                         onClicked:   root.undoResolution()
                         width: detectConflictButton.width
+                    }
+
+                    QGCButton {
+                        id:          debugDetectConflictsButton
+                        text:        qsTr("Debug")
+                        enabled:     true
+                        onClicked:   root.debugDetectConflicts()
+                        width:       conflictResolutionSection.width
                     }
                 }
 
