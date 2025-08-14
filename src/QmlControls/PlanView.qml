@@ -672,10 +672,10 @@ Item {
             height:             parent.height
             width:{
                  if(_utmspEnabled){
-                     _rightPanelWidth + ScreenTools.defaultFontPixelWidth * 21.667
+                     _rightPanelWidth + ScreenTools.defaultFontPixelWidth * 21.667 + 75
                  }
                  else{
-                     _rightPanelWidth
+                     _rightPanelWidth + 75
                  }
              }
             color:              qgcPal.window
@@ -717,13 +717,13 @@ Item {
                         enabled:    _rallyPointController.supported
                     }
                     QGCTabButton{
-                        text:       qsTr("4DAS")
+                        text:       qsTr("4D Tools")
                     }
                 }
 
                 QGCTabBar {
                     id:         layerTabBarUTMSP
-                    width:      parent.width
+                    width:      parent.width 
                     visible:    QGroundControl.corePlugin.options.enablePlanViewSelector && _utmspEnabled
                     QGCTabButton {
                         text:       qsTr("Mission")
@@ -733,7 +733,7 @@ Item {
                         enabled:    _rallyPointController.supported
                     }
                     QGCTabButton{
-                        text:       qsTr("4DAS")
+                        text:       qsTr("4D Tools")
                     }
                     QGCTabButton {
                         id: utmspbutton
