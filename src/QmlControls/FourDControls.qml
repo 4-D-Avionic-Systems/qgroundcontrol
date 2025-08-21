@@ -67,6 +67,12 @@ Rectangle {
             showMessageDialog(qsTr("Error"),
                     msg,
                     Dialog.Ok);
+        
+        }
+        else{
+            showMessageDialog(qsTr("Success"),
+                    qsTr("Resolutions have been applied if any conflicts were detected."),
+                    Dialog.Ok);
         }
 
     }
