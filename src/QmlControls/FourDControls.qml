@@ -111,9 +111,14 @@ Rectangle {
 
         let msg = planMasterController.debugDetectConflicts(partialJSONToSend);
 
-        if(msg !== ""){
-            showMessageDialog(qsTr("Error"),
+        if(msg !== "Debug Route Returned Status 200"){
+            showMessageDialog(qsTr("Debug Route Status"),
                     msg,
+                    Dialog.Ok);
+        }
+        else{
+            showMessageDialog("Debug Route Status",
+                    qsTr("Debug Route Returned Status 200"),
                     Dialog.Ok);
         }
 

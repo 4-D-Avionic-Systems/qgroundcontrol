@@ -697,7 +697,7 @@ QString PlanMasterController::debugDetectConflicts(QString partialJSON)
 
     switch (statusCode) {
         case 200:
-            return handle200Response(responseData);
+            return handle200ResponseDebug(responseData);
         case 400:
             return handle400Response(responseData);
         default:
@@ -733,6 +733,13 @@ QString PlanMasterController::handle200Response(const QByteArray& responseData)
     }
 
     return QString();
+}
+
+QString PlanMasterController::handle200ResponseDebug(const QByteArray& responseData)
+{
+    qDebug() << "Debug Route Status 200";
+
+    return QString("Debug Route Returned Status 200");
 }
 
 QString PlanMasterController::handle400Response(const QByteArray& responseData)

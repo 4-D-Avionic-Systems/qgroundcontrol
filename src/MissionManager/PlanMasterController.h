@@ -150,6 +150,7 @@ private:
     void _commonInit                (void);
     void _showPlanFromManagerVehicle(void);
     QString handle200Response(const QByteArray& responseData);
+    QString handle200ResponseDebug(const QByteArray& responseData);
     QString handle400Response(const QByteArray& responseData);
     QString handleUnexpectedStatus(int statusCode);
 
