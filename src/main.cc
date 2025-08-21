@@ -190,6 +190,10 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
+//----------------------4DAS Changes----------------------
+    //system("dotnet build ~/code/CSharp_ConflictDetection_Resolution_MVP/CDR_MVP/ &");
+    //system("ASPNETCORE_URLS=http://localhost:5248 dotnet exec ~/code/CSharp_ConflictDetection_Resolution_MVP/CDR_MVP/CDR_MVP/bin/Debug/net8.0/CDR_MVP.dll &");
+
     app.init();
 
     // Set system ID if specified via command line, for example --system-id:255
