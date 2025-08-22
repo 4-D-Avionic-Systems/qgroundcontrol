@@ -23,6 +23,7 @@ public:
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
     QJsonDocument loadGeoFences(void);
     QNetworkReply* deleteGeoFences(void);
+    QNetworkReply* changeSeed(int seedIndex);
     QJsonDocument parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData);
 
     void postTelemData(void);

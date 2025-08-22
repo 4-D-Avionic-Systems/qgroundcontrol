@@ -806,6 +806,18 @@ void PlanMasterController::loadGeoFences(bool clearCircles)
     }
 }
 
+QString PlanMasterController::changeSeed(int seedIndex){
+    QNetworkReply* reply = _fourDUtilities->changeSeed(seedIndex);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    switch (statusCode) {
+        case 0:
+            qDebug() << "Seed changed successfully";
+            return "Seed changed successfully";
+        default:
+            return "And unexpected error occurred while changing the seed (" + QString::number(statusCode) + ")";
+    }
+}
+
 void PlanMasterController::deleteGeoFences(void)
 {
     _fourDUtilities->deleteGeoFences();

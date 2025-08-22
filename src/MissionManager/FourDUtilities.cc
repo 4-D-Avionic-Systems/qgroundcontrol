@@ -129,6 +129,15 @@ QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QBy
     return jsonDoc;
 }
 
+QNetworkReply* FourDUtilities::changeSeed(int seedIndex)
+{
+    QUrl post_url = _apiUrl.resolved(QUrl("/FlightPathSeeds/Seed/" + QString::number(seedIndex)));
+    QNetworkRequest request(post_url);
+    request.setRawHeader("Content-Type", "application/json");
+    _reply = _apiManager.get(request);
+    return _reply;
+}
+
 
 void FourDUtilities::postTelemData(void)
 {

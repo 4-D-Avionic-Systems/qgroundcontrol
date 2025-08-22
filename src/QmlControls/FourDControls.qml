@@ -174,6 +174,13 @@ Rectangle {
         planMasterController.undoResolution()
     }
 
+    function seed() {
+        let seedIndex = seedTypeComboBox.currentIndex;
+        let msg = planMasterController.changeSeed(seedIndex);
+        showMessageDialog(qsTr("Seeding"),
+                        msg)
+    }
+
 
     Rectangle {
         id:                 valuesRect
@@ -438,6 +445,40 @@ Rectangle {
                         width: detectConflictButton.width
                     }
                 }
+
+                SectionHeader {
+                    id:                 seedManagementSection
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    text:               qsTr("Seeds")
+                    checked:            false
+                }
+
+                Column {
+                    id:                 seedManagementContent
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    spacing:            _margin
+                    visible:            seedManagementSection.checked
+                    height:             visible ? implicitHeight : 0
+
+                    ComboBox {
+                        id: seedTypeComboBox
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        model: [qsTr("Survey"), qsTr("Simple"), qsTr("Empty")]
+                        currentIndex: 0
+                    }
+
+                    QGCButton {
+                        id:          seedButton
+                        text:        qsTr("Seed")
+                        enabled:     true
+                        onClicked:   root.seed()
+                        width: detectConflictButton.width
+                    }
+                }
+                
 
             }
         }
