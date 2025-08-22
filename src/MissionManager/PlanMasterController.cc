@@ -731,7 +731,7 @@ QString PlanMasterController::handle200Response(const QByteArray& responseData)
     } else {
         qCInfo(PlanMasterControllerLog) << "Empty mission item list.";
     }
-
+    setDirty(true);
     return QString();
 }
 
