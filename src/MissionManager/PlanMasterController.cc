@@ -808,7 +808,7 @@ void PlanMasterController::loadGeoFences(bool clearCircles)
 
 QString PlanMasterController::changeSeed(int seedIndex){
     QNetworkReply* reply = _fourDUtilities->changeSeed(seedIndex);
-    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
     switch (statusCode) {
         case 0:
             qDebug() << "Seed changed successfully";

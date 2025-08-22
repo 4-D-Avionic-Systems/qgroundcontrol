@@ -134,7 +134,7 @@ QNetworkReply* FourDUtilities::changeSeed(int seedIndex)
     QUrl post_url = _apiUrl.resolved(QUrl("/FlightPathSeeds/Seed/" + QString::number(seedIndex)));
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.get(request);
+    _reply = _apiManager.put(request, QByteArray());
     return _reply;
 }
 
