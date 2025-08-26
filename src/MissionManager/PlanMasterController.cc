@@ -677,7 +677,7 @@ QString PlanMasterController::detectConflicts(QString partialJSON)
 
     switch (statusCode) {
         case 200:
-            return handle200Response(responseData);
+            return handle200ResponseCDR(responseData);
         case 400:
             return handle400Response(responseData);
         default:
@@ -697,7 +697,7 @@ QString PlanMasterController::debugDetectConflicts(QString partialJSON)
 
     switch (statusCode) {
         case 200:
-            return handle200ResponseDebug(responseData);
+            return handle200ResponseGeneric(responseData);
         case 400:
             return handle400Response(responseData);
         default:
@@ -705,7 +705,7 @@ QString PlanMasterController::debugDetectConflicts(QString partialJSON)
     }
 }
 
-QString PlanMasterController::handle200Response(const QByteArray& responseData)
+QString PlanMasterController::handle200ResponseCDR(const QByteArray& responseData)
 {
     qDebug() << "Status 200";
     QString errorString;
@@ -735,11 +735,11 @@ QString PlanMasterController::handle200Response(const QByteArray& responseData)
     return QString();
 }
 
-QString PlanMasterController::handle200ResponseDebug(const QByteArray& responseData)
+QString PlanMasterController::handle200ResponseGeneric(const QByteArray& responseData)
 {
-    qDebug() << "Debug Route Status 200";
+    qDebug() << "Route Status 200";
 
-    return QString("Debug Route Returned Status 200");
+    return QString("Route Returned Status 200");
 }
 
 QString PlanMasterController::handle400Response(const QByteArray& responseData)
@@ -783,16 +783,34 @@ QString PlanMasterController::handleUnexpectedStatus(int statusCode)
     return "Unexpected error (" + QString::number(statusCode) + ")";
 }
 
-void PlanMasterController::overwriteGeoFences(void)
+QString PlanMasterController::overwriteGeoFences(void)
 {
     QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
-    _fourDUtilities->overwriteGeoFences(geoFenceJson);
+    QNetworkReply* reply =_fourDUtilities->overwriteGeoFences(geoFenceJson);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
+    switch (statusCode) {
+        case 200:
+            return "GeoFences overwritten successfully";
+        case 0:
+            return "GeoFences overwritten successfully";
+        default:
+            return "Unexpected error occurred while overwriting GeoFences (" + QString::number(statusCode) + ")";
+    }
 }
 
-void PlanMasterController::addGeoFences(void)
+QString PlanMasterController::addGeoFences(void)
 {
     QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
-    _fourDUtilities->addGeoFences(geoFenceJson);
+    QNetworkReply* reply = _fourDUtilities->addGeoFences(geoFenceJson);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
+    switch (statusCode) {
+        case 200:
+            return "GeoFences added successfully";
+        case 0:
+            return "GeoFences added successfully";
+        default:
+            return "Unexpected error occurred while adding GeoFences (" + QString::number(statusCode) + ")";
+    }
 }
 
 void PlanMasterController::loadGeoFences(bool clearCircles)
@@ -819,8 +837,18 @@ QString PlanMasterController::changeSeed(int seedIndex){
     }
 }
 
-void PlanMasterController::deleteGeoFences(void)
+QString PlanMasterController::deleteGeoFences(void)
 {
-    _fourDUtilities->deleteGeoFences();
+   QNetworkReply* reply = _fourDUtilities->deleteGeoFences();
+   int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+   switch (statusCode) {
+       case 200:
+           qDebug() << "GeoFences deleted successfully";
+           return "GeoFences deleted successfully";
+        case 0:
+            return "GeoFences deleted successfully";
+       default:
+           return "Unexpected error occurred while deleting GeoFences (" + QString::number(statusCode) + ")";
+   }
 }
 //----------------------------------------------

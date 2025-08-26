@@ -91,10 +91,10 @@ public:
     Q_INVOKABLE QString debugDetectConflicts(QString partialJSON);
     Q_INVOKABLE QString changeSeed(int seedIndex);
     Q_INVOKABLE void undoResolution(void);
-    Q_INVOKABLE void overwriteGeoFences(void);
-    Q_INVOKABLE void addGeoFences(void);
+    Q_INVOKABLE QString overwriteGeoFences(void);
+    Q_INVOKABLE QString addGeoFences(void);
     Q_INVOKABLE void loadGeoFences(bool clearCircles);
-    Q_INVOKABLE void deleteGeoFences(void);
+    Q_INVOKABLE QString deleteGeoFences(void);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }
@@ -150,8 +150,8 @@ private slots:
 private:
     void _commonInit                (void);
     void _showPlanFromManagerVehicle(void);
-    QString handle200Response(const QByteArray& responseData);
-    QString handle200ResponseDebug(const QByteArray& responseData);
+    QString handle200ResponseCDR(const QByteArray& responseData);
+    QString handle200ResponseGeneric(const QByteArray& responseData);
     QString handle400Response(const QByteArray& responseData);
     QString handleUnexpectedStatus(int statusCode);
 

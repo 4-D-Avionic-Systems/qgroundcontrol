@@ -135,7 +135,12 @@ Rectangle {
         showMessageDialog(qsTr("Warning"),
                         qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
                         Dialog.Ok,
-                        function() {planMasterController.addGeoFences()})
+                        function() {
+                            let msg = planMasterController.addGeoFences()
+                            showMessageDialog(qsTr("Add GeoFences Status"),
+                                msg,
+                                Dialog.Ok)
+                        })
     }
 
     function overwriteGeoFences() {
@@ -147,8 +152,10 @@ Rectangle {
                                                 qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
                                                 Dialog.Yes | Dialog.No,
                                                 function() {
-                                                    planMasterController.overwriteGeoFences()
-
+                                                    let msg = planMasterController.overwriteGeoFences()
+                                                    showMessageDialog(qsTr("Overwrite GeoFences Status"),
+                                                        msg,
+                                                        Dialog.Ok)
                                                 })
                         })
     }
@@ -167,7 +174,10 @@ Rectangle {
                         qsTr("This will delete all existing circles"),
                         Dialog.Yes | Dialog.No,
                     function () {
-                        planMasterController.deleteGeoFences()
+                        let msg = planMasterController.deleteGeoFences()
+                        showMessageDialog(qsTr("Delete GeoFences Status"),
+                            msg,
+                            Dialog.Ok)
                     })
     }
 
@@ -179,7 +189,7 @@ Rectangle {
     function seed() {
         let seedIndex = seedTypeComboBox.currentIndex;
         let msg = planMasterController.changeSeed(seedIndex);
-        showMessageDialog(qsTr("Seeding"),
+        showMessageDialog(qsTr("Seeding Status"),
                         msg)
     }
 
