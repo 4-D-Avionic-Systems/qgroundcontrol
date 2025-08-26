@@ -73,6 +73,7 @@ Rectangle {
             showMessageDialog(qsTr("Success"),
                     qsTr("Resolutions have been applied if any conflicts were detected."),
                     Dialog.Ok);
+            undoResolutionButton.enabled = true
         }
 
     }
@@ -172,6 +173,7 @@ Rectangle {
 
     function undoResolution() {
         planMasterController.undoResolution()
+        undoResolutionButton.enabled = false
     }
 
     function seed() {
@@ -383,7 +385,7 @@ Rectangle {
                     QGCButton {
                         id:          undoResolutionButton
                         text:        qsTr("Undo Resolution")
-                        enabled:     true
+                        enabled:     false
                         onClicked:   root.undoResolution()
                         width: detectConflictButton.width
                     }

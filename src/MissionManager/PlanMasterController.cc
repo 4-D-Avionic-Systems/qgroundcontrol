@@ -667,7 +667,7 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 //4DAVSYS Changes ------------------------------
 QString PlanMasterController::detectConflicts(QString partialJSON)
 {
-    qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
+    //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
     QJsonDocument planJson = saveToJson();
 
@@ -687,7 +687,7 @@ QString PlanMasterController::detectConflicts(QString partialJSON)
 
 QString PlanMasterController::debugDetectConflicts(QString partialJSON)
 {
-    qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
+    //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
     QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
     QJsonDocument planJson = saveToJson();
 
@@ -770,6 +770,7 @@ void PlanMasterController::undoResolution()
         } else {
             qDebug() << "Loaded new mission items";
             qCInfo(PlanMasterControllerLog) << "Loaded new mission items.";
+            setDirty(true);
         }
     } else {
         qCInfo(PlanMasterControllerLog) << "Empty mission item list.";
