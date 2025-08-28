@@ -400,13 +400,13 @@ Rectangle {
                         width: detectConflictButton.width
                     }
 
-                    QGCButton {
+                    /*QGCButton {
                         id:          debugDetectConflictsButton
                         text:        qsTr("Debug")
                         enabled:     true
                         onClicked:   root.debugDetectConflicts()
                         width:       conflictResolutionSection.width
-                    }
+                    }*/
                 }
 
                 SectionHeader {
