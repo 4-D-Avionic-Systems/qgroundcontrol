@@ -821,6 +821,7 @@ Item {
                 id:                     fourDControls
                 anchors.top:            rightControls.bottom
                 anchors.topMargin:      ScreenTools.defaultFontPixelHeight * 0.25
+                anchors.bottom:         parent.bottom
                 anchors.left:           parent.left
                 anchors.right:          parent.right
                 visible:                _editingLayer == _layer4d

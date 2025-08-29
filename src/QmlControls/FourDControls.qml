@@ -13,11 +13,10 @@ import QGroundControl.SettingsManager
 import QGroundControl.Controllers
 
 
-Rectangle {
+QGCFlickable {
     id:                 root
-    height:             valuesRect.height
+    contentHeight: mainContentColumn.height
     clip:               true
-    color:              qgcPal.fourDBlue
 
     property real _margin: ScreenTools.defaultFontPixelWidth / 2
     property real _radius : ScreenTools.defaultFontPixelWidth / 2
@@ -194,45 +193,54 @@ Rectangle {
     }
 
 
+    // Background
+    Rectangle {
+        anchors.fill: parent
+        color: qgcPal.fourDBlue
+        z: -1
+    }
+
+    // Main content
     Rectangle {
         id:                 valuesRect
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        height:             fourDLabel.height + fourDControlItems.height + (_margin * 3)
-        color:              qgcPal.fourDBlue
+        anchors.left:       parent.left
+        anchors.right:      parent.right
+        anchors.top:        parent.top // Change this to anchors.top: parent.top if you want to control from PlanView
+        anchors.bottom: parent.bottom
+        color: qgcPal.fourDBlue // Make sure this matches your desired blue
         radius:             _radius
 
         QGCLabel {
             id:                 fourDLabel
-            anchors.margins:    _margin
             anchors.left:       parent.left
+            anchors.right:      parent.right
             anchors.top:        parent.top
+            anchors.margins:    _margin
             text:               qsTr("4D Avionic Systems Tools")
             anchors.leftMargin: ScreenTools.defaultFontPixelWidth
+            width:              parent.width - (ScreenTools.defaultFontPixelWidth * 2)
         }
 
         Rectangle {
             id: fourDControlItems
-            anchors.margins:    _margin
             anchors.left:       parent.left
             anchors.right:      parent.right
             anchors.top:        fourDLabel.bottom
+            anchors.bottom: parent.bottom
+            anchors.margins: _margin // Only here!
             color:              qgcPal.windowShadeDark
             radius:             _radius
-            height:             mainContentColumn.height + (_margin * 2)
 
             Column {
                 id:                 mainContentColumn
-                anchors.margins:    _margin
-                anchors.top:        parent.top
-                anchors.left:       parent.left
-                anchors.right:      parent.right
+                width: parent.width
                 spacing:            _margin
 
                 SectionHeader {
                     id:                 droneDetailsSection
                     anchors.left:       parent.left
                     anchors.right:      parent.right
+                    anchors.margins: _margin // <-- Add margin
                     text:               qsTr("Flight Plan Details")
                     checked:            true
                 }
@@ -250,11 +258,13 @@ Rectangle {
                         font.pointSize: ScreenTools.smallFontPointSize
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
                     FactTextField {
                         id: droneNickname
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                         text: "drone1"
                     }
 
@@ -263,25 +273,29 @@ Rectangle {
                         font.pointSize: ScreenTools.smallFontPointSize
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
                     FactTextField {
                         id: faaRegistrationNumber
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                         text: "FAXXXXXXXX"
                     }
 
                     QGCLabel {
-                        text: qsTr("Horizontal LOS Bound")
+                        text:           qsTr("Horizontal LOS Bound")
                         font.pointSize: ScreenTools.smallFontPointSize
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
 
                     FactTextField {
                         id: horizontalLOSBound
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         text: "10"
                         validator: IntValidator {
                             bottom: 1
@@ -290,16 +304,18 @@ Rectangle {
                     }
 
                     QGCLabel {
-                        text: qsTr("Vertical LOS Bound")
+                        text:           qsTr("Vertical LOS Bound")
                         font.pointSize: ScreenTools.smallFontPointSize
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
 
                     FactTextField {
                         id: verticalLOSBound
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         text: "10"
                         validator: IntValidator {
                             bottom: 1
@@ -308,16 +324,18 @@ Rectangle {
                     }
 
                     QGCLabel {
-                        text: qsTr("Time From Now to Start Mission (Seconds)")
+                        text:           qsTr("Time From Now to Start Mission (Seconds)")
                         font.pointSize: ScreenTools.smallFontPointSize
                         anchors.left:   parent.left
                         anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
 
                     FactTextField {
                         id: secondsToMissionStart
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         text: "60"
                         validator: IntValidator {
                             bottom: 0
@@ -330,6 +348,8 @@ Rectangle {
                         id:         lidarAvailableBox
                         text:       qsTr("Lidar Available?")
                         anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                     }
                 }
 
@@ -337,6 +357,7 @@ Rectangle {
                     id:                 tuningSection
                     anchors.left:       parent.left
                     anchors.right:      parent.right
+                    anchors.margins: _margin // <-- Add margin
                     text:               qsTr("Tuning")
                     checked:            true
                 }
@@ -359,6 +380,7 @@ Rectangle {
                         id: takeoffDelay
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        anchors.margins: _margin
                         text: "1000"
                         validator: IntValidator {
                             bottom: 0
@@ -389,6 +411,9 @@ Rectangle {
                         text:        qsTr("Detect & Resolve Conflicts")
                         enabled:     true
                         onClicked:   root.detectConflicts()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width:       conflictResolutionSection.width
                     }
 
@@ -397,6 +422,9 @@ Rectangle {
                         text:        qsTr("Undo Resolution")
                         enabled:     false
                         onClicked:   root.undoResolution()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
 
@@ -430,6 +458,9 @@ Rectangle {
                         text:        qsTr("Add GeoFences")
                         enabled:     true
                         onClicked:   root.addGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
 
@@ -438,6 +469,9 @@ Rectangle {
                         text:        qsTr("Overwrite GeoFences")
                         enabled:     true
                         onClicked:   root.overwriteGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
 
@@ -446,6 +480,9 @@ Rectangle {
                         text:        qsTr("Load GeoFences")
                         enabled:     true
                         onClicked:   root.loadGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
 
@@ -454,6 +491,9 @@ Rectangle {
                         text:        qsTr("Clear GeoFence DB")
                         enabled:     true
                         onClicked:   root.deleteGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
                 }
@@ -478,6 +518,7 @@ Rectangle {
                         id: seedTypeComboBox
                         anchors.left: parent.left
                         anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         model: [qsTr("Survey"), qsTr("Simple"), qsTr("Empty")]
                         currentIndex: 0
                     }
@@ -487,6 +528,9 @@ Rectangle {
                         text:        qsTr("Seed")
                         enabled:     true
                         onClicked:   root.seed()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
                         width: detectConflictButton.width
                     }
                 }
