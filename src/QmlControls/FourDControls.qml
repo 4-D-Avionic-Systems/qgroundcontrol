@@ -15,8 +15,9 @@ import QGroundControl.Controllers
 
 QGCFlickable {
     id:                 root
-    contentHeight: mainContentColumn.height
+    contentHeight:      mainContentColumn.height + fourDLabel.height + (_margin * 3)
     clip:               true
+    height:             Math.min(contentHeight + _margin * 2, ScreenTools.availableHeight * 0.75)
 
     property real _margin: ScreenTools.defaultFontPixelWidth / 2
     property real _radius : ScreenTools.defaultFontPixelWidth / 2
@@ -192,23 +193,16 @@ QGCFlickable {
                         msg)
     }
 
-
-    // Background
-    Rectangle {
-        anchors.fill: parent
-        color: qgcPal.fourDBlue
-        z: -1
-    }
-
     // Main content
     Rectangle {
         id:                 valuesRect
         anchors.left:       parent.left
         anchors.right:      parent.right
-        anchors.top:        parent.top // Change this to anchors.top: parent.top if you want to control from PlanView
-        anchors.bottom: parent.bottom
-        color: qgcPal.fourDBlue // Make sure this matches your desired blue
+        anchors.top:        parent.top 
+        anchors.bottom:     parent.bottom
+        color:              qgcPal.fourDBlue 
         radius:             _radius
+        //height: fourDControlItems.height + fourDLabel.height + (_margin * 3)
 
         QGCLabel {
             id:                 fourDLabel
@@ -226,10 +220,11 @@ QGCFlickable {
             anchors.left:       parent.left
             anchors.right:      parent.right
             anchors.top:        fourDLabel.bottom
-            anchors.bottom: parent.bottom
-            anchors.margins: _margin // Only here!
+            anchors.bottom:     parent.bottom
+            anchors.margins: _margin
             color:              qgcPal.windowShadeDark
             radius:             _radius
+            //height: Math.max(mainContentColumn.implicitHeight, parent.height - fourDLabel.height - (_margin * 3))
 
             Column {
                 id:                 mainContentColumn
@@ -428,13 +423,16 @@ QGCFlickable {
                         width: detectConflictButton.width
                     }
 
-                    /*QGCButton {
+                    QGCButton {
                         id:          debugDetectConflictsButton
                         text:        qsTr("Debug")
                         enabled:     true
                         onClicked:   root.debugDetectConflicts()
-                        width:       conflictResolutionSection.width
-                    }*/
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: detectConflictButton.width
+                    }
                 }
 
                 SectionHeader {
@@ -510,6 +508,7 @@ QGCFlickable {
                     id:                 seedManagementContent
                     anchors.left:       parent.left
                     anchors.right:      parent.right
+                    anchors.margins: _margin
                     spacing:            _margin
                     visible:            seedManagementSection.checked
                     height:             visible ? implicitHeight : 0
@@ -531,6 +530,7 @@ QGCFlickable {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.margins: _margin // <-- Add margin
+                        anchors.bottomMargin: _margin * 2
                         width: detectConflictButton.width
                     }
                 }
