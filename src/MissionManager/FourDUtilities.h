@@ -1,5 +1,7 @@
 #pragma once
 
+#include "FourDRequestBody.h"
+#include "FourDRequestItems.h"
 #include "QGCLoggingCategory.h"
 #include "Vehicle.h"
 
@@ -17,8 +19,8 @@ class FourDUtilities : public QObject
 public:
     FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr, QString urlStr = "");
     ~FourDUtilities();
-    QNetworkReply* detectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson);
-    QNetworkReply* debugDetectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson);
+    QNetworkReply* detectConflicts(FourDRequestBody* jsonRequest);
+    QNetworkReply* debugDetectConflicts(FourDRequestBody* jsonRequest);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
     QJsonDocument loadGeoFences(void);

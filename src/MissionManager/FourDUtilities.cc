@@ -1,4 +1,6 @@
 #include "FourDUtilities.h"
+#include "FourDRequestBody.h"
+#include "FourDRequestItems.h"
 #include "QGCApplication.h"
 #include "SettingsManager.h"
 #include "PlanMasterController.h"
@@ -32,16 +34,14 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
-QNetworkReply*  FourDUtilities::detectConflicts(QString jsonRequest)
+QNetworkReply*  FourDUtilities::detectConflicts(FourDRequestBody* jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor"));
     QNetworkRequest request(post_url);
 
-    _vehicleParams = planParams;
-    _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, jsonRequest.toUtf8());
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;
@@ -50,16 +50,14 @@ QNetworkReply*  FourDUtilities::detectConflicts(QString jsonRequest)
     return _reply;
 }
 
-QNetworkReply*  FourDUtilities::debugDetectConflicts(QString jsonRequest)
+QNetworkReply*  FourDUtilities::debugDetectConflicts(FourDRequestBody* jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
     QNetworkRequest request(post_url);
-
-    _vehicleParams = planParams;
-    _vehiclePlan = planJson;
+    
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, jsonRequest.toUtf8());
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;

@@ -16,9 +16,13 @@ target_sources(${CMAKE_PROJECT_NAME}
         CorridorScanPlanCreator.h
 
         #4DAVSYS Changes ------
-	    FourDUtilities.cc
-	    FourDUtilities.h
-	    #---------------------
+        FourDUtilities.cc
+        FourDUtilities.h
+        FourDRequestBody.cc
+        FourDRequestBody.h
+        FourDRequestItems.cc
+        FourDRequestItems.h
+        #---------------------
 
         FixedWingLandingComplexItem.cc
         FixedWingLandingComplexItem.h

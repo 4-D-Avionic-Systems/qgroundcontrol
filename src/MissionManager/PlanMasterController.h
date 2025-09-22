@@ -150,10 +150,13 @@ private slots:
 private:
     void _commonInit                (void);
     void _showPlanFromManagerVehicle(void);
+    //4DAVSYS Changes -------------------------------------------
     QString handle200ResponseCDR(const QByteArray& responseData);
     QString handle200ResponseGeneric(const QByteArray& responseData);
     QString handle400Response(const QByteArray& responseData);
     QString handleUnexpectedStatus(int statusCode);
+    FourDRequestBody* get4DRequestBody(QString partialJSON);
+    //-----------------------------------------------------------
 
     MultiVehicleManager*    _multiVehicleMgr =          nullptr;
     Vehicle*                _controllerVehicle =        nullptr;    ///< Offline controller vehicle
