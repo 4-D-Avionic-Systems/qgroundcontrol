@@ -665,11 +665,17 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 }
 
 //4DAVSYS Changes ------------------------------
+QString PlanMasterController::get4DRequestBody(QString partialJSON)
+{
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    QJsonDocument planJson = saveToJson();
+    return "{" + partialJSON.toUtf8() + ", \"params\": " + paramsJson.toJson() + ", \"missionItems\": "  + planJson.toJson() + "}";
+}
+
 QString PlanMasterController::detectConflicts(QString partialJSON)
 {
     //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
-    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
-    QJsonDocument planJson = saveToJson();
+    
 
     QNetworkReply* reply = _fourDUtilities->detectConflicts(partialJSON, paramsJson, planJson);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();

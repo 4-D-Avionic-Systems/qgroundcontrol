@@ -16,10 +16,66 @@ QGCFlickable {
 
     property var    myGeoFenceController
     property var    flightMap
+    property var    planMasterController
 
     readonly property real  _editFieldWidth:    Math.min(width - _margin * 2, ScreenTools.defaultFontPixelWidth * 15)
     readonly property real  _margin:            ScreenTools.defaultFontPixelWidth / 2
     readonly property real  _radius:            ScreenTools.defaultFontPixelWidth / 2
+
+    function addGeoFences() {
+        showMessageDialog(qsTr("Warning"),
+                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        Dialog.Ok,
+                        function() {
+                            let msg = planMasterController.addGeoFences()
+                            showMessageDialog(qsTr("Add GeoFences Status"),
+                                msg,
+                                Dialog.Ok)
+                        })
+    }
+
+    function overwriteGeoFences() {
+        showMessageDialog(qsTr("Warning"),
+                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        Dialog.Ok,
+                        function() {
+                            showMessageDialog(qsTr("Are You Sure?"),
+                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
+                                                Dialog.Yes | Dialog.No,
+                                                function() {
+                                                    let msg = planMasterController.overwriteGeoFences()
+                                                    showMessageDialog(qsTr("Overwrite GeoFences Status"),
+                                                        msg,
+                                                        Dialog.Ok)
+                                                })
+                        })
+    }
+
+    function loadGeoFences() {
+    showMessageDialog(qsTr("Would you like to clear existing circles?"),
+                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        planMasterController.loadGeoFences(true)
+                    })
+    }
+
+    function deleteGeoFences() {
+    showMessageDialog(qsTr("Are you Sure?)"),
+                        qsTr("This will delete all existing circles"),
+                        Dialog.Yes | Dialog.No,
+                    function () {
+                        let msg = planMasterController.deleteGeoFences()
+                        showMessageDialog(qsTr("Delete GeoFences Status"),
+                            msg,
+                            Dialog.Ok)
+                    })
+    }
+
+    function undoResolution() {
+        planMasterController.undoResolution()
+        undoResolutionButton.enabled = false
+    }
 
     Rectangle {
         id:     geoFenceEditorRect
@@ -108,6 +164,78 @@ QGCFlickable {
                             }
                         }
                     }
+
+                    SectionHeader {
+                    id:                 geoFenceManagementSection
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    text:               qsTr("Database Management")
+                    checked:            false
+                }
+
+                Column {
+                    id:                 geoFenceManagementContent
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    spacing:            _margin
+                    visible:            geoFenceManagementSection.checked
+                    height:             visible ? implicitHeight : 0
+
+                    QGCButton {
+                        id:          addGeoFenceButton
+                        text:        qsTr("Add GeoFences")
+                        enabled:     true
+                        onClicked:   root.addGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+
+                    QGCButton {
+                        id:          overwriteGeoFenceButton
+                        text:        qsTr("Overwrite GeoFences")
+                        enabled:     true
+                        onClicked:   root.overwriteGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+
+                    QGCButton {
+                        id:          loadGeoFenceButton
+                        text:        qsTr("Load GeoFences")
+                        enabled:     true
+                        onClicked:   root.loadGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+
+                    QGCButton {
+                        id:          deleteGeoFenceButton
+                        text:        qsTr("Clear GeoFence DB")
+                        enabled:     true
+                        onClicked:   root.deleteGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+
+                    QGCButton {
+                        id:          undoResolutionButton
+                        text:        qsTr("Undo Resolution")
+                        enabled:     false
+                        onClicked:   root.undoResolution()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+                }
 
                     SectionHeader {
                         id:             insertSection
@@ -315,6 +443,7 @@ QGCFlickable {
                     }
 
                     QGCButton {
+                        id:                 addBreachReturnPointButton
                         text:               qsTr("Add Breach Return Point")
                         visible:            breachReturnSection.visible && !myGeoFenceController.breachReturnPoint.isValid
                         anchors.left:       parent.left

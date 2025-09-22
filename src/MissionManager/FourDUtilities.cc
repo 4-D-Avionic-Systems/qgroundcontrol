@@ -32,7 +32,7 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
-QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson)
+QNetworkReply*  FourDUtilities::detectConflicts(QString jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor"));
     QNetworkRequest request(post_url);
@@ -41,7 +41,7 @@ QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocume
     _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8() + ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, jsonRequest.toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;
@@ -50,7 +50,7 @@ QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocume
     return _reply;
 }
 
-QNetworkReply*  FourDUtilities::debugDetectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson)
+QNetworkReply*  FourDUtilities::debugDetectConflicts(QString jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
     QNetworkRequest request(post_url);
@@ -59,7 +59,7 @@ QNetworkReply*  FourDUtilities::debugDetectConflicts(QString partialJSON, QJsonD
     _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8() + ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, jsonRequest.toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;
