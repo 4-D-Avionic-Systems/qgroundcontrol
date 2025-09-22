@@ -24,7 +24,7 @@ QGCFlickable {
 
     property var    planMasterController
 
-    function detectConflicts(){
+    function getJSONRequest(){
         let additionalDataObject = {
             "droneNickname": droneNickname.text,
             "faaRegistrationNumber": faaRegistrationNumber.text,
@@ -59,7 +59,12 @@ QGCFlickable {
         }
 
         let partialJSONToSend = JSON.stringify(additionalDataObject);
-        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+        return partialJSONToSend;
+    }
+
+    function detectConflicts(){
+
+        let partialJSONToSend = getJSONRequest();
 
         let msg = planMasterController.detectConflicts(partialJSONToSend);
 
@@ -76,45 +81,11 @@ QGCFlickable {
             undoResolutionButton.enabled = true
         }
 
-    }
+   }
 
     function debugDetectConflicts(){
-
-        let additionalDataObject = {
-            "droneNickname": droneNickname.text,
-            "faaRegistrationNumber": faaRegistrationNumber.text,
-            "horizontalLOSBound" : horizontalLOSBound.text,
-            "verticalLOSBound" : verticalLOSBound.text,
-            "secondsToMissionStart": (parseFloat(secondsToMissionStart.text, 10) + (parseFloat(takeoffDelay.text, 10)/1000)),
-            "lidarAvailable": lidarAvailableBox.checked,
-            "customerId": 1
-        };
-        if(droneNickname.text.length > 50){
-            showMessageDialog(qsTr("Error"),
-                    qsTr("Drone Nickname must be 50 characters or less."),
-                    Dialog.Ok);
-            return;
-        }
-        if (faaRegistrationNumber.text.length != 10){
-            showMessageDialog(qsTr("Error"),
-                    qsTr("FAA Registration Number must be 10 characters long."),
-                    Dialog.Ok);
-            return;
-        }
         
-        for (let key in additionalDataObject) {
-            let value = additionalDataObject[key];
-            if (typeof value === 'string' && value.trim() === '') {
-                delete additionalDataObject[key];
-            } else if (typeof value === 'number' && isNaN(value)) {
-                delete additionalDataObject[key];
-            } else if (value === null) {
-                delete additionalDataObject[key];
-            }
-        }
-
-        let partialJSONToSend = JSON.stringify(additionalDataObject);
-        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+        let partialJSONToSend = getJSONRequest();
 
         let msg = planMasterController.debugDetectConflicts(partialJSONToSend);
 

@@ -39,11 +39,13 @@ FourDRequestItems::~FourDRequestItems()
 
 QString FourDRequestItems::toJson()
 {
-    QString jsonString = "droneNickname: " + _droneNickname +
-                         ", faaRegistrationNumber: " + _faaRegistrationNumber +
-                         ", horizontalLOSBound: " + QString::number(_horizontalLOSBound) +
-                         ", verticalLOSBound: " + QString::number(_verticalLOSBound) +
-                         ", secondsToMissionStart: " + QString::number(_secondsToMissionStart) +
-                         ", lidarAvailable: " + (_lidarAvailable ? "true" : "false");
+    QString jsonString = "\"droneNickname\": \"" + _droneNickname + "\"" +
+                         ", \"faaRegistrationNumber\": \"" + _faaRegistrationNumber + "\"" +
+                         ", \"horizontalLOSBound\": " + QString::number(_horizontalLOSBound) +
+                         ", \"verticalLOSBound\": " + QString::number(_verticalLOSBound) +
+                         ", \"secondsToMissionStart\": " + QString::number(_secondsToMissionStart) +
+                         ", \"lidarAvailable\": " + (_lidarAvailable ? "true" : "false") +
+                         ", \"customerId\": " + QString::number(1);
+
     return jsonString;
 }
