@@ -11,6 +11,16 @@ FourDRequestBody::FourDRequestBody(QObject* parent,
 {
 }
 
+FourDRequestBody::FourDRequestBody(QObject* parent,
+                                   QJsonDocument params,
+                                   QJsonDocument missionItems) 
+                                   : QObject(parent)
+{
+    _requestItems = new FourDRequestItems(this);
+    _params = params;
+    _missionItems = missionItems;
+}
+
 FourDRequestBody::~FourDRequestBody()
 {
     delete _requestItems;

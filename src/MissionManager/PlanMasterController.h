@@ -95,6 +95,7 @@ public:
     Q_INVOKABLE QString addGeoFences(void);
     Q_INVOKABLE void loadGeoFences(bool clearCircles);
     Q_INVOKABLE QString deleteGeoFences(void);
+    Q_INVOKABLE QString deconflictAllGeoFences(void);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }
@@ -156,6 +157,7 @@ private:
     QString handle400Response(const QByteArray& responseData);
     QString handleUnexpectedStatus(int statusCode);
     FourDRequestBody* get4DRequestBody(QString partialJSON);
+    FourDRequestBody* get4DRequestBody();
     //-----------------------------------------------------------
 
     MultiVehicleManager*    _multiVehicleMgr =          nullptr;

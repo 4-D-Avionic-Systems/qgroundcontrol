@@ -12,13 +12,13 @@ class FourDRequestItems : public QObject
 public:
     explicit FourDRequestItems(QObject* parent = nullptr);
 
-    explicit FourDRequestItems(QObject* parent = nullptr,
-                               QString droneNickname = "",
-                               QString faaRegistrationNumber = "",
-                               int horizontalLOSBound = 0,
-                               int verticalLOSBound = 0,
-                               int secondsToMissionStart = 0,
-                               bool lidarAvailable = false);
+    explicit FourDRequestItems(QObject* parent,
+                               QString droneNickname,
+                               QString faaRegistrationNumber,
+                               int horizontalLOSBound,
+                               int verticalLOSBound,
+                               int secondsToMissionStart,
+                               bool lidarAvailable);
 
     explicit FourDRequestItems(const QVariantMap& map, QObject* parent = nullptr);
 

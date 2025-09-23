@@ -72,6 +72,14 @@ QGCFlickable {
                     })
     }
 
+    function deconflictAllGeoFences() {
+        let msg = planMasterController.deconflictAllGeoFences()
+        showMessageDialog(qsTr("Deconfliction Status"),
+            msg,
+            Dialog.Ok)
+        undoResolutionButton.enabled = true
+    }
+
     function undoResolution() {
         planMasterController.undoResolution()
         undoResolutionButton.enabled = false
@@ -165,12 +173,13 @@ QGCFlickable {
                         }
                     }
 
-                    SectionHeader {
-                    id:                 geoFenceManagementSection
-                    anchors.left:       parent.left
-                    anchors.right:      parent.right
-                    text:               qsTr("Database Management")
-                    checked:            false
+                //4DAVSYS Changes ------------------------------
+                SectionHeader {
+                id:                 geoFenceManagementSection
+                anchors.left:       parent.left
+                anchors.right:      parent.right
+                text:               qsTr("Database Management")
+                checked:            false
                 }
 
                 Column {
@@ -224,6 +233,34 @@ QGCFlickable {
                         anchors.margins: _margin // <-- Add margin
                         width: addBreachReturnPointButton.width
                     }
+                }
+
+                SectionHeader {
+                id:                 deconflictionSection
+                anchors.left:       parent.left
+                anchors.right:      parent.right
+                text:               qsTr("Deconfliction")
+                checked:            false
+                }
+
+                Column {
+                    id:                 deconflictionContent
+                    anchors.left:       parent.left
+                    anchors.right:      parent.right
+                    spacing:            _margin
+                    visible:            deconflictionSection.checked
+                    height:             visible ? implicitHeight : 0
+
+                    QGCButton {
+                        id:          deconflictGeoFencesButton
+                        text:        qsTr("Deconflict All GeoFences")
+                        enabled:     true
+                        onClicked:   root.deconflictAllGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
 
                     QGCButton {
                         id:          undoResolutionButton
@@ -236,6 +273,7 @@ QGCFlickable {
                         width: addBreachReturnPointButton.width
                     }
                 }
+                //----------------------------------------------
 
                     SectionHeader {
                         id:             insertSection

@@ -21,6 +21,7 @@ public:
     ~FourDUtilities();
     QNetworkReply* detectConflicts(FourDRequestBody* jsonRequest);
     QNetworkReply* debugDetectConflicts(FourDRequestBody* jsonRequest);
+    QNetworkReply* detectConflictsAllGeoFences(FourDRequestBody* jsonRequest);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
     QJsonDocument loadGeoFences(void);

@@ -14,6 +14,10 @@ public:
                               FourDRequestItems* requestItems,
                               QJsonDocument params,
                               QJsonDocument missionItems);
+
+    explicit FourDRequestBody(QObject* parent,
+                              QJsonDocument params,
+                              QJsonDocument missionItems);
     ~FourDRequestBody();
 
     QString toJson();
