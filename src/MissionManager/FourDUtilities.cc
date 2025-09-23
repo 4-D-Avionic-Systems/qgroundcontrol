@@ -68,7 +68,7 @@ QNetworkReply*  FourDUtilities::debugDetectConflicts(FourDRequestBody* jsonReque
 
 QNetworkReply* FourDUtilities::detectConflictsAllGeoFences(FourDRequestBody* jsonRequest)
 {
-    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/DeconflictGeoFence"));
+    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/DeconflictGeoFences"));
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");

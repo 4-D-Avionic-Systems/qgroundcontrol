@@ -4,8 +4,8 @@
 
 FourDRequestItems::FourDRequestItems(QObject* parent) : QObject(parent)
 {
-    _droneNickname = "";
-    _faaRegistrationNumber = "";
+    _droneNickname = "test";
+    _faaRegistrationNumber = "FAXXXXXXXX";
     _horizontalLOSBound = 10;
     _verticalLOSBound = 10;
     _secondsToMissionStart = 60;

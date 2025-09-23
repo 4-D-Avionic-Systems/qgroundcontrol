@@ -109,6 +109,11 @@ QGCFlickable {
                         msg)
     }
 
+    function undoResolution() {
+        planMasterController.undoResolution()
+        undoResolutionButton.enabled = false
+    }
+
     // Main content
     Rectangle {
         id:                 valuesRect
