@@ -24,7 +24,7 @@ QGCFlickable {
 
     property var    planMasterController
 
-    function detectConflicts(){
+    function getJSONRequest(){
         let additionalDataObject = {
             "droneNickname": droneNickname.text,
             "faaRegistrationNumber": faaRegistrationNumber.text,
@@ -59,7 +59,12 @@ QGCFlickable {
         }
 
         let partialJSONToSend = JSON.stringify(additionalDataObject);
-        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+        return partialJSONToSend;
+    }
+
+    function detectConflicts(){
+
+        let partialJSONToSend = getJSONRequest();
 
         let msg = planMasterController.detectConflicts(partialJSONToSend);
 
@@ -76,45 +81,11 @@ QGCFlickable {
             undoResolutionButton.enabled = true
         }
 
-    }
+   }
 
     function debugDetectConflicts(){
-
-        let additionalDataObject = {
-            "droneNickname": droneNickname.text,
-            "faaRegistrationNumber": faaRegistrationNumber.text,
-            "horizontalLOSBound" : horizontalLOSBound.text,
-            "verticalLOSBound" : verticalLOSBound.text,
-            "secondsToMissionStart": (parseFloat(secondsToMissionStart.text, 10) + (parseFloat(takeoffDelay.text, 10)/1000)),
-            "lidarAvailable": lidarAvailableBox.checked,
-            "customerId": 1
-        };
-        if(droneNickname.text.length > 50){
-            showMessageDialog(qsTr("Error"),
-                    qsTr("Drone Nickname must be 50 characters or less."),
-                    Dialog.Ok);
-            return;
-        }
-        if (faaRegistrationNumber.text.length != 10){
-            showMessageDialog(qsTr("Error"),
-                    qsTr("FAA Registration Number must be 10 characters long."),
-                    Dialog.Ok);
-            return;
-        }
         
-        for (let key in additionalDataObject) {
-            let value = additionalDataObject[key];
-            if (typeof value === 'string' && value.trim() === '') {
-                delete additionalDataObject[key];
-            } else if (typeof value === 'number' && isNaN(value)) {
-                delete additionalDataObject[key];
-            } else if (value === null) {
-                delete additionalDataObject[key];
-            }
-        }
-
-        let partialJSONToSend = JSON.stringify(additionalDataObject);
-        partialJSONToSend = partialJSONToSend.replace("{", "").replace("}", "");
+        let partialJSONToSend = getJSONRequest();
 
         let msg = planMasterController.debugDetectConflicts(partialJSONToSend);
 
@@ -131,66 +102,16 @@ QGCFlickable {
 
     }
 
-    function addGeoFences() {
-        showMessageDialog(qsTr("Warning"),
-                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
-                        Dialog.Ok,
-                        function() {
-                            let msg = planMasterController.addGeoFences()
-                            showMessageDialog(qsTr("Add GeoFences Status"),
-                                msg,
-                                Dialog.Ok)
-                        })
-    }
-
-    function overwriteGeoFences() {
-        showMessageDialog(qsTr("Warning"),
-                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
-                        Dialog.Ok,
-                        function() {
-                            showMessageDialog(qsTr("Are You Sure?"),
-                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
-                                                Dialog.Yes | Dialog.No,
-                                                function() {
-                                                    let msg = planMasterController.overwriteGeoFences()
-                                                    showMessageDialog(qsTr("Overwrite GeoFences Status"),
-                                                        msg,
-                                                        Dialog.Ok)
-                                                })
-                        })
-    }
-
-    function loadGeoFences() {
-    showMessageDialog(qsTr("Would you like to clear existing circles?"),
-                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
-                        Dialog.Yes | Dialog.No,
-                    function () {
-                        planMasterController.loadGeoFences(true)
-                    })
-    }
-
-    function deleteGeoFences() {
-    showMessageDialog(qsTr("Are you Sure?)"),
-                        qsTr("This will delete all existing circles"),
-                        Dialog.Yes | Dialog.No,
-                    function () {
-                        let msg = planMasterController.deleteGeoFences()
-                        showMessageDialog(qsTr("Delete GeoFences Status"),
-                            msg,
-                            Dialog.Ok)
-                    })
-    }
-
-    function undoResolution() {
-        planMasterController.undoResolution()
-        undoResolutionButton.enabled = false
-    }
-
     function seed() {
         let seedIndex = seedTypeComboBox.currentIndex;
         let msg = planMasterController.changeSeed(seedIndex);
         showMessageDialog(qsTr("Seeding Status"),
                         msg)
+    }
+
+    function undoResolution() {
+        planMasterController.undoResolution()
+        undoResolutionButton.enabled = false
     }
 
     // Main content
@@ -428,67 +349,6 @@ QGCFlickable {
                         text:        qsTr("Debug")
                         enabled:     true
                         onClicked:   root.debugDetectConflicts()
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        width: detectConflictButton.width
-                    }
-                }
-
-                SectionHeader {
-                    id:                 geoFenceManagementSection
-                    anchors.left:       parent.left
-                    anchors.right:      parent.right
-                    text:               qsTr("GeoFence Management")
-                    checked:            false
-                }
-
-                Column {
-                    id:                 geoFenceManagementContent
-                    anchors.left:       parent.left
-                    anchors.right:      parent.right
-                    spacing:            _margin
-                    visible:            geoFenceManagementSection.checked
-                    height:             visible ? implicitHeight : 0
-
-                    QGCButton {
-                        id:          addGeoFenceButton
-                        text:        qsTr("Add GeoFences")
-                        enabled:     true
-                        onClicked:   root.addGeoFences()
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        width: detectConflictButton.width
-                    }
-
-                    QGCButton {
-                        id:          overwriteGeoFenceButton
-                        text:        qsTr("Overwrite GeoFences")
-                        enabled:     true
-                        onClicked:   root.overwriteGeoFences()
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        width: detectConflictButton.width
-                    }
-
-                    QGCButton {
-                        id:          loadGeoFenceButton
-                        text:        qsTr("Load GeoFences")
-                        enabled:     true
-                        onClicked:   root.loadGeoFences()
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        width: detectConflictButton.width
-                    }
-
-                    QGCButton {
-                        id:          deleteGeoFenceButton
-                        text:        qsTr("Clear GeoFence DB")
-                        enabled:     true
-                        onClicked:   root.deleteGeoFences()
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.margins: _margin // <-- Add margin

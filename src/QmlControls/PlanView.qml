@@ -793,6 +793,7 @@ Item {
                 myGeoFenceController:   _geoFenceController
                 flightMap:              editorMap
                 visible:                _editingLayer == _layerGeoFence
+                planMasterController:   _planMasterController
             }
 
             // Rally Point Editor

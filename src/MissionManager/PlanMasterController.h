@@ -95,6 +95,7 @@ public:
     Q_INVOKABLE QString addGeoFences(void);
     Q_INVOKABLE void loadGeoFences(bool clearCircles);
     Q_INVOKABLE QString deleteGeoFences(void);
+    Q_INVOKABLE QString deconflictAllGeoFences(void);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }
@@ -150,10 +151,14 @@ private slots:
 private:
     void _commonInit                (void);
     void _showPlanFromManagerVehicle(void);
+    //4DAVSYS Changes -------------------------------------------
     QString handle200ResponseCDR(const QByteArray& responseData);
     QString handle200ResponseGeneric(const QByteArray& responseData);
     QString handle400Response(const QByteArray& responseData);
     QString handleUnexpectedStatus(int statusCode);
+    FourDRequestBody* get4DRequestBody(QString partialJSON);
+    FourDRequestBody* get4DRequestBody();
+    //-----------------------------------------------------------
 
     MultiVehicleManager*    _multiVehicleMgr =          nullptr;
     Vehicle*                _controllerVehicle =        nullptr;    ///< Offline controller vehicle

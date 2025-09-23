@@ -1,4 +1,6 @@
 #include "FourDUtilities.h"
+#include "FourDRequestBody.h"
+#include "FourDRequestItems.h"
 #include "QGCApplication.h"
 #include "SettingsManager.h"
 #include "PlanMasterController.h"
@@ -32,16 +34,14 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
-QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson)
+QNetworkReply*  FourDUtilities::detectConflicts(FourDRequestBody* jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor"));
     QNetworkRequest request(post_url);
 
-    _vehicleParams = planParams;
-    _vehiclePlan = planJson;
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8() + ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;
@@ -50,16 +50,30 @@ QNetworkReply*  FourDUtilities::detectConflicts(QString partialJSON, QJsonDocume
     return _reply;
 }
 
-QNetworkReply*  FourDUtilities::debugDetectConflicts(QString partialJSON, QJsonDocument planParams, QJsonDocument planJson)
+QNetworkReply*  FourDUtilities::debugDetectConflicts(FourDRequestBody* jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
     QNetworkRequest request(post_url);
-
-    _vehicleParams = planParams;
-    _vehiclePlan = planJson;
+    
     request.setRawHeader("Content-Type", "application/json");
 
-    _reply = _apiManager.post(request, "{" + partialJSON.toUtf8() + ", \"params\": " + _vehicleParams.toJson() + ", \"missionItems\": "  + _vehiclePlan.toJson() + "}");
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
+
+    // Wait for the request to finish
+    QEventLoop loop;
+    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    return _reply;
+}
+
+QNetworkReply* FourDUtilities::detectConflictsAllGeoFences(FourDRequestBody* jsonRequest)
+{
+    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/DeconflictGeoFences"));
+    QNetworkRequest request(post_url);
+
+    request.setRawHeader("Content-Type", "application/json");
+
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
 
     // Wait for the request to finish
     QEventLoop loop;

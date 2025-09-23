@@ -665,13 +665,31 @@ void PlanMasterController::showPlanFromManagerVehicle(void)
 }
 
 //4DAVSYS Changes ------------------------------
+FourDRequestBody* PlanMasterController::get4DRequestBody(QString partialJSON)
+{
+    QJsonDocument doc = QJsonDocument::fromJson(partialJSON.toUtf8());
+    QVariantMap map = doc.object().toVariantMap();
+    FourDRequestItems* requestItems = new FourDRequestItems(map, this);
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    QJsonDocument planJson = saveToJson();
+    FourDRequestBody* requestBody = new FourDRequestBody(this, requestItems, paramsJson, planJson);
+    return requestBody;
+}
+
+FourDRequestBody* PlanMasterController::get4DRequestBody()
+{
+    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
+    QJsonDocument planJson = saveToJson();
+    FourDRequestBody* requestBody = new FourDRequestBody(this, paramsJson, planJson);
+    return requestBody;
+}
+
 QString PlanMasterController::detectConflicts(QString partialJSON)
 {
     //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
-    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
-    QJsonDocument planJson = saveToJson();
-
-    QNetworkReply* reply = _fourDUtilities->detectConflicts(partialJSON, paramsJson, planJson);
+    
+    FourDRequestBody* requestBody = get4DRequestBody(partialJSON);
+    QNetworkReply* reply = _fourDUtilities->detectConflicts(requestBody);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseData = reply->readAll(); 
 
@@ -688,10 +706,25 @@ QString PlanMasterController::detectConflicts(QString partialJSON)
 QString PlanMasterController::debugDetectConflicts(QString partialJSON)
 {
     //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
-    QJsonDocument paramsJson = _managerVehicle->parameterManager()->writeParametersToJson();
-    QJsonDocument planJson = saveToJson();
+    FourDRequestBody* requestBody = get4DRequestBody(partialJSON);
 
-    QNetworkReply* reply = _fourDUtilities->debugDetectConflicts(partialJSON, paramsJson, planJson);
+    QNetworkReply* reply = _fourDUtilities->debugDetectConflicts(requestBody);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200ResponseGeneric(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::deconflictAllGeoFences(){
+    FourDRequestBody* requestBody = get4DRequestBody();
+    QNetworkReply* reply = _fourDUtilities->detectConflictsAllGeoFences(requestBody);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseData = reply->readAll(); 
 
