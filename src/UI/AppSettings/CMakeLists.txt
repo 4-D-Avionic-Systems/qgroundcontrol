@@ -9,6 +9,7 @@ qt_add_qml_module(AppSettingsModule
         BluetoothSettings.qml
         DebugWindow.qml
         FlyViewSettings.qml
+        FourDSettings.qml
         GeneralSettings.qml
         HelpSettings.qml
         LinkSettings.qml

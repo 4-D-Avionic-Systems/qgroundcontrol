@@ -22,6 +22,7 @@ QGCFlickable {
     readonly property real  _margin:            ScreenTools.defaultFontPixelWidth / 2
     readonly property real  _radius:            ScreenTools.defaultFontPixelWidth / 2
 
+    //4DAS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
     function addGeoFences() {
         showMessageDialog(qsTr("Warning"),
                         qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
@@ -77,13 +78,29 @@ QGCFlickable {
         showMessageDialog(qsTr("Deconfliction Status"),
             msg,
             Dialog.Ok)
-        undoResolutionButton.enabled = true
+        undoResolutionGeoFenceButton.enabled = true
+    }
+
+    function deconflictSingleGeoFence(index) {
+        let intIndex = parseInt(index)
+        if (isNaN(intIndex) || intIndex < 1) {
+            showMessageDialog(qsTr("Error"),
+                qsTr("Please enter a valid GeoFence index (1 or greater)"),
+                Dialog.Ok)
+            return
+        }
+        let msg = planMasterController.deconflictSingleGeoFence(intIndex - 1)
+        showMessageDialog(qsTr("Deconfliction Status"),
+            msg,
+            Dialog.Ok)
+        undoResolutionGeoFenceButton.enabled = true
     }
 
     function undoResolution() {
         planMasterController.undoResolution()
-        undoResolutionButton.enabled = false
+        undoResolutionGeoFenceButton.enabled = false
     }
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Rectangle {
         id:     geoFenceEditorRect
@@ -173,7 +190,7 @@ QGCFlickable {
                         }
                     }
 
-                //4DAVSYS Changes ------------------------------
+                //4DAVSYS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
                 SectionHeader {
                 id:                 geoFenceManagementSection
                 anchors.left:       parent.left
@@ -263,7 +280,49 @@ QGCFlickable {
                     }
 
                     QGCButton {
-                        id:          undoResolutionButton
+                        id:          resolveGeoFenceButton
+                        text:        qsTr("Resolve Conflicts")
+                        enabled:     false
+                        onClicked:   root.resolveGeoFences()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: addBreachReturnPointButton.width
+                    }
+
+
+                    QGCLabel {
+                        text:           qsTr("GeoFence Index")
+                        font.pointSize: ScreenTools.smallFontPointSize
+                        anchors.left:   parent.left
+                        anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
+                    }
+                    FactTextField {
+                        id: geoFenceIndexField
+                        anchors.left:   parent.left
+                        anchors.right:  parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        text: "0"
+                        validator: IntValidator {
+                            bottom: 1
+                            top: 99
+                        }
+                    }
+
+                    QGCButton {
+                        id:          deconflictSingleGeoFenceButton
+                        text:        qsTr("Deconflict Single GeoFence")
+                        enabled:     true
+                        onClicked:   root.deconflictSingleGeoFence(geoFenceIndexField.text)
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin 
+                        width: addBreachReturnPointButton.width
+                    }
+
+                    QGCButton {
+                        id:          undoResolutionGeoFenceButton
                         text:        qsTr("Undo Resolution")
                         enabled:     false
                         onClicked:   root.undoResolution()
@@ -273,7 +332,7 @@ QGCFlickable {
                         width: addBreachReturnPointButton.width
                     }
                 }
-                //----------------------------------------------
+                //----------------------------------------------------------------------------------------------------------
 
                     SectionHeader {
                         id:             insertSection

@@ -96,6 +96,7 @@ public:
     Q_INVOKABLE void loadGeoFences(bool clearCircles);
     Q_INVOKABLE QString deleteGeoFences(void);
     Q_INVOKABLE QString deconflictAllGeoFences(void);
+    Q_INVOKABLE QString deconflictSingleGeoFence(int geoFenceID);
     //-----------------------------------------------------------
 
     MissionController*      missionController(void)     { return &_missionController; }
