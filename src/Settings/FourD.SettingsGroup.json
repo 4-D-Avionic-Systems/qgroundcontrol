@@ -6,8 +6,8 @@
 {
     "name":             "customerID",
     "shortDesc": "Customer ID for FourD settings.",
-    "type":             "string",
-    "default":     "PLACEHOLDER"
+    "type":             "uint32",
+    "default":     "67"
 }
 ]
 }
