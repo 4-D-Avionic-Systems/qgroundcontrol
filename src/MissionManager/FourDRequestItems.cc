@@ -1,6 +1,9 @@
 #include "FourDRequestItems.h"
 #include <QString>
 #include "QGCCorePlugin.h"
+#include "SettingsManager.h"
+#include "FourDSettings.h"
+#include "Fact.h"   
 
 FourDRequestItems::FourDRequestItems(QObject* parent) : QObject(parent)
 {
@@ -20,6 +23,7 @@ FourDRequestItems::FourDRequestItems(QObject* parent, QString droneNickname, QSt
     _verticalLOSBound = verticalLOSBound;
     _secondsToMissionStart = secondsToMissionStart;
     _lidarAvailable = lidarAvailable;
+    
 }
 
 FourDRequestItems::FourDRequestItems(const QVariantMap& map, QObject* parent)
@@ -39,13 +43,15 @@ FourDRequestItems::~FourDRequestItems()
 
 QString FourDRequestItems::toJson()
 {
+    QString customerID = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+
     QString jsonString = "\"droneNickname\": \"" + _droneNickname + "\"" +
                          ", \"faaRegistrationNumber\": \"" + _faaRegistrationNumber + "\"" +
                          ", \"horizontalLOSBound\": " + QString::number(_horizontalLOSBound) +
                          ", \"verticalLOSBound\": " + QString::number(_verticalLOSBound) +
                          ", \"secondsToMissionStart\": " + QString::number(_secondsToMissionStart) +
                          ", \"lidarAvailable\": " + (_lidarAvailable ? "true" : "false") +
-                         ", \"customerId\": " + QString::number(1);
+                         ", \"customerId\": \"" + customerID + "\"";
 
     return jsonString;
 }

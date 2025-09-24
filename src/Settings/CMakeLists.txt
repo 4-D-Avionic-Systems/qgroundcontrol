@@ -20,6 +20,10 @@ target_sources(${CMAKE_PROJECT_NAME}
         FlightModeSettings.h
         FlyViewSettings.cc
         FlyViewSettings.h
+        #4DAS Changes --------------------------------------------------------------------------------------
+        FourDSettings.cc
+        FourDSettings.h
+        #---------------------------------------------------------------------------------------------------
         GimbalControllerSettings.cc
         GimbalControllerSettings.h
         MavlinkSettings.cc

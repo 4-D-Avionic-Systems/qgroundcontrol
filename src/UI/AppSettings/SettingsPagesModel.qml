@@ -122,5 +122,12 @@ ListModel {
         iconUrl: "qrc:/InstrumentValueIcons/photo.svg"
         pageVisible: function() { return ScreenTools.isDebug }
     }
+
+    ListElement {
+        name: qsTr("4D Config")
+        url: "qrc:/qml/QGroundControl/AppSettings/FourDSettings.qml"
+        iconUrl: "qrc:/InstrumentValueIcons/4DLogo.svg"
+        pageVisible: function() { return true }
+    }
 }
 

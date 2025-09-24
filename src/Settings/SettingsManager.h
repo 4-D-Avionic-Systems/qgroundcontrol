@@ -24,6 +24,7 @@ class FirmwareUpgradeSettings;
 class FlightMapSettings;
 class FlightModeSettings;
 class FlyViewSettings;
+class FourDSettings;
 class GimbalControllerSettings;
 class MapsSettings;
 class OfflineMapsSettings;
@@ -56,6 +57,9 @@ class SettingsManager : public QObject
     Q_MOC_INCLUDE("FlightMapSettings.h")
     Q_MOC_INCLUDE("FlightModeSettings.h")
     Q_MOC_INCLUDE("FlyViewSettings.h")
+    //4DAS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Q_MOC_INCLUDE("FourDSettings.h")
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Q_MOC_INCLUDE("GimbalControllerSettings.h")
     Q_MOC_INCLUDE("MapsSettings.h")
     Q_MOC_INCLUDE("OfflineMapsSettings.h")
@@ -81,6 +85,9 @@ class SettingsManager : public QObject
     Q_PROPERTY(QObject *flightMapSettings               READ flightMapSettings              CONSTANT)
     Q_PROPERTY(QObject *flightModeSettings              READ flightModeSettings             CONSTANT)
     Q_PROPERTY(QObject *flyViewSettings                 READ flyViewSettings                CONSTANT)
+    //4DAS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Q_PROPERTY(QObject *fourDSettings                   READ fourDSettings                  CONSTANT)
+    //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
     Q_PROPERTY(QObject *gimbalControllerSettings        READ gimbalControllerSettings       CONSTANT)
     Q_PROPERTY(QObject *mapsSettings                    READ mapsSettings                   CONSTANT)
     Q_PROPERTY(QObject *offlineMapsSettings             READ offlineMapsSettings            CONSTANT)
@@ -115,6 +122,7 @@ public:
     FlightMapSettings *flightMapSettings() const;
     FlightModeSettings *flightModeSettings() const;
     FlyViewSettings *flyViewSettings() const;
+    FourDSettings *fourDSettings() const;
     GimbalControllerSettings *gimbalControllerSettings() const;
     MapsSettings *mapsSettings() const;
     OfflineMapsSettings *offlineMapsSettings() const;
@@ -142,6 +150,7 @@ private:
     FlightMapSettings *_flightMapSettings = nullptr;
     FlightModeSettings *_flightModeSettings = nullptr;
     FlyViewSettings *_flyViewSettings = nullptr;
+    FourDSettings *_fourDSettings = nullptr;
     GimbalControllerSettings *_gimbalControllerSettings = nullptr;
     MapsSettings *_mapsSettings = nullptr;
     OfflineMapsSettings *_offlineMapsSettings = nullptr;

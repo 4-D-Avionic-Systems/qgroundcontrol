@@ -730,7 +730,23 @@ QString PlanMasterController::deconflictAllGeoFences(){
 
     switch (statusCode) {
         case 200:
-            return handle200ResponseGeneric(responseData);
+            return handle200ResponseCDR(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::deconflictSingleGeoFence(int fenceIndex){
+    FourDRequestBody* requestBody = get4DRequestBody();
+    QNetworkReply* reply = _fourDUtilities->detectConflictsSingleGeoFence(requestBody, fenceIndex);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200ResponseCDR(responseData);
         case 400:
             return handle400Response(responseData);
         default:

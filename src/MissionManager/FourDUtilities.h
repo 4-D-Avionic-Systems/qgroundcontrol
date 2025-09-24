@@ -24,6 +24,7 @@ public:
     QNetworkReply* detectConflictsAllGeoFences(FourDRequestBody* jsonRequest);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);
+    QNetworkReply* detectConflictsSingleGeoFence(FourDRequestBody* jsonRequest, int fenceIndex);
     QJsonDocument loadGeoFences(void);
     QNetworkReply* deleteGeoFences(void);
     QNetworkReply* changeSeed(int seedIndex);

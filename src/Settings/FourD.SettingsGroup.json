@@ -1,0 +1,13 @@
+{
+    "version":      1,
+    "fileType":  "FactMetaData",
+    "QGC.MetaData.Facts":
+[
+{
+    "name":             "customerID",
+    "shortDesc": "Customer ID for FourD settings.",
+    "type":             "string",
+    "default":     "PLACEHOLDER"
+}
+]
+}
