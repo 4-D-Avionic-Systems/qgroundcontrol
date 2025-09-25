@@ -19,7 +19,7 @@ FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
 
     _commonInit();
 
-    _apiUrl = QUrl( "http://127.0.0.1:5248");
+    _apiUrl = QUrl("http://127.0.0.1:5248");
     qCInfo(FourDUtilitiesLog) << "setURL() - " << _apiUrl;
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 

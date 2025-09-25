@@ -83,13 +83,7 @@ QGCFlickable {
 
     function deconflictSingleGeoFence(index) {
         let intIndex = parseInt(index)
-        if (isNaN(intIndex) || intIndex < 1) {
-            showMessageDialog(qsTr("Error"),
-                qsTr("Please enter a valid GeoFence index (1 or greater)"),
-                Dialog.Ok)
-            return
-        }
-        let msg = planMasterController.deconflictSingleGeoFence(intIndex - 1)
+        let msg = planMasterController.deconflictSingleGeoFence(intIndex)
         showMessageDialog(qsTr("Deconfliction Status"),
             msg,
             Dialog.Ok)
@@ -290,37 +284,6 @@ QGCFlickable {
                         width: addBreachReturnPointButton.width
                     }
 
-
-                    QGCLabel {
-                        text:           qsTr("GeoFence Index")
-                        font.pointSize: ScreenTools.smallFontPointSize
-                        anchors.left:   parent.left
-                        anchors.right:  parent.right
-                        anchors.margins: _margin // <-- Add margin
-                    }
-                    FactTextField {
-                        id: geoFenceIndexField
-                        anchors.left:   parent.left
-                        anchors.right:  parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        text: "0"
-                        validator: IntValidator {
-                            bottom: 1
-                            top: 99
-                        }
-                    }
-
-                    QGCButton {
-                        id:          deconflictSingleGeoFenceButton
-                        text:        qsTr("Deconflict Single GeoFence")
-                        enabled:     true
-                        onClicked:   root.deconflictSingleGeoFence(geoFenceIndexField.text)
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin 
-                        width: addBreachReturnPointButton.width
-                    }
-
                     QGCButton {
                         id:          undoResolutionGeoFenceButton
                         text:        qsTr("Undo Resolution")
@@ -455,7 +418,7 @@ QGCFlickable {
                     GridLayout {
                         anchors.left:       parent.left
                         anchors.right:      parent.right
-                        columns:            4
+                        columns:            5
                         flow:               GridLayout.TopToBottom
                         visible:            polygonSection.checked && myGeoFenceController.circles.count > 0
 
@@ -530,6 +493,24 @@ QGCFlickable {
                                 onClicked:          myGeoFenceController.deleteCircle(index)
                             }
                         }
+                        // 4DAVSYS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                        QGCLabel {
+                            text:              qsTr("Deconflict")
+                            Layout.column:      4
+                            Layout.alignment:   Qt.AlignHCenter
+                        }
+
+                        Repeater {
+                            model: myGeoFenceController.circles
+
+                            QGCButton {
+                                text:               qsTr("Deconflict")
+                                Layout.alignment:   Qt.AlignHCenter
+                                onClicked:          root.deconflictSingleGeoFence(index)
+                            }
+                        }
+                        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     } // GridLayout
 
                     SectionHeader {
