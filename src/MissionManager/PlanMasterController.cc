@@ -79,7 +79,7 @@ void PlanMasterController::_commonInit(void)
 
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
-     _fourDUtilities = new FourDUtilities(this, _managerVehicle, "http://127.0.0.1:5248");
+     _fourDUtilities = new FourDUtilities(this, _managerVehicle);
 }
 
 

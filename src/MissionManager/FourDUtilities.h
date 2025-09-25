@@ -17,7 +17,7 @@ class FourDUtilities : public QObject
     Q_OBJECT
 
 public:
-    FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr, QString urlStr = "");
+    FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr);
     ~FourDUtilities();
     QNetworkReply* detectConflicts(FourDRequestBody* jsonRequest);
     QNetworkReply* debugDetectConflicts(FourDRequestBody* jsonRequest);
