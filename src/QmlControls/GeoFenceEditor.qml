@@ -251,7 +251,7 @@ QGCFlickable {
                 anchors.left:       parent.left
                 anchors.right:      parent.right
                 text:               qsTr("Deconfliction")
-                checked:            false
+                checked:            true
                 }
 
                 Column {
@@ -324,7 +324,7 @@ QGCFlickable {
                             var rect = Qt.rect(flightMap.centerViewport.x, flightMap.centerViewport.y, flightMap.centerViewport.width, flightMap.centerViewport.height)
                             var topLeftCoord = flightMap.toCoordinate(Qt.point(rect.x, rect.y), false /* clipToViewPort */)
                             var bottomRightCoord = flightMap.toCoordinate(Qt.point(rect.x + rect.width, rect.y + rect.height), false /* clipToViewPort */)
-                            myGeoFenceController.addInclusionCircle(topLeftCoord, bottomRightCoord)
+                            myGeoFenceController.addExclusionCircle(topLeftCoord, bottomRightCoord)
                         }
                     }
 
@@ -435,6 +435,7 @@ QGCFlickable {
                                 checked:            object.inclusion
                                 onClicked:          object.inclusion = checked
                                 Layout.alignment:   Qt.AlignHCenter
+                                
                             }
                         }
 
@@ -496,7 +497,7 @@ QGCFlickable {
                         // 4DAVSYS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
                         QGCLabel {
-                            text:              qsTr("Deconflict")
+                            text:              qsTr("Conflicts")
                             Layout.column:      4
                             Layout.alignment:   Qt.AlignHCenter
                         }
@@ -505,7 +506,7 @@ QGCFlickable {
                             model: myGeoFenceController.circles
 
                             QGCButton {
-                                text:               qsTr("Deconflict")
+                                text:               qsTr("Resolve")
                                 Layout.alignment:   Qt.AlignHCenter
                                 onClicked:          root.deconflictSingleGeoFence(index)
                             }

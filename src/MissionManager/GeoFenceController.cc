@@ -440,7 +440,7 @@ void GeoFenceController::addInclusionPolygon(QGeoCoordinate topLeft, QGeoCoordin
     polygon->setInteractive(true);
 }
 
-void GeoFenceController::addInclusionCircle(QGeoCoordinate topLeft, QGeoCoordinate bottomRight)
+void GeoFenceController::addExclusionCircle(QGeoCoordinate topLeft, QGeoCoordinate bottomRight)
 {
     QGeoCoordinate topRight(topLeft.latitude(), bottomRight.longitude());
     QGeoCoordinate bottomLeft(bottomRight.latitude(), topLeft.longitude());
@@ -454,7 +454,7 @@ void GeoFenceController::addInclusionCircle(QGeoCoordinate topLeft, QGeoCoordina
     QGeoCoordinate centerTopEdge = topLeft.atDistanceAndAzimuth(halfWidthMeters, 90);
     QGeoCoordinate center(centerLeftEdge.latitude(), centerTopEdge.longitude());
 
-    QGCFenceCircle* circle = new QGCFenceCircle(center, radius, true /* inclusion */, this);
+    QGCFenceCircle* circle = new QGCFenceCircle(center, radius, false /* inclusion */, this);
     _circles.append(circle);
 
     clearAllInteractive();
