@@ -423,7 +423,7 @@ QGCFlickable {
                         visible:            polygonSection.checked && myGeoFenceController.circles.count > 0
 
                         QGCLabel {
-                            text:               qsTr("Inclusion")
+                            text:               qsTr("On")
                             Layout.column:      0
                             Layout.alignment:   Qt.AlignHCenter
                         }
@@ -432,8 +432,8 @@ QGCFlickable {
                             model: myGeoFenceController.circles
 
                             QGCCheckBox {
-                                checked:            object.inclusion
-                                onClicked:          object.inclusion = checked
+                                checked:            !(object.inclusion)
+                                onClicked:          object.inclusion = !(checked)
                                 Layout.alignment:   Qt.AlignHCenter
                                 
                             }
