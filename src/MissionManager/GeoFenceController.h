@@ -46,10 +46,10 @@ public:
     ///     @param bottomRight: Bottom right left coordinate or map viewport
     Q_INVOKABLE void addInclusionPolygon(QGeoCoordinate topLeft, QGeoCoordinate bottomRight);
 
-    /// Add a new inclusion circle to the fence
+    /// Add a new exclusion circle to the fence
     ///     @param topLeft: Top left coordinate or map viewport
     ///     @param bottomRight: Bottom right left coordinate or map viewport
-    Q_INVOKABLE void addInclusionCircle(QGeoCoordinate topLeft, QGeoCoordinate bottomRight);
+    Q_INVOKABLE void addExclusionCircle(QGeoCoordinate topLeft, QGeoCoordinate bottomRight);
 
     /// Deletes the specified polygon from the polygon list
     ///     @param index: Index of poygon to delete
