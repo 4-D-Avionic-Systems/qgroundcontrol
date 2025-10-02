@@ -9,7 +9,7 @@
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
-FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef, QString urlStr)
+FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
     : QObject(parent)
 {
     _vehicle = managerVehicleRef;
@@ -19,7 +19,7 @@ FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef, QStr
 
     _commonInit();
 
-    _apiUrl = QUrl(urlStr);
+    _apiUrl = QUrl("http://127.0.0.1:5248");
     qCInfo(FourDUtilitiesLog) << "setURL() - " << _apiUrl;
     qCInfo(FourDUtilitiesLog) << "FourDUtilities() - constructed";
 

@@ -83,13 +83,7 @@ QGCFlickable {
 
     function deconflictSingleGeoFence(index) {
         let intIndex = parseInt(index)
-        if (isNaN(intIndex) || intIndex < 1) {
-            showMessageDialog(qsTr("Error"),
-                qsTr("Please enter a valid GeoFence index (1 or greater)"),
-                Dialog.Ok)
-            return
-        }
-        let msg = planMasterController.deconflictSingleGeoFence(intIndex - 1)
+        let msg = planMasterController.deconflictSingleGeoFence(intIndex)
         showMessageDialog(qsTr("Deconfliction Status"),
             msg,
             Dialog.Ok)
@@ -257,7 +251,7 @@ QGCFlickable {
                 anchors.left:       parent.left
                 anchors.right:      parent.right
                 text:               qsTr("Deconfliction")
-                checked:            false
+                checked:            true
                 }
 
                 Column {
@@ -287,37 +281,6 @@ QGCFlickable {
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.margins: _margin // <-- Add margin
-                        width: addBreachReturnPointButton.width
-                    }
-
-
-                    QGCLabel {
-                        text:           qsTr("GeoFence Index")
-                        font.pointSize: ScreenTools.smallFontPointSize
-                        anchors.left:   parent.left
-                        anchors.right:  parent.right
-                        anchors.margins: _margin // <-- Add margin
-                    }
-                    FactTextField {
-                        id: geoFenceIndexField
-                        anchors.left:   parent.left
-                        anchors.right:  parent.right
-                        anchors.margins: _margin // <-- Add margin
-                        text: "0"
-                        validator: IntValidator {
-                            bottom: 1
-                            top: 99
-                        }
-                    }
-
-                    QGCButton {
-                        id:          deconflictSingleGeoFenceButton
-                        text:        qsTr("Deconflict Single GeoFence")
-                        enabled:     true
-                        onClicked:   root.deconflictSingleGeoFence(geoFenceIndexField.text)
-                        anchors.left: parent.left
-                        anchors.right: parent.right
-                        anchors.margins: _margin 
                         width: addBreachReturnPointButton.width
                     }
 
@@ -361,7 +324,7 @@ QGCFlickable {
                             var rect = Qt.rect(flightMap.centerViewport.x, flightMap.centerViewport.y, flightMap.centerViewport.width, flightMap.centerViewport.height)
                             var topLeftCoord = flightMap.toCoordinate(Qt.point(rect.x, rect.y), false /* clipToViewPort */)
                             var bottomRightCoord = flightMap.toCoordinate(Qt.point(rect.x + rect.width, rect.y + rect.height), false /* clipToViewPort */)
-                            myGeoFenceController.addInclusionCircle(topLeftCoord, bottomRightCoord)
+                            myGeoFenceController.addExclusionCircle(topLeftCoord, bottomRightCoord)
                         }
                     }
 
@@ -455,12 +418,12 @@ QGCFlickable {
                     GridLayout {
                         anchors.left:       parent.left
                         anchors.right:      parent.right
-                        columns:            4
+                        columns:            5
                         flow:               GridLayout.TopToBottom
                         visible:            polygonSection.checked && myGeoFenceController.circles.count > 0
 
                         QGCLabel {
-                            text:               qsTr("Inclusion")
+                            text:               qsTr("On")
                             Layout.column:      0
                             Layout.alignment:   Qt.AlignHCenter
                         }
@@ -469,9 +432,10 @@ QGCFlickable {
                             model: myGeoFenceController.circles
 
                             QGCCheckBox {
-                                checked:            object.inclusion
-                                onClicked:          object.inclusion = checked
+                                checked:            !(object.inclusion)
+                                onClicked:          object.inclusion = !(checked)
                                 Layout.alignment:   Qt.AlignHCenter
+                                
                             }
                         }
 
@@ -530,6 +494,24 @@ QGCFlickable {
                                 onClicked:          myGeoFenceController.deleteCircle(index)
                             }
                         }
+                        // 4DAVSYS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                        QGCLabel {
+                            text:              qsTr("Conflicts")
+                            Layout.column:      4
+                            Layout.alignment:   Qt.AlignHCenter
+                        }
+
+                        Repeater {
+                            model: myGeoFenceController.circles
+
+                            QGCButton {
+                                text:               qsTr("Resolve")
+                                Layout.alignment:   Qt.AlignHCenter
+                                onClicked:          root.deconflictSingleGeoFence(index)
+                            }
+                        }
+                        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     } // GridLayout
 
                     SectionHeader {
