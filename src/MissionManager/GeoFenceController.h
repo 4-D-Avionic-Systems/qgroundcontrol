@@ -44,7 +44,7 @@ public:
     /// Add a new inclusion polygon to the fence
     ///     @param topLeft: Top left coordinate or map viewport
     ///     @param bottomRight: Bottom right left coordinate or map viewport
-    Q_INVOKABLE void addInclusionPolygon(QGeoCoordinate topLeft, QGeoCoordinate bottomRight);
+    Q_INVOKABLE void addExclusionPolygon(QGeoCoordinate topLeft, QGeoCoordinate bottomRight);
 
     /// Add a new exclusion circle to the fence
     ///     @param topLeft: Top left coordinate or map viewport

@@ -81,9 +81,18 @@ QGCFlickable {
         undoResolutionGeoFenceButton.enabled = true
     }
 
-    function deconflictSingleGeoFence(index) {
+    function deconflictSingleGeoFenceCircle(index) {
         let intIndex = parseInt(index)
-        let msg = planMasterController.deconflictSingleGeoFence(intIndex)
+        let msg = planMasterController.deconflictSingleGeoFenceCircle(intIndex)
+        showMessageDialog(qsTr("Deconfliction Status"),
+            msg,
+            Dialog.Ok)
+        undoResolutionGeoFenceButton.enabled = true
+    }
+
+    function deconflictSingleGeoFencePolygon(index) {
+        let intIndex = parseInt(index)
+        let msg = planMasterController.deconflictSingleGeoFencePolygon(intIndex)
         showMessageDialog(qsTr("Deconfliction Status"),
             msg,
             Dialog.Ok)
@@ -312,7 +321,7 @@ QGCFlickable {
                             var rect = Qt.rect(flightMap.centerViewport.x, flightMap.centerViewport.y, flightMap.centerViewport.width, flightMap.centerViewport.height)
                             var topLeftCoord = flightMap.toCoordinate(Qt.point(rect.x, rect.y), false /* clipToViewPort */)
                             var bottomRightCoord = flightMap.toCoordinate(Qt.point(rect.x + rect.width, rect.y + rect.height), false /* clipToViewPort */)
-                            myGeoFenceController.addInclusionPolygon(topLeftCoord, bottomRightCoord)
+                            myGeoFenceController.addExclusionPolygon(topLeftCoord, bottomRightCoord)
                         }
                     }
 
@@ -342,12 +351,12 @@ QGCFlickable {
 
                     GridLayout {
                         Layout.fillWidth:   true
-                        columns:            3
+                        columns:            4
                         flow:               GridLayout.TopToBottom
                         visible:            polygonSection.checked && myGeoFenceController.polygons.count > 0
 
                         QGCLabel {
-                            text:               qsTr("Inclusion")
+                            text:               qsTr("On")
                             Layout.column:      0
                             Layout.alignment:   Qt.AlignHCenter
                         }
@@ -356,8 +365,8 @@ QGCFlickable {
                             model: myGeoFenceController.polygons
 
                             QGCCheckBox {
-                                checked:            object.inclusion
-                                onClicked:          object.inclusion = checked
+                                checked:            !object.inclusion
+                                onClicked:          object.inclusion = !checked
                                 Layout.alignment:   Qt.AlignHCenter
                             }
                         }
@@ -401,6 +410,26 @@ QGCFlickable {
                                 onClicked:          myGeoFenceController.deletePolygon(index)
                             }
                         }
+
+                        // 4DAVSYS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                        QGCLabel {
+                            text:               qsTr("Conflicts")
+                            Layout.column:      3
+                            Layout.alignment:   Qt.AlignHCenter
+                        }
+
+                        Repeater {
+                            model: myGeoFenceController.polygons
+
+                            QGCButton {
+                                text:               qsTr("Resolve")
+                                Layout.alignment:   Qt.AlignHCenter
+                                onClicked:          deconflictSingleGeoFencePolygon(index)
+                            }
+                        }
+                        //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                    
                     } // GridLayout
 
                     SectionHeader {

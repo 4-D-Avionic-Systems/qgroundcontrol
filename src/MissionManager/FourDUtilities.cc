@@ -82,9 +82,25 @@ QNetworkReply* FourDUtilities::detectConflictsAllGeoFences(FourDRequestBody* jso
     return _reply;
 }
 
-QNetworkReply* FourDUtilities::detectConflictsSingleGeoFence(FourDRequestBody* jsonRequest, int fenceIndex)
+QNetworkReply* FourDUtilities::detectConflictSingleGeoFenceCircle(FourDRequestBody* jsonRequest, int fenceIndex)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/DeconflictGeoFenceCircle/" + QString::number(fenceIndex)));
+    QNetworkRequest request(post_url);
+
+    request.setRawHeader("Content-Type", "application/json");
+
+    _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
+
+    // Wait for the request to finish
+    QEventLoop loop;
+    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    return _reply;
+}
+
+QNetworkReply* FourDUtilities::detectConflictSingleGeoFencePolygon(FourDRequestBody* jsonRequest, int fenceIndex)
+{
+    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/DeconflictGeoFencePolygon/" + QString::number(fenceIndex)));
     QNetworkRequest request(post_url);
 
     request.setRawHeader("Content-Type", "application/json");

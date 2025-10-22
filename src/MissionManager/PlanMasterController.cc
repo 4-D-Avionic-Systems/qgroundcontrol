@@ -738,9 +738,25 @@ QString PlanMasterController::deconflictAllGeoFences(){
     }
 }
 
-QString PlanMasterController::deconflictSingleGeoFence(int fenceIndex){
+QString PlanMasterController::deconflictSingleGeoFenceCircle(int fenceIndex){
     FourDRequestBody* requestBody = get4DRequestBody();
-    QNetworkReply* reply = _fourDUtilities->detectConflictsSingleGeoFence(requestBody, fenceIndex);
+    QNetworkReply* reply = _fourDUtilities->detectConflictSingleGeoFenceCircle(requestBody, fenceIndex);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200ResponseCDR(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::deconflictSingleGeoFencePolygon(int fenceIndex){
+    FourDRequestBody* requestBody = get4DRequestBody();
+    QNetworkReply* reply = _fourDUtilities->detectConflictSingleGeoFencePolygon(requestBody, fenceIndex);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseData = reply->readAll(); 
 
