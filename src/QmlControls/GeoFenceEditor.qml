@@ -537,7 +537,7 @@ QGCFlickable {
                             QGCButton {
                                 text:               qsTr("Resolve")
                                 Layout.alignment:   Qt.AlignHCenter
-                                onClicked:          root.deconflictSingleGeoFence(index)
+                                onClicked:          root.deconflictSingleGeoFenceCircle(index)
                             }
                         }
                         //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
