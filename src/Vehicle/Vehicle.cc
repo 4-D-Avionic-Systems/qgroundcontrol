@@ -77,6 +77,11 @@ QGC_LOGGING_CATEGORY(VehicleLog, "VehicleLog")
 #define SET_HOME_TERRAIN_ALT_MAX 10000
 #define SET_HOME_TERRAIN_ALT_MIN -500
 
+// Define missing MAV command from development dialect
+#ifndef MAV_CMD_REQUEST_OPERATOR_CONTROL
+#define MAV_CMD_REQUEST_OPERATOR_CONTROL (static_cast<MAV_CMD>(32100))
+#endif
+
 // After a second GCS has requested control and we have given it permission to takeover, we will remove takeover permission automatically after this timeout
 // If the second GCS didn't get control 
 #define REQUEST_OPERATOR_CONTROL_ALLOW_TAKEOVER_TIMEOUT_MSECS 10000
