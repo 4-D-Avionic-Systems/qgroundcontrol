@@ -904,7 +904,6 @@ QString PlanMasterController::deleteGeoFences(void)
 {
    bool success = _fourDUtilities->deleteGeoFences();
    if (success) {
-       qDebug() << "GeoFences deleted successfully";
        return "GeoFences deleted successfully";
    } else {
        return "Failed to delete GeoFences. Please check your network connection and try again.";

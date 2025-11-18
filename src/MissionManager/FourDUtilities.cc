@@ -210,10 +210,7 @@ bool FourDUtilities::deleteGeoFences(void){
     loop.exec();
     
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    bool hasNetworkError = (reply->error() != QNetworkReply::NoError);
-    
-    qDebug() << "Delete GeoFences - Status Code:" << statusCode << "Network Error:" << hasNetworkError << "Error String:" << reply->errorString();
-    
+    bool hasNetworkError = (reply->error() != QNetworkReply::NoError);    
     bool success = (statusCode == 200 || statusCode == 204 || statusCode == 202) && !hasNetworkError;
     
     reply->deleteLater();
