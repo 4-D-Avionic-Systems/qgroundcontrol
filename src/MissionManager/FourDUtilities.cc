@@ -116,48 +116,42 @@ QNetworkReply* FourDUtilities::detectConflictSingleGeoFencePolygon(FourDRequestB
 }
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
+    
+    QJsonObject geoFenceObj = geoFences.object();
+    if (conversionOk) {
+        geoFenceObj["customerId"] = customerID;
+    } else {
+        geoFenceObj["customerId"] = customerIDString;
+    }
+    QJsonDocument geoFencesWithCustomerId(geoFenceObj);
+    
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Overwrite"));
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.put(request, geoFences.toJson());
+    _reply = _apiManager.put(request, geoFencesWithCustomerId.toJson());
     return _reply;
 }
 
 QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
-    // Get customer ID from settings and add it to the geofence JSON
-    QString customerID = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
     
-    // Parse existing geofence JSON and add customer ID
     QJsonObject geoFenceObj = geoFences.object();
-    geoFenceObj["customerId"] = customerID;
+    if (conversionOk) {
+        geoFenceObj["customerId"] = customerID;
+    } else {
+        geoFenceObj["customerId"] = customerIDString;
+    }
     QJsonDocument geoFencesWithCustomerId(geoFenceObj);
     
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Add"));
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
     _reply = _apiManager.post(request, geoFencesWithCustomerId.toJson());
-    return _reply;
-}
-
-QNetworkReply* FourDUtilities::addDebugGeoFences(QJsonDocument geoFences){
-    // Get customer ID from settings and add it to the geofence JSON
-    QString customerID = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
-    
-    // Parse existing geofence JSON and add customer ID
-    QJsonObject geoFenceObj = geoFences.object();
-    geoFenceObj["customerId"] = customerID;
-    QJsonDocument geoFencesWithCustomerId(geoFenceObj);
-    
-    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/AddDebug"));
-    QNetworkRequest request(post_url);
-    request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.post(request, geoFencesWithCustomerId.toJson());
-    
-    // Wait for the request to finish synchronously (like debugDetectConflicts)
-    QEventLoop loop;
-    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
-    
     return _reply;
 }
 

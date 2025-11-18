@@ -602,20 +602,50 @@ bool GeoFenceController::isEmpty(void) const
 }
 
 //4DAVSYS Changes ------------------------------
-QJsonDocument GeoFenceController::writeGeoFenceCirclesToJson(void) {
+QJsonDocument GeoFenceController::writeGeoFenceCirclesAndPolygonsToJson(void) {
+    QJsonObject root;
     QJsonArray circleArray;
+    QJsonArray polygonArray;
 
     for (int i = 0; i < _circles.count(); ++i) {
         QGCFenceCircle* circle = qobject_cast<QGCFenceCircle*>(_circles.get(i));
         if (circle && !circle->inclusion()) {
-            QJsonObject circleObj;
-            circle->saveToJson(circleObj);
-            circleArray.append(circleObj);
+            QJsonObject circleItem;
+            QJsonObject circleGeometry;
+            
+            QJsonObject internalCircleJson;
+            circle->saveToJson(internalCircleJson);
+            
+            QJsonObject internalCircle = internalCircleJson["circle"].toObject();
+            circleGeometry["center"] = internalCircle["center"];
+            circleGeometry["radius"] = internalCircle["radius"];
+            
+            circleItem["circle"] = circleGeometry;
+            circleItem["inclusion"] = circle->inclusion();
+            circleItem["version"] = internalCircleJson["version"];
+            
+            circleArray.append(circleItem);
         }
     }
 
-    QJsonObject root;
+    for (int i = 0; i < _polygons.count(); ++i) {
+        QGCFencePolygon* polygon = qobject_cast<QGCFencePolygon*>(_polygons.get(i));
+        if (polygon && !polygon->inclusion()) {
+            QJsonObject polygonItem;
+            
+            QJsonObject internalPolygonJson;
+            polygon->saveToJson(internalPolygonJson);
+            
+            polygonItem["inclusion"] = polygon->inclusion();
+            polygonItem["polygon"] = internalPolygonJson["polygon"];
+            polygonItem["version"] = internalPolygonJson["version"];
+            
+            polygonArray.append(polygonItem);
+        }
+    }
+
     root["circles"] = circleArray;
+    root["polygons"] = polygonArray;
 
     return QJsonDocument(root);
 }

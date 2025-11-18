@@ -88,7 +88,7 @@ public:
     QmlObjectListModel* polygons                (void) { return &_polygons; }
     QmlObjectListModel* circles                 (void) { return &_circles; }
     QGeoCoordinate      breachReturnPoint       (void) const { return _breachReturnPoint; }
-    QJsonDocument       writeGeoFenceCirclesToJson(void);
+    QJsonDocument       writeGeoFenceCirclesAndPolygonsToJson(void);
 
     void setBreachReturnPoint   (const QGeoCoordinate& breachReturnPoint);
     bool isEmpty                (void) const;

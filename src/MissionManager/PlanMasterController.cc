@@ -850,7 +850,7 @@ QString PlanMasterController::handleUnexpectedStatus(int statusCode)
 
 QString PlanMasterController::overwriteGeoFences(void)
 {
-    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesAndPolygonsToJson();
     QNetworkReply* reply =_fourDUtilities->overwriteGeoFences(geoFenceJson);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
     switch (statusCode) {
@@ -865,7 +865,7 @@ QString PlanMasterController::overwriteGeoFences(void)
 
 QString PlanMasterController::addGeoFences(void)
 {
-    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesAndPolygonsToJson();
     QNetworkReply* reply = _fourDUtilities->addGeoFences(geoFenceJson);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
     switch (statusCode) {
