@@ -650,11 +650,13 @@ QJsonDocument GeoFenceController::writeGeoFenceCirclesAndPolygonsToJson(void) {
     return QJsonDocument(root);
 }
 
-
-bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString, bool clearCircles)
+bool GeoFenceController::readGeoFenceCirclesAndPolygonsFromJson(const QJsonDocument& doc, QString& errorString, bool clearExisting)
 {
-    if (clearCircles){
+    errorString.clear();
+    
+    if (clearExisting) {
         _circles.clear();
+        _polygons.clear();
     }
     
     if (!doc.isObject()) {
@@ -664,54 +666,104 @@ bool GeoFenceController::readGeoFenceCirclesFromJson(const QJsonDocument& doc, Q
 
     QJsonObject rootObj = doc.object();
 
-    if (!rootObj.contains("circles") || !rootObj["circles"].isArray()) {
-        errorString = "Missing or invalid 'geoFenceCircles' array in JSON.";
-        return false;
+    // Process circles
+    if (rootObj.contains("circles") && rootObj["circles"].isArray()) {
+        QJsonArray circleArray = rootObj["circles"].toArray();
+
+        for (const QJsonValue& val : circleArray) {
+            if (!val.isObject()) {
+                qWarning() << "Invalid circle item (not an object)";
+                continue;
+            }
+
+            QJsonObject obj = val.toObject();
+
+            if (!obj.contains("circle") || !obj.contains("inclusion")) {
+                qWarning() << "Missing 'circle' or 'inclusion' field";
+                continue;
+            }
+
+            if (obj["inclusion"].toBool()) {
+                continue;
+            }
+
+            QJsonObject circleObj = obj["circle"].toObject();
+
+            if (!circleObj.contains("center") || !circleObj.contains("radius")) {
+                qWarning() << "Circle object missing 'center' or 'radius'";
+                continue;
+            }
+
+            QJsonArray centerArray = circleObj["center"].toArray();
+            if (centerArray.size() != 2) {
+                qWarning() << "Center array should have 2 values (lat, lon)";
+                continue;
+            }
+
+            double lat = centerArray[0].toDouble();
+            double lon = centerArray[1].toDouble();
+            double radius = circleObj["radius"].toDouble();
+
+            QGeoCoordinate center(lat, lon);
+            QGCFenceCircle* circle = new QGCFenceCircle(center, radius, this);
+            circle->setInclusion(false);
+            _circles.append(circle);
+        }
     }
 
-    QJsonArray circleArray = rootObj["circles"].toArray();
+    // Process polygons
+    if (rootObj.contains("polygons") && rootObj["polygons"].isArray()) {
+        QJsonArray polygonArray = rootObj["polygons"].toArray();
 
-    for (const QJsonValue& val : circleArray) {
-        if (!val.isObject()) {
-            qWarning() << "Invalid circle item (not an object)";
-            continue;
+        for (const QJsonValue& val : polygonArray) {
+            if (!val.isObject()) {
+                qWarning() << "Invalid polygon item (not an object)";
+                continue;
+            }
+
+            QJsonObject obj = val.toObject();
+
+            if (!obj.contains("polygon") || !obj.contains("inclusion")) {
+                qWarning() << "Missing 'polygon' or 'inclusion' field";
+                continue;
+            }
+
+            if (obj["inclusion"].toBool()) {
+                continue;
+            }
+
+            QJsonArray polygonCoords = obj["polygon"].toArray();
+            if (polygonCoords.size() < 3) {
+                qWarning() << "Polygon must have at least 3 coordinates";
+                continue;
+            }
+
+            QList<QGeoCoordinate> coordinates;
+            for (const QJsonValue& coordVal : polygonCoords) {
+                QJsonArray coord = coordVal.toArray();
+                if (coord.size() != 2) {
+                    qWarning() << "Invalid coordinate format";
+                    continue;
+                }
+                double lat = coord[0].toDouble();
+                double lon = coord[1].toDouble();
+                coordinates.append(QGeoCoordinate(lat, lon));
+            }
+
+            if (coordinates.size() >= 3) {
+                QGCFencePolygon* polygon = new QGCFencePolygon(this);
+                polygon->setInclusion(false);
+                
+                for (const QGeoCoordinate& coord : coordinates) {
+                    polygon->appendVertex(coord);
+                }
+                
+                _polygons.append(polygon);
+            }
         }
-
-        QJsonObject obj = val.toObject();
-
-        if (!obj.contains("circle") || !obj.contains("inclusion")) {
-            qWarning() << "Missing 'circle' or 'inclusion' field";
-            continue;
-        }
-
-        if (obj["inclusion"].toBool()) {
-            // Skip inclusion zones
-            continue;
-        }
-
-        QJsonObject circleObj = obj["circle"].toObject();
-
-        if (!circleObj.contains("center") || !circleObj.contains("radius")) {
-            qWarning() << "Circle object missing 'center' or 'radius'";
-            continue;
-        }
-
-        QJsonArray centerArray = circleObj["center"].toArray();
-        if (centerArray.size() != 2) {
-            qWarning() << "Center array should have 2 values (lat, lon)";
-            continue;
-        }
-
-        double lat = centerArray[0].toDouble();
-        double lon = centerArray[1].toDouble();
-        double radius = circleObj["radius"].toDouble();
-
-        QGeoCoordinate center(lat, lon);
-        QGCFenceCircle* circle = new QGCFenceCircle(center, radius, this);
-        circle->setInclusion(false);
-        _circles.append(circle);
     }
 
+    setDirty(true);
     return true;
 }
 

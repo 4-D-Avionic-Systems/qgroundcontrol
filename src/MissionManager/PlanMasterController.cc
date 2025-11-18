@@ -881,12 +881,10 @@ QString PlanMasterController::addGeoFences(void)
 void PlanMasterController::loadGeoFences(bool clearCircles)
 {
     QString errorString;
-    QJsonDocument loadedGeoFenceCircles = _fourDUtilities->loadGeoFences();
-    //return loadedGeoFenceCircles;
-    // Pass the dereferenced document (QJsonDocument&) to the function
-    bool success = _geoFenceController.readGeoFenceCirclesFromJson(loadedGeoFenceCircles, errorString, clearCircles);
+    QJsonDocument loadedGeoFences = _fourDUtilities->loadGeoFences();
+    bool success = _geoFenceController.readGeoFenceCirclesAndPolygonsFromJson(loadedGeoFences, errorString, clearCircles);
     if (!success) {
-        qWarning() << "Error reading GeoFence circles from JSON:" << errorString;
+        qWarning() << "Error reading GeoFences from JSON:" << errorString;
     }
 }
 
