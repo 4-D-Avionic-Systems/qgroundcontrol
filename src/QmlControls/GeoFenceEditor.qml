@@ -53,15 +53,25 @@ QGCFlickable {
     }
 
     function loadGeoFences() {
-    showMessageDialog(qsTr("Would you like to clear existing GeoFences?"),
-                        qsTr("Click Yes to clear the existing GeoFences before loading. \nClick No to add the loaded GeoFences to the existing obstacles."),
-                        Dialog.Yes | Dialog.No,
-                    function () {
-                        planMasterController.loadGeoFences(true)
-                    },
-                    function () {
-                        planMasterController.loadGeoFences(false)
-                    })
+        loadGeoFencesDialog.createObject(mainWindow).open()
+    }
+    
+    Component {
+        id: loadGeoFencesDialog
+
+        QGCSimpleMessageDialog {
+            title:      qsTr("Would you like to clear existing GeoFences?")
+            text:       qsTr("Click Yes to clear the existing GeoFences before loading. \nClick No to add the loaded GeoFences to the existing obstacles.")
+            buttons:    Dialog.Yes | Dialog.No
+
+            onAccepted: {
+                planMasterController.loadGeoFences(true)
+            }
+            
+            onRejected: {
+                planMasterController.loadGeoFences(false)
+            }
+        }
     }
 
     function deleteGeoFences() {

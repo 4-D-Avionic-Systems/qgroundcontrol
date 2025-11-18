@@ -655,8 +655,8 @@ bool GeoFenceController::readGeoFenceCirclesAndPolygonsFromJson(const QJsonDocum
     errorString.clear();
     
     if (clearExisting) {
-        _circles.clear();
-        _polygons.clear();
+        _circles.clearAndDeleteContents();
+        _polygons.clearAndDeleteContents();
     }
     
     if (!doc.isObject()) {
