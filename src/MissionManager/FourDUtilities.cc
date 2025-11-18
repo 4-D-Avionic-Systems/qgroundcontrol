@@ -161,14 +161,14 @@ QJsonDocument FourDUtilities::loadGeoFences() {
     bool conversionOk;
     int customerID = customerIDString.toInt(&conversionOk);
     
-    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Load"));
-    QUrlQuery query;
+    QString endpoint;
     if (conversionOk) {
-        query.addQueryItem("customerId", QString::number(customerID));
+        endpoint = QString("/GeoFence/Load/%1").arg(customerID);
     } else {
-        query.addQueryItem("customerId", customerIDString);
+        endpoint = QString("/GeoFence/Load/%1").arg(customerIDString);
     }
-    post_url.setQuery(query);
+    
+    QUrl post_url = _apiUrl.resolved(QUrl(endpoint));
     
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");

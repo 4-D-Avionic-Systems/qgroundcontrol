@@ -58,6 +58,9 @@ QGCFlickable {
                         Dialog.Yes | Dialog.No,
                     function () {
                         planMasterController.loadGeoFences(true)
+                    },
+                    function () {
+                        planMasterController.loadGeoFences(false)
                     })
     }
 
