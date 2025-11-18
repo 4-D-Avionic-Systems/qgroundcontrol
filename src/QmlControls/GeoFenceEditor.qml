@@ -25,7 +25,7 @@ QGCFlickable {
     //4DAS Changes ------------------------------------------------------------------------------------------------------------------------------------------------------------------
     function addGeoFences() {
         showMessageDialog(qsTr("Warning"),
-                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        qsTr("Warning: GeoFences only work with exclusion zones at this point"),
                         Dialog.Ok,
                         function() {
                             let msg = planMasterController.addGeoFences()
@@ -37,11 +37,11 @@ QGCFlickable {
 
     function overwriteGeoFences() {
         showMessageDialog(qsTr("Warning"),
-                        qsTr("Warning: GeoFences only work with exclusion zones and circles at this point"),
+                        qsTr("Warning: GeoFences only work with exclusion zones at this point"),
                         Dialog.Ok,
                         function() {
                             showMessageDialog(qsTr("Are You Sure?"),
-                                                qsTr("Are you sure? This will delete all the saved GeoFences in the database."),
+                                                qsTr("Are you sure? This will delete all the saved GeoFences for the currently selected customer in the database."),
                                                 Dialog.Yes | Dialog.No,
                                                 function() {
                                                     let msg = planMasterController.overwriteGeoFences()
@@ -53,8 +53,8 @@ QGCFlickable {
     }
 
     function loadGeoFences() {
-    showMessageDialog(qsTr("Would you like to clear existing circles?"),
-                        qsTr("Click Yes to clear the existing circles before loading. \nClick No to add the loaded circles to the existing circles."),
+    showMessageDialog(qsTr("Would you like to clear existing GeoFences?"),
+                        qsTr("Click Yes to clear the existing GeoFences before loading. \nClick No to add the loaded GeoFences to the existing obstacles."),
                         Dialog.Yes | Dialog.No,
                     function () {
                         planMasterController.loadGeoFences(true)
@@ -65,8 +65,8 @@ QGCFlickable {
     }
 
     function deleteGeoFences() {
-    showMessageDialog(qsTr("Are you Sure?)"),
-                        qsTr("This will delete all existing circles"),
+    showMessageDialog(qsTr("Are you Sure?"),
+                        qsTr("This will delete all GeoFence obstacles from the database for the currently selected customer"),
                         Dialog.Yes | Dialog.No,
                     function () {
                         let msg = planMasterController.deleteGeoFences()
@@ -248,7 +248,7 @@ QGCFlickable {
 
                     QGCButton {
                         id:          deleteGeoFenceButton
-                        text:        qsTr("Clear GeoFence DB")
+                        text:        qsTr("Clear Customer GeoFences")
                         enabled:     true
                         onClicked:   root.deleteGeoFences()
                         anchors.left: parent.left
