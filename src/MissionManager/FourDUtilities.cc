@@ -6,6 +6,7 @@
 #include "FourDSettings.h"
 #include "PlanMasterController.h"
 #include "QGCCorePlugin.h"
+#include <QUrlQuery>
 
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
@@ -156,7 +157,19 @@ QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
 }
 
 QJsonDocument FourDUtilities::loadGeoFences() {
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
+    
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Load"));
+    QUrlQuery query;
+    if (conversionOk) {
+        query.addQueryItem("customerId", QString::number(customerID));
+    } else {
+        query.addQueryItem("customerId", customerIDString);
+    }
+    post_url.setQuery(query);
+    
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
 
@@ -174,10 +187,22 @@ QJsonDocument FourDUtilities::loadGeoFences() {
 }
 
 QNetworkReply* FourDUtilities::deleteGeoFences(void){
-    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Delete"));
-    QNetworkRequest request(post_url);
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
+    
+    QUrl delete_url = _apiUrl.resolved(QUrl("/GeoFence/Delete"));
+    QUrlQuery query;
+    if (conversionOk) {
+        query.addQueryItem("customerId", QString::number(customerID));
+    } else {
+        query.addQueryItem("customerId", customerIDString);
+    }
+    delete_url.setQuery(query);
+    
+    QNetworkRequest request(delete_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.sendCustomRequest(request, "DELETE", "");
+    _reply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
     return _reply;
 }
 
