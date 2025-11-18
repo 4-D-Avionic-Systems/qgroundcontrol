@@ -902,16 +902,12 @@ QString PlanMasterController::changeSeed(int seedIndex){
 
 QString PlanMasterController::deleteGeoFences(void)
 {
-   QNetworkReply* reply = _fourDUtilities->deleteGeoFences();
-   int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-   switch (statusCode) {
-       case 200:
-           qDebug() << "GeoFences deleted successfully";
-           return "GeoFences deleted successfully";
-        case 0:
-            return "GeoFences deleted successfully";
-       default:
-           return "Unexpected error occurred while deleting GeoFences (" + QString::number(statusCode) + ")";
+   bool success = _fourDUtilities->deleteGeoFences();
+   if (success) {
+       qDebug() << "GeoFences deleted successfully";
+       return "GeoFences deleted successfully";
+   } else {
+       return "Failed to delete GeoFences. Please check your network connection and try again.";
    }
 }
 //----------------------------------------------

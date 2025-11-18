@@ -186,24 +186,38 @@ QJsonDocument FourDUtilities::loadGeoFences() {
     return results;
 }
 
-QNetworkReply* FourDUtilities::deleteGeoFences(void){
+bool FourDUtilities::deleteGeoFences(void){
     QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
     bool conversionOk;
     int customerID = customerIDString.toInt(&conversionOk);
     
-    QUrl delete_url = _apiUrl.resolved(QUrl("/GeoFence/Delete"));
-    QUrlQuery query;
+    QString endpoint;
     if (conversionOk) {
-        query.addQueryItem("customerId", QString::number(customerID));
+        endpoint = QString("/GeoFence/Delete/%1").arg(customerID);
     } else {
-        query.addQueryItem("customerId", customerIDString);
+        endpoint = QString("/GeoFence/Delete/%1").arg(customerIDString);
     }
-    delete_url.setQuery(query);
+    
+    QUrl delete_url = _apiUrl.resolved(QUrl(endpoint));
     
     QNetworkRequest request(delete_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
-    return _reply;
+    
+    QNetworkReply* reply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
+    
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    bool hasNetworkError = (reply->error() != QNetworkReply::NoError);
+    
+    qDebug() << "Delete GeoFences - Status Code:" << statusCode << "Network Error:" << hasNetworkError << "Error String:" << reply->errorString();
+    
+    bool success = (statusCode == 200 || statusCode == 204 || statusCode == 202) && !hasNetworkError;
+    
+    reply->deleteLater();
+    return success;
 }
 
 QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData)
