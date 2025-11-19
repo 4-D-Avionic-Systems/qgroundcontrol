@@ -138,6 +138,7 @@ signals:
     void planCreatorsChanged                (QmlObjectListModel* planCreators);
     void managerVehicleChanged              (Vehicle* managerVehicle);
     void promptForPlanUsageOnVehicleChange  (void);
+    void deleteGeoFencesCompleted           (QString message);
 
 private slots:
     void _activeVehicleChanged      (Vehicle* activeVehicle);
@@ -149,6 +150,7 @@ private slots:
     void _sendRallyPointsComplete   (void);
     void _updateOverallDirty        (void);
     void _updatePlanCreatorsList    (void);
+    void _handleDeleteGeoFencesCompleted(bool success);
 
 private:
     void _commonInit                (void);

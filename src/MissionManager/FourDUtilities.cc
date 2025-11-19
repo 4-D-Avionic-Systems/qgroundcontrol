@@ -13,6 +13,7 @@ QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
 FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
     : QObject(parent)
+    , _deleteReply(nullptr)
 {
     _vehicle = managerVehicleRef;
     _localPositionFactGroup = _vehicle->localPositionFactGroup();
@@ -203,18 +204,26 @@ bool FourDUtilities::deleteGeoFences(void){
     QNetworkRequest request(delete_url);
     request.setRawHeader("Content-Type", "application/json");
     
-    QNetworkReply* reply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
+    _deleteReply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
+    connect(_deleteReply, &QNetworkReply::finished, this, &FourDUtilities::_handleDeleteGeoFencesFinished);
     
-    QEventLoop loop;
-    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
-    loop.exec();
+    return true; // Request initiated successfully
+}
+
+void FourDUtilities::_handleDeleteGeoFencesFinished(void)
+{
+    if (!_deleteReply) {
+        return;
+    }
     
-    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    bool hasNetworkError = (reply->error() != QNetworkReply::NoError);    
+    int statusCode = _deleteReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    bool hasNetworkError = (_deleteReply->error() != QNetworkReply::NoError);    
     bool success = (statusCode == 200 || statusCode == 204 || statusCode == 202) && !hasNetworkError;
     
-    reply->deleteLater();
-    return success;
+    _deleteReply->deleteLater();
+    _deleteReply = nullptr;
+    
+    emit deleteGeoFencesCompleted(success);
 }
 
 QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData)

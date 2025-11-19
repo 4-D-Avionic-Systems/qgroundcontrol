@@ -80,6 +80,9 @@ void PlanMasterController::_commonInit(void)
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
      _fourDUtilities = new FourDUtilities(this, _managerVehicle);
+     
+    // Connect FourDUtilities signals
+    connect(_fourDUtilities, &FourDUtilities::deleteGeoFencesCompleted, this, &PlanMasterController::_handleDeleteGeoFencesCompleted);
 }
 
 
@@ -902,11 +905,18 @@ QString PlanMasterController::changeSeed(int seedIndex){
 
 QString PlanMasterController::deleteGeoFences(void)
 {
-   bool success = _fourDUtilities->deleteGeoFences();
-   if (success) {
-       return "GeoFences deleted successfully";
-   } else {
-       return "Failed to delete GeoFences. Please check your network connection and try again.";
-   }
+   _fourDUtilities->deleteGeoFences();
+   return "Deleting GeoFences...";
+}
+
+void PlanMasterController::_handleDeleteGeoFencesCompleted(bool success)
+{
+    QString message;
+    if (success) {
+        message = "GeoFences deleted successfully";
+    } else {
+        message = "Failed to delete GeoFences. Please check your network connection and try again.";
+    }
+    emit deleteGeoFencesCompleted(message);
 }
 //----------------------------------------------
