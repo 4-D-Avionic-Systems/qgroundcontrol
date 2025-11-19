@@ -684,6 +684,7 @@ bool GeoFenceController::readGeoFenceCirclesAndPolygonsFromJson(const QJsonDocum
             }
 
             if (obj["inclusion"].toBool()) {
+                // Skip inclusion zones: only exclusion zones are currently handled
                 continue;
             }
 
@@ -729,6 +730,7 @@ bool GeoFenceController::readGeoFenceCirclesAndPolygonsFromJson(const QJsonDocum
             }
 
             if (obj["inclusion"].toBool()) {
+                // Skip inclusion zones: only exclusion zones are currently handled
                 continue;
             }
 
