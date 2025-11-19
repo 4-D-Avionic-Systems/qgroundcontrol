@@ -27,17 +27,23 @@ public:
     QNetworkReply* detectConflictSingleGeoFenceCircle(FourDRequestBody* jsonRequest, int fenceIndex);
     QNetworkReply* detectConflictSingleGeoFencePolygon(FourDRequestBody* jsonRequest, int fenceIndex);
     QJsonDocument loadGeoFences(void);
-    QNetworkReply* deleteGeoFences(void);
+    bool deleteGeoFences(void);
     QNetworkReply* changeSeed(int seedIndex);
     QJsonDocument parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData);
 
     void postTelemData(void);
 
+signals:
+    void deleteGeoFencesCompleted(bool success);
+
 private:
     void _commonInit(void);
+    void _handleDeleteGeoFencesFinished(void);
+    QVariant _getCustomerID(void);
 
     QUrl _apiUrl;
     QNetworkReply* _reply;
+    QNetworkReply* _deleteReply;
     QNetworkAccessManager _apiManager;
     QTimer* _timer;
 

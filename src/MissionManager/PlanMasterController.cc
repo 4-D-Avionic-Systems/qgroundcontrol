@@ -80,6 +80,9 @@ void PlanMasterController::_commonInit(void)
     // Offline vehicle can change firmware/vehicle type
     connect(_controllerVehicle,     &Vehicle::vehicleTypeChanged,                   this, &PlanMasterController::_updatePlanCreatorsList);
      _fourDUtilities = new FourDUtilities(this, _managerVehicle);
+     
+    // Connect FourDUtilities signals
+    connect(_fourDUtilities, &FourDUtilities::deleteGeoFencesCompleted, this, &PlanMasterController::_handleDeleteGeoFencesCompleted);
 }
 
 
@@ -850,7 +853,7 @@ QString PlanMasterController::handleUnexpectedStatus(int statusCode)
 
 QString PlanMasterController::overwriteGeoFences(void)
 {
-    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesAndPolygonsToJson();
     QNetworkReply* reply =_fourDUtilities->overwriteGeoFences(geoFenceJson);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
     switch (statusCode) {
@@ -865,7 +868,7 @@ QString PlanMasterController::overwriteGeoFences(void)
 
 QString PlanMasterController::addGeoFences(void)
 {
-    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesToJson();
+    QJsonDocument geoFenceJson = _geoFenceController.writeGeoFenceCirclesAndPolygonsToJson();
     QNetworkReply* reply = _fourDUtilities->addGeoFences(geoFenceJson);
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();    
     switch (statusCode) {
@@ -881,12 +884,10 @@ QString PlanMasterController::addGeoFences(void)
 void PlanMasterController::loadGeoFences(bool clearCircles)
 {
     QString errorString;
-    QJsonDocument loadedGeoFenceCircles = _fourDUtilities->loadGeoFences();
-    //return loadedGeoFenceCircles;
-    // Pass the dereferenced document (QJsonDocument&) to the function
-    bool success = _geoFenceController.readGeoFenceCirclesFromJson(loadedGeoFenceCircles, errorString, clearCircles);
+    QJsonDocument loadedGeoFences = _fourDUtilities->loadGeoFences();
+    bool success = _geoFenceController.readGeoFenceCirclesAndPolygonsFromJson(loadedGeoFences, errorString, clearCircles);
     if (!success) {
-        qWarning() << "Error reading GeoFence circles from JSON:" << errorString;
+        qWarning() << "Error reading GeoFences from JSON:" << errorString;
     }
 }
 
@@ -904,16 +905,18 @@ QString PlanMasterController::changeSeed(int seedIndex){
 
 QString PlanMasterController::deleteGeoFences(void)
 {
-   QNetworkReply* reply = _fourDUtilities->deleteGeoFences();
-   int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-   switch (statusCode) {
-       case 200:
-           qDebug() << "GeoFences deleted successfully";
-           return "GeoFences deleted successfully";
-        case 0:
-            return "GeoFences deleted successfully";
-       default:
-           return "Unexpected error occurred while deleting GeoFences (" + QString::number(statusCode) + ")";
-   }
+   _fourDUtilities->deleteGeoFences();
+   return "Deleting GeoFences...";
+}
+
+void PlanMasterController::_handleDeleteGeoFencesCompleted(bool success)
+{
+    QString message;
+    if (success) {
+        message = "GeoFences deleted successfully";
+    } else {
+        message = "Failed to delete GeoFences. Please check your network connection and try again.";
+    }
+    emit deleteGeoFencesCompleted(message);
 }
 //----------------------------------------------

@@ -83,12 +83,12 @@ public:
     void setDirty                   (bool dirty) final;
     bool containsItems              (void) const final;
     bool showPlanFromManagerVehicle (void) final;
-    bool readGeoFenceCirclesFromJson(const QJsonDocument& doc, QString& errorString, bool clearCircles);
+    bool readGeoFenceCirclesAndPolygonsFromJson(const QJsonDocument& doc, QString& errorString, bool clearExisting);
 
     QmlObjectListModel* polygons                (void) { return &_polygons; }
     QmlObjectListModel* circles                 (void) { return &_circles; }
     QGeoCoordinate      breachReturnPoint       (void) const { return _breachReturnPoint; }
-    QJsonDocument       writeGeoFenceCirclesToJson(void);
+    QJsonDocument       writeGeoFenceCirclesAndPolygonsToJson(void);
 
     void setBreachReturnPoint   (const QGeoCoordinate& breachReturnPoint);
     bool isEmpty                (void) const;

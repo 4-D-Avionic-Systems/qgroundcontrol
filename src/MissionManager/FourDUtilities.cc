@@ -3,14 +3,17 @@
 #include "FourDRequestItems.h"
 #include "QGCApplication.h"
 #include "SettingsManager.h"
+#include "FourDSettings.h"
 #include "PlanMasterController.h"
 #include "QGCCorePlugin.h"
+#include <QUrlQuery>
 
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
 
 FourDUtilities::FourDUtilities(QObject* parent, Vehicle* managerVehicleRef)
     : QObject(parent)
+    , _deleteReply(nullptr)
 {
     _vehicle = managerVehicleRef;
     _localPositionFactGroup = _vehicle->localPositionFactGroup();
@@ -32,6 +35,19 @@ FourDUtilities::~FourDUtilities()
 void FourDUtilities::_commonInit(void)
 {
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
+}
+
+QVariant FourDUtilities::_getCustomerID(void)
+{
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
+    
+    if (conversionOk) {
+        return QVariant(customerID);
+    } else {
+        return QVariant(customerIDString);
+    }
 }
 
 QNetworkReply*  FourDUtilities::detectConflicts(FourDRequestBody* jsonRequest)
@@ -115,23 +131,34 @@ QNetworkReply* FourDUtilities::detectConflictSingleGeoFencePolygon(FourDRequestB
 }
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
+    QJsonObject geoFenceObj = geoFences.object();
+    geoFenceObj["customerId"] = QJsonValue::fromVariant(_getCustomerID());
+    QJsonDocument geoFencesWithCustomerId(geoFenceObj);
+    
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Overwrite"));
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.put(request, geoFences.toJson());
+    _reply = _apiManager.put(request, geoFencesWithCustomerId.toJson());
     return _reply;
 }
 
 QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
+    QJsonObject geoFenceObj = geoFences.object();
+    geoFenceObj["customerId"] = QJsonValue::fromVariant(_getCustomerID());
+    QJsonDocument geoFencesWithCustomerId(geoFenceObj);
+    
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Add"));
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.post(request, geoFences.toJson());
+    _reply = _apiManager.post(request, geoFencesWithCustomerId.toJson());
     return _reply;
 }
 
 QJsonDocument FourDUtilities::loadGeoFences() {
-    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Load"));
+    QString endpoint = QString("/GeoFence/Load/%1").arg(_getCustomerID().toString());
+    
+    QUrl post_url = _apiUrl.resolved(QUrl(endpoint));
+    
     QNetworkRequest request(post_url);
     request.setRawHeader("Content-Type", "application/json");
 
@@ -148,12 +175,34 @@ QJsonDocument FourDUtilities::loadGeoFences() {
     return results;
 }
 
-QNetworkReply* FourDUtilities::deleteGeoFences(void){
-    QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Delete"));
-    QNetworkRequest request(post_url);
+bool FourDUtilities::deleteGeoFences(void){
+    QString endpoint = QString("/GeoFence/Delete/%1").arg(_getCustomerID().toString());
+    
+    QUrl delete_url = _apiUrl.resolved(QUrl(endpoint));
+    
+    QNetworkRequest request(delete_url);
     request.setRawHeader("Content-Type", "application/json");
-    _reply = _apiManager.sendCustomRequest(request, "DELETE", "");
-    return _reply;
+    
+    _deleteReply = _apiManager.sendCustomRequest(request, "DELETE", QByteArray());
+    connect(_deleteReply, &QNetworkReply::finished, this, &FourDUtilities::_handleDeleteGeoFencesFinished);
+    
+    return true; // Request initiated successfully
+}
+
+void FourDUtilities::_handleDeleteGeoFencesFinished(void)
+{
+    if (!_deleteReply) {
+        return;
+    }
+    
+    int statusCode = _deleteReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    bool hasNetworkError = (_deleteReply->error() != QNetworkReply::NoError);    
+    bool success = (statusCode == 200 || statusCode == 204 || statusCode == 202) && !hasNetworkError;
+    
+    _deleteReply->deleteLater();
+    _deleteReply = nullptr;
+    
+    emit deleteGeoFencesCompleted(success);
 }
 
 QJsonDocument FourDUtilities::parseJsonFromReply(QNetworkReply* reply, const QByteArray& responseData)
