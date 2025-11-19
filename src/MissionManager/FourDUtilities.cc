@@ -131,7 +131,7 @@ QNetworkReply* FourDUtilities::detectConflictSingleGeoFencePolygon(FourDRequestB
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
     QJsonObject geoFenceObj = geoFences.object();
-    geoFenceObj["customerId"] = _getCustomerID();
+    geoFenceObj["customerId"] = QJsonValue::fromVariant(_getCustomerID());
     QJsonDocument geoFencesWithCustomerId(geoFenceObj);
     
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Overwrite"));
@@ -143,7 +143,7 @@ QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
 
 QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
     QJsonObject geoFenceObj = geoFences.object();
-    geoFenceObj["customerId"] = _getCustomerID();
+    geoFenceObj["customerId"] = QJsonValue::fromVariant(_getCustomerID());
     QJsonDocument geoFencesWithCustomerId(geoFenceObj);
     
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Add"));
