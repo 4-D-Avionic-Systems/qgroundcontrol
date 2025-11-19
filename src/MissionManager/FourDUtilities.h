@@ -35,6 +35,7 @@ public:
 
 private:
     void _commonInit(void);
+    QVariant _getCustomerID(void);
 
     QUrl _apiUrl;
     QNetworkReply* _reply;
