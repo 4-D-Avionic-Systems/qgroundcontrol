@@ -33,12 +33,17 @@ public:
 
     void postTelemData(void);
 
+signals:
+    void deleteGeoFencesCompleted(bool success);
+
 private:
     void _commonInit(void);
+    void _handleDeleteGeoFencesFinished(void);
     QVariant _getCustomerID(void);
 
     QUrl _apiUrl;
     QNetworkReply* _reply;
+    QNetworkReply* _deleteReply;
     QNetworkAccessManager _apiManager;
     QTimer* _timer;
 
