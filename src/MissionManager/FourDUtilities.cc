@@ -37,6 +37,19 @@ void FourDUtilities::_commonInit(void)
     connect(_vehicle, &Vehicle::coordinateChanged, this, &FourDUtilities::postTelemData);
 }
 
+QVariant FourDUtilities::_getCustomerID(void)
+{
+    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+    bool conversionOk;
+    int customerID = customerIDString.toInt(&conversionOk);
+    
+    if (conversionOk) {
+        return QVariant(customerID);
+    } else {
+        return QVariant(customerIDString);
+    }
+}
+
 QNetworkReply*  FourDUtilities::detectConflicts(FourDRequestBody* jsonRequest)
 {
     QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor"));
@@ -118,16 +131,8 @@ QNetworkReply* FourDUtilities::detectConflictSingleGeoFencePolygon(FourDRequestB
 }
 
 QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
-    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
-    bool conversionOk;
-    int customerID = customerIDString.toInt(&conversionOk);
-    
     QJsonObject geoFenceObj = geoFences.object();
-    if (conversionOk) {
-        geoFenceObj["customerId"] = customerID;
-    } else {
-        geoFenceObj["customerId"] = customerIDString;
-    }
+    geoFenceObj["customerId"] = _getCustomerID();
     QJsonDocument geoFencesWithCustomerId(geoFenceObj);
     
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Overwrite"));
@@ -138,16 +143,8 @@ QNetworkReply* FourDUtilities::overwriteGeoFences(QJsonDocument geoFences){
 }
 
 QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
-    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
-    bool conversionOk;
-    int customerID = customerIDString.toInt(&conversionOk);
-    
     QJsonObject geoFenceObj = geoFences.object();
-    if (conversionOk) {
-        geoFenceObj["customerId"] = customerID;
-    } else {
-        geoFenceObj["customerId"] = customerIDString;
-    }
+    geoFenceObj["customerId"] = _getCustomerID();
     QJsonDocument geoFencesWithCustomerId(geoFenceObj);
     
     QUrl post_url = _apiUrl.resolved(QUrl("/GeoFence/Add"));
@@ -158,16 +155,7 @@ QNetworkReply* FourDUtilities::addGeoFences(QJsonDocument geoFences){
 }
 
 QJsonDocument FourDUtilities::loadGeoFences() {
-    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
-    bool conversionOk;
-    int customerID = customerIDString.toInt(&conversionOk);
-    
-    QString endpoint;
-    if (conversionOk) {
-        endpoint = QString("/GeoFence/Load/%1").arg(customerID);
-    } else {
-        endpoint = QString("/GeoFence/Load/%1").arg(customerIDString);
-    }
+    QString endpoint = QString("/GeoFence/Load/%1").arg(_getCustomerID().toString());
     
     QUrl post_url = _apiUrl.resolved(QUrl(endpoint));
     
@@ -188,16 +176,7 @@ QJsonDocument FourDUtilities::loadGeoFences() {
 }
 
 bool FourDUtilities::deleteGeoFences(void){
-    QString customerIDString = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
-    bool conversionOk;
-    int customerID = customerIDString.toInt(&conversionOk);
-    
-    QString endpoint;
-    if (conversionOk) {
-        endpoint = QString("/GeoFence/Delete/%1").arg(customerID);
-    } else {
-        endpoint = QString("/GeoFence/Delete/%1").arg(customerIDString);
-    }
+    QString endpoint = QString("/GeoFence/Delete/%1").arg(_getCustomerID().toString());
     
     QUrl delete_url = _apiUrl.resolved(QUrl(endpoint));
     

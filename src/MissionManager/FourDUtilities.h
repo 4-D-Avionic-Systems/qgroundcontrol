@@ -39,6 +39,7 @@ signals:
 private:
     void _commonInit(void);
     void _handleDeleteGeoFencesFinished(void);
+    QVariant _getCustomerID(void);
 
     QUrl _apiUrl;
     QNetworkReply* _reply;
