@@ -9,6 +9,9 @@
 #include <QObject>
 #include <QNetworkReply>
 #include <vector>
+#include <QString>
+#include <QVariantMap>
+#include <QJsonDocument>
 
 
 Q_DECLARE_LOGGING_CATEGORY(FourDUtilitiesLog)
@@ -20,7 +23,9 @@ public:
     FourDUtilities(QObject* parent = nullptr, Vehicle* managerVehicleRef = nullptr);
     ~FourDUtilities();
     QNetworkReply* detectConflicts(FourDRequestBody* jsonRequest);
-    QNetworkReply* debugDetectConflicts(FourDRequestBody* jsonRequest);
+    QNetworkReply* addFlightPathToDatabase(FourDRequestBody* jsonRequest);
+    QNetworkReply* deleteFlightPathFromDatabase();
+    QNetworkReply* deleteAllFlightPathsFromDatabase();
     QNetworkReply* detectConflictsAllGeoFences(FourDRequestBody* jsonRequest);
     QNetworkReply* overwriteGeoFences(QJsonDocument geoFences);
     QNetworkReply* addGeoFences(QJsonDocument geoFences);

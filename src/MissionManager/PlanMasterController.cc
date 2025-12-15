@@ -706,12 +706,44 @@ QString PlanMasterController::detectConflicts(QString partialJSON)
     }
 }
 
-QString PlanMasterController::debugDetectConflicts(QString partialJSON)
+QString PlanMasterController::addFlightPathToDatabase(QString partialJSON)
 {
     //qDebug() << "PlanMasterController::detectConflicts called with partialJSON:" << partialJSON;
     FourDRequestBody* requestBody = get4DRequestBody(partialJSON);
 
-    QNetworkReply* reply = _fourDUtilities->debugDetectConflicts(requestBody);
+    QNetworkReply* reply = _fourDUtilities->addFlightPathToDatabase(requestBody);
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200ResponseGeneric(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::deleteFlightPathFromDatabase()
+{
+    QNetworkReply* reply = _fourDUtilities->deleteFlightPathFromDatabase();
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    QByteArray responseData = reply->readAll(); 
+
+    switch (statusCode) {
+        case 200:
+            return handle200ResponseGeneric(responseData);
+        case 400:
+            return handle400Response(responseData);
+        default:
+            return handleUnexpectedStatus(statusCode);
+    }
+}
+
+QString PlanMasterController::deleteAllFlightPathsFromDatabase()
+{
+    QNetworkReply* reply = _fourDUtilities->deleteAllFlightPathsFromDatabase();
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     QByteArray responseData = reply->readAll(); 
 

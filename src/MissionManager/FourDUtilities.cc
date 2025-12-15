@@ -7,6 +7,7 @@
 #include "PlanMasterController.h"
 #include "QGCCorePlugin.h"
 #include <QUrlQuery>
+#include "FourDSettings.h"
 
 
 QGC_LOGGING_CATEGORY(FourDUtilitiesLog, "FourDUtilitiesLog")
@@ -66,14 +67,48 @@ QNetworkReply*  FourDUtilities::detectConflicts(FourDRequestBody* jsonRequest)
     return _reply;
 }
 
-QNetworkReply*  FourDUtilities::debugDetectConflicts(FourDRequestBody* jsonRequest)
+QNetworkReply*  FourDUtilities::addFlightPathToDatabase(FourDRequestBody* jsonRequest)
 {
-    QUrl post_url = _apiUrl.resolved(QUrl("/PX4MultiRotor/Debug"));
+    QUrl post_url = _apiUrl.resolved(QUrl("/FlightPath/Add"));
     QNetworkRequest request(post_url);
     
     request.setRawHeader("Content-Type", "application/json");
 
     _reply = _apiManager.post(request, jsonRequest->toJson().toUtf8());
+
+    // Wait for the request to finish
+    QEventLoop loop;
+    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    return _reply;
+}
+
+QNetworkReply* FourDUtilities::deleteFlightPathFromDatabase()
+{
+    QString customerID = SettingsManager::instance()->fourDSettings()->customerID()->rawValue().toString();
+
+    QUrl post_url = _apiUrl.resolved(QUrl("/FlightPath/delete/" + customerID));
+    QNetworkRequest request(post_url);
+    
+    request.setRawHeader("Content-Type", "application/json");
+
+    _reply = _apiManager.sendCustomRequest(request, "DELETE", "");
+
+    // Wait for the request to finish
+    QEventLoop loop;
+    QObject::connect(_reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    return _reply;
+}
+
+QNetworkReply* FourDUtilities::deleteAllFlightPathsFromDatabase()
+{
+    QUrl post_url = _apiUrl.resolved(QUrl("/FlightPath/delete/"));
+    QNetworkRequest request(post_url);
+    
+    request.setRawHeader("Content-Type", "application/json");
+
+    _reply = _apiManager.sendCustomRequest(request, "DELETE", "");
 
     // Wait for the request to finish
     QEventLoop loop;

@@ -88,7 +88,9 @@ public:
 
     //4DAVSYS Changes -------------------------------------------
     Q_INVOKABLE QString detectConflicts(QString partialJSON);
-    Q_INVOKABLE QString debugDetectConflicts(QString partialJSON);
+    Q_INVOKABLE QString addFlightPathToDatabase(QString partialJSON);
+    Q_INVOKABLE QString deleteFlightPathFromDatabase();
+    Q_INVOKABLE QString deleteAllFlightPathsFromDatabase();
     Q_INVOKABLE QString changeSeed(int seedIndex);
     Q_INVOKABLE void undoResolution(void);
     Q_INVOKABLE QString overwriteGeoFences(void);

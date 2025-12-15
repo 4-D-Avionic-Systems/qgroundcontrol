@@ -83,23 +83,56 @@ QGCFlickable {
 
    }
 
-    function debugDetectConflicts(){
+    function addToDatabase(){
         
         let partialJSONToSend = getJSONRequest();
 
-        let msg = planMasterController.debugDetectConflicts(partialJSONToSend);
-
-        if(msg !== "Debug Route Returned Status 200"){
-            showMessageDialog(qsTr("Debug Route Status"),
+        let msg = planMasterController.addFlightPathToDatabase(partialJSONToSend);
+        if(msg !== "Route Returned Status 200"){
+            showMessageDialog(qsTr("Add Route Status"),
                     msg,
                     Dialog.Ok);
         }
         else{
-            showMessageDialog("Debug Route Status",
-                    qsTr("Debug Route Returned Status 200"),
+            showMessageDialog(qsTr("Add Route Status"),
+                    qsTr("Adds Route Returned Status 200"),
                     Dialog.Ok);
         }
 
+    }
+
+    function deleteFromDatabase(){
+        
+        let partialJSONToSend = getJSONRequest();
+
+        let msg = planMasterController.deleteFlightPathFromDatabase();
+        if(msg !== "Route Returned Status 200"){
+            showMessageDialog(qsTr("Delete Route Status"),
+                    msg,
+                    Dialog.Ok);
+        }
+        else{
+            showMessageDialog(qsTr("Delete Route Status"),
+                    qsTr("Delete Route Returned Status 200"),
+                    Dialog.Ok);
+        }
+
+    }
+
+    function deleteAllFromDatabase(){
+        let partialJSONToSend = getJSONRequest();
+
+        let msg = planMasterController.deleteAllFlightPathsFromDatabase();
+        if(msg !== "Route Returned Status 200"){
+            showMessageDialog(qsTr("Delete Route Status"),
+                    msg,
+                    Dialog.Ok);
+        }
+        else{
+            showMessageDialog(qsTr("Delete Route Status"),
+                    qsTr("Delete Route Returned Status 200"),
+                    Dialog.Ok);
+        }
     }
 
     function seed() {
@@ -346,9 +379,31 @@ QGCFlickable {
 
                     QGCButton {
                         id:          debugDetectConflictsButton
-                        text:        qsTr("Debug")
+                        text:        qsTr("Add To Database")
                         enabled:     true
-                        onClicked:   root.debugDetectConflicts()
+                        onClicked:   root.addToDatabase()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: detectConflictButton.width
+                    }
+
+                    QGCButton {
+                        id:          deleteFromDatabaseButton
+                        text:        qsTr("Delete From Database")
+                        enabled:     true
+                        onClicked:   root.deleteFromDatabase()
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.margins: _margin // <-- Add margin
+                        width: detectConflictButton.width
+                    }
+
+                    QGCButton {
+                        id:          deleteAllFromDatabaseButton
+                        text:        qsTr("Delete All From Database")
+                        enabled:     true
+                        onClicked:   root.deleteAllFromDatabase()
                         anchors.left: parent.left
                         anchors.right: parent.right
                         anchors.margins: _margin // <-- Add margin
